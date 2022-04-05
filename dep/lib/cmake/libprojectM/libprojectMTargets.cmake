@@ -16,7 +16,7 @@ set(CMAKE_IMPORT_FILE_VERSION 1)
 set(_targetsDefined)
 set(_targetsNotDefined)
 set(_expectedTargets)
-foreach(_expectedTarget libprojectM::static)
+foreach(_expectedTarget libprojectM::static libprojectM::shared)
   list(APPEND _expectedTargets ${_expectedTarget})
   if(NOT TARGET ${_expectedTarget})
     list(APPEND _targetsNotDefined ${_expectedTarget})
@@ -57,6 +57,14 @@ set_target_properties(libprojectM::static PROPERTIES
   INTERFACE_COMPILE_OPTIONS "-DPROJECTM_STATIC_DEFINE"
   INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
   INTERFACE_LINK_LIBRARIES "\$<LINK_ONLY:GLM::GLM>;OpenGL::GL;GLEW::glew"
+)
+
+# Create imported target libprojectM::shared
+add_library(libprojectM::shared SHARED IMPORTED)
+
+set_target_properties(libprojectM::shared PROPERTIES
+  INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
+  INTERFACE_LINK_LIBRARIES "OpenGL::GL;GLEW::glew"
 )
 
 if(CMAKE_VERSION VERSION_LESS 2.8.12)

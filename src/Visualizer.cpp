@@ -3,14 +3,13 @@
 
 void myRenderer::draw() {
 
-	if (!projectMHandle)
-	{
-    	return;
-	}
-	else {
-		projectm_pcm_add_float_2ch_data(projectMHandle,pcmData,2);
+	if (projectMHandle)
 		projectm_render_frame(projectMHandle);
-	}
+}
+
+void myRenderer::handlePCMData(float pcmData[2]) {
+	if (projectMHandle)
+		projectm_pcm_add_float_2ch_data(projectMHandle,pcmData,2);
 }
 
 void myRenderer::handlePreset() {
@@ -22,7 +21,8 @@ void myRenderer::handlePreset() {
 		unsigned int currentIndex;
 		if (projectm_get_selected_preset_index(projectMHandle,&currentIndex)) {
 			if ((unsigned int)index != currentIndex) {
-				projectm_select_preset(projectMHandle,(unsigned int)index,projectm_get_hard_cut_enabled(projectMHandle));
+				index=currentIndex;
+				projectm_select_preset(projectMHandle,currentIndex,projectm_get_hard_cut_enabled(projectMHandle));
 				projectm_set_title(projectMHandle, projectm_get_title(projectMHandle));
 			}
 		}
@@ -30,7 +30,8 @@ void myRenderer::handlePreset() {
 }
 
 void myRenderer::handleWindowSize() {
-	float zoomLevel= APP->scene->rackScroll->getZoom();
+	//float zoomLevel= APP->scene->rackScroll->getZoom();
+	float zoomLevel = 1;
 	if (prevZoomlevel != zoomLevel) {
 		prevZoomlevel = zoomLevel;
 		
@@ -60,14 +61,25 @@ std::vector<std::string> myRenderer::getPresets() {
 	return presets;
 }
 
-std::string myRenderer::getNamePreset() {
+void myRenderer::nextPreset() {
+	projectm_select_next_preset(projectMHandle,hard_cut);
+}
+
+void myRenderer::prevPreset() {
+	projectm_select_previous_preset(projectMHandle,hard_cut);
+}
+
+std::string myRenderer::getNamePreset(projectm_handle pm) {
 	return getPresets()[index];
 }
 
-myRenderer::myRenderer() {
-	prevZoomlevel= 0;
-	index=0;	
-	settings = projectm_alloc_settings();
+void myRenderer::init(projectm_handle h) {
+	window = glfwCreateWindow(640, 480, "My Title",  NULL, NULL);
+	renderThread = std::thread([this,h](){ this->process(h); });
+}
+
+projectm_handle myRenderer::initSettings() {
+	projectm_settings *settings = projectm_alloc_settings();
 
 	// Window/rendering settings
 	settings->window_width = 150;
@@ -85,25 +97,51 @@ myRenderer::myRenderer() {
 	settings->hard_cut_sensitivity =  1.0;
 	settings->beat_sensitivity = 1.0;
 	settings->shuffle_enabled = true;
-	std::string thePath = asset::plugin(pluginInstance, "res\\presets_projectM");
+	std::string thePath = asset::plugin(pluginInstance, "res\\presets_projectM\\");
 	settings->preset_url = (char *)thePath.c_str();
 	// Unsupported settings
 	settings->soft_cut_ratings_enabled = false;
 	settings->menu_font_url = nullptr;
 	settings->title_font_url = nullptr;
-
-	projectMHandle = projectm_create_settings(settings, PROJECTM_FLAG_NONE);
+	projectMHandle = projectm_create_settings(settings, PROJECTM_FLAG_NONE);	
+	return projectMHandle;
 }
 
+void myRenderer::process(projectm_handle h) {
+	projectMHandle=h;
+	//Initialize(s_ptr);
+	prevZoomlevel= 0;
+	index=0;
+	if (!window)
+		return;
+	glfwMakeContextCurrent(window);
+
+	//getPresets();
+	while (true) {
+		handleWindowSize();
+		draw();
+	}
+	
+}
+
+myRenderer::myRenderer() {
+}
+
+/*void myRenderer::Initialize(projectm_settings *s) {
+	prevZoomlevel= 0;
+	index=0;
+	projectMHandle = projectm_create_settings(s, PROJECTM_FLAG_DISABLE_PLAYLIST_LOAD);	
+}*/
+
 myRenderer::~myRenderer() {
-	projectm_free_settings(settings);
+	renderThread.join();
 	projectm_destroy(projectMHandle);
 	projectMHandle = NULL;
-	settings = NULL;
 }
 
 Display::Display() {
-
+	if (module)
+		renderer.init(renderer.initSettings());
 }
 
 Display::~Display() {
@@ -111,8 +149,9 @@ Display::~Display() {
 }
 
 void Display::step() {
-	module->renderer.handleWindowSize();
-	module->renderer.handlePreset();
+//	renderer.handleWindowSize();
+//	renderer.handlePreset();
+//	renderer.handlePCMData(module->pcmData);
 
 	// Render every frame
 	dirty = true;
@@ -121,7 +160,7 @@ void Display::step() {
 }
 
 void Display::drawFramebuffer() {
-	module->renderer.draw();
+	//renderer.draw();
 }
 
 RPJVisualizer::~RPJVisualizer() {
@@ -140,45 +179,47 @@ RPJVisualizer::RPJVisualizer() {
 	configButton(PARAM_PREV, "Previous preset");
 	locked = false;
 	lightDivider.setDivision(16);
-	prev=false;
-	next=false;
 
 	// Returns a list of all presets currently loaded by projectM
-
+	next=false;
+	prev=false;
 	hard_cut_old = true;
 }
 
 void RPJVisualizer::process(const ProcessArgs &args) {
 
-	renderer.pcmData[0] = inputs[RPJVisualizer::INPUT_INL].getVoltage();
-	renderer.pcmData[1] = inputs[RPJVisualizer::INPUT_INR].getVoltage();
+	pcmData[0] = inputs[RPJVisualizer::INPUT_INL].getVoltage();
+	pcmData[1] = inputs[RPJVisualizer::INPUT_INR].getVoltage();
 	
-	renderer.locked = params[PARAM_LOCK].getValue() <= 0.f;
+	locked = params[PARAM_LOCK].getValue() <= 0.f;
 	
-	bool hard_cut = params[PARAM_HARD_CUT].getValue() <= 0.f;
+	hard_cut = params[PARAM_HARD_CUT].getValue() <= 0.f;
 	
-	if (hard_cut != hard_cut_old) {
-		renderer.hard_cut = hard_cut;
-		hard_cut_old = hard_cut;
+	if (nextTrigger.process(params[PARAM_NEXT].getValue() > 0.f)) {
+		next=true;
 	}
+	if (params[PARAM_NEXT].getValue() == 0.f)
+		next=false;
 
-	if ((params[PARAM_NEXT].getValue() > 0.f))
-		renderer.index++;
-	if ((params[PARAM_PREV].getValue() > 0.f))
-		renderer.index--;
+	if (prevTrigger.process(params[PARAM_PREV].getValue() > 0.f)) {
+		prev=true;
+	}
+	if (params[PARAM_PREV].getValue() == 0.f)
+		prev=false;
 
 	if (lightDivider.process()) {
 		lights[LOCK_LIGHT].setBrightness(locked);
 		lights[HARD_CUT_LIGHT].setBrightness(hard_cut);
 	}
+
 	lights[NEXT_LIGHT].setBrightness(next);
 	lights[PREV_LIGHT].setBrightness(prev);
 }
 
 json_t *RPJVisualizer::dataToJson() {
 	json_t *rootJ=json_object();
-	json_object_set_new(rootJ, "Locked", json_boolean(this->renderer.locked));
-	json_object_set_new(rootJ, "Preset", json_integer(this->renderer.index));
+	json_object_set_new(rootJ, "Locked", json_boolean(this->locked));
+	json_object_set_new(rootJ, "Preset", json_integer(this->index));
 	return rootJ;
 }
 
@@ -186,14 +227,15 @@ void RPJVisualizer::dataFromJson(json_t *rootJ) {
 	json_t *nLockedJ = json_object_get(rootJ, "Locked");
 	json_t *nPresetJ = json_object_get(rootJ, "Preset");
 	if (nLockedJ) {
-		this->renderer.locked = json_boolean_value(nLockedJ);
+		this->locked = json_boolean_value(nLockedJ);
 	}
 	if (nPresetJ) {
-		this->renderer.index = json_integer_value(nPresetJ);
+		this->index = json_integer_value(nPresetJ);
 	}
 }
 
 struct VisualizerModuleWidget : ModuleWidget {
+	Display *display;
 	VisualizerModuleWidget(RPJVisualizer* module) {
 
 		setModule(module);
@@ -206,16 +248,16 @@ struct VisualizerModuleWidget : ModuleWidget {
 
 		box.size = Vec(MODULE_WIDTH*RACK_GRID_WIDTH, RACK_GRID_HEIGHT);
 		
-		Display *display = new Display();
+		display = new Display();
 		display->box.pos = Vec(80, 5);
 		display->box.size = Vec(WIDTH, HEIGHT);
 		display->module = module;
 		addChild(display);
 
 		
-		PresetNameDisplay * pnd = new PresetNameDisplay(Vec(29,130));
-		pnd->module = module;
-		addChild(pnd);
+		//PresetNameDisplay * pnd = new PresetNameDisplay(Vec(29,130));
+		//pnd->module = module;
+		//addChild(pnd);
 		
 		// Then do the knobs
 		const float knobX1 = 27;
@@ -252,7 +294,7 @@ struct VisualizerModuleWidget : ModuleWidget {
 		RPJVisualizer *module = dynamic_cast<RPJVisualizer*>(this->module);
 
 		menu->addChild(new MenuSeparator());
-		menu->addChild(createIndexPtrSubmenuItem("PlayList", module->renderer.getPresets(), &module->renderer.index));
+		//menu->addChild(createIndexPtrSubmenuItem("PlayList", display->renderer.getPresets(), &module->index));
 
 	}
 };
