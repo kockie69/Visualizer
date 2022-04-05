@@ -1,4 +1,5 @@
 #include "rack.hpp"
+#include <thread>
 #include "../dep/include/libprojectM/projectM.h"
 
 using namespace rack;
@@ -8,24 +9,33 @@ const int WIDTH=370;
 const int HEIGHT=370;
 const int PRESETDISPLAYLENGTH=12;
 
+struct Display;
 
 struct myRenderer {
 	myRenderer();
 	~myRenderer();
+	void init(projectm_handle);
+	projectm_handle initSettings();
+	void Initialize(projectm_settings *);
+	void process(projectm_handle);
 	std::vector<std::string> getPresets();
 	void handleWindowSize();
 	void handlePreset();
-	std::string getNamePreset();
+	std::string getNamePreset(projectm_handle);
 	void draw();
+	void nextPreset();
+	void prevPreset();
+	void handlePCMData(float *);
 	projectm_handle projectMHandle;
-	projectm_settings *settings;
+	//projectm_settings *settings;
 	float prevZoomlevel;
 	size_t renderWidth;
 	size_t renderHeight;
 	int index,currentIndex;
-	float pcmData[2];
 	bool locked;
 	bool hard_cut;
+	std::thread renderThread;
+	GLFWwindow* window;
 };
 
 struct RPJVisualizer : Module {
@@ -61,14 +71,16 @@ struct RPJVisualizer : Module {
 		void processChannel(Input&, Input&, Output&);
 		json_t *dataToJson() override;
 		void dataFromJson(json_t *) override;
-		myRenderer renderer;
 		bool hard_cut_old;
-		bool prev,next;
-		
+		dsp::BooleanTrigger nextTrigger,prevTrigger;
 		bool locked;
+		bool hard_cut;
 		dsp::ClockDivider lightDivider;
 		int rating_list[3] = {1,2,3};
 		unsigned int currentIndex;
+		bool next,prev;
+		float pcmData[2];
+		int index;
 };
 
 struct Display : OpenGlWidget {
@@ -76,12 +88,11 @@ struct Display : OpenGlWidget {
 	~Display();
 	void drawFramebuffer() override;
 	void step() override;
-
+	myRenderer renderer;
 	RPJVisualizer *module;
-	projectm *pm;
 };
 
-struct PresetNameDisplay : TransparentWidget {
+/*struct PresetNameDisplay : TransparentWidget {
 	std::shared_ptr<Font> font;
 	NVGcolor txtCol;
 	RPJVisualizer* module;
@@ -123,8 +134,8 @@ struct PresetNameDisplay : TransparentWidget {
 				std::snprintf(tbuf, sizeof(tbuf), "%s", "Marbles");
 			else {
 				std::string txt;
-				if (module->renderer.getPresets().size() >0) {
-					txt = module->renderer.getNamePreset();
+				if (module->display->renderer.getPresets().size() >0) {
+					txt = module->display->renderer.getNamePreset();
 					if (textDivider.process()) {
 						txtStart++;
 						if ((txtStart+PRESETDISPLAYLENGTH)>(int)txt.length())
@@ -176,4 +187,4 @@ struct PresetNameDisplay : TransparentWidget {
 		nvgFillColor(args.vg, nvgRGBA(txtCol.r, txtCol.g, txtCol.b, txtCol.a));
 		nvgText(args.vg, c.x, c.y+fh-1, txt, NULL);
 	}
-};
+};*/
