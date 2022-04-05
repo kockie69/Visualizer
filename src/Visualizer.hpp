@@ -11,6 +11,10 @@ const int PRESETDISPLAYLENGTH=12;
 
 struct Display;
 
+struct parameters {
+	
+};
+
 struct myRenderer {
 	myRenderer();
 	~myRenderer();
@@ -21,17 +25,20 @@ struct myRenderer {
 	std::vector<std::string> getPresets();
 	void handleWindowSize();
 	void handlePreset();
+	void handleLocked(bool);
 	std::string getNamePreset(projectm_handle);
+	std::string getName();
 	void draw();
-	void nextPreset();
-	void prevPreset();
+	void nextPreset(bool);
+	void prevPreset(bool);
 	void handlePCMData(float *);
+	void handleHardCut(bool);
 	projectm_handle projectMHandle;
 	//projectm_settings *settings;
 	float prevZoomlevel;
 	size_t renderWidth;
 	size_t renderHeight;
-	int index,currentIndex;
+	int index,oldIndex;
 	bool locked;
 	bool hard_cut;
 	std::thread renderThread;
@@ -71,7 +78,7 @@ struct RPJVisualizer : Module {
 		void processChannel(Input&, Input&, Output&);
 		json_t *dataToJson() override;
 		void dataFromJson(json_t *) override;
-		bool hard_cut_old;
+
 		dsp::BooleanTrigger nextTrigger,prevTrigger;
 		bool locked;
 		bool hard_cut;
@@ -81,6 +88,8 @@ struct RPJVisualizer : Module {
 		bool next,prev;
 		float pcmData[2];
 		int index;
+		std::string presetName;
+		int presetSize;
 };
 
 struct Display : OpenGlWidget {
@@ -92,7 +101,7 @@ struct Display : OpenGlWidget {
 	RPJVisualizer *module;
 };
 
-/*struct PresetNameDisplay : TransparentWidget {
+struct PresetNameDisplay : TransparentWidget {
 	std::shared_ptr<Font> font;
 	NVGcolor txtCol;
 	RPJVisualizer* module;
@@ -134,8 +143,8 @@ struct Display : OpenGlWidget {
 				std::snprintf(tbuf, sizeof(tbuf), "%s", "Marbles");
 			else {
 				std::string txt;
-				if (module->display->renderer.getPresets().size() >0) {
-					txt = module->display->renderer.getNamePreset();
+				if (module->presetSize >0) {
+					txt = module->presetName;
 					if (textDivider.process()) {
 						txtStart++;
 						if ((txtStart+PRESETDISPLAYLENGTH)>(int)txt.length())
@@ -187,4 +196,4 @@ struct Display : OpenGlWidget {
 		nvgFillColor(args.vg, nvgRGBA(txtCol.r, txtCol.g, txtCol.b, txtCol.a));
 		nvgText(args.vg, c.x, c.y+fh-1, txt, NULL);
 	}
-};*/
+};

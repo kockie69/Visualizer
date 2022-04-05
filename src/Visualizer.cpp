@@ -17,21 +17,17 @@ void myRenderer::handlePreset() {
 	if (projectMHandle) {
 		projectm_set_hard_cut_enabled(projectMHandle,hard_cut);
 		projectm_lock_preset(projectMHandle,locked);	
-	
-		unsigned int currentIndex;
-		if (projectm_get_selected_preset_index(projectMHandle,&currentIndex)) {
-			if ((unsigned int)index != currentIndex) {
-				index=currentIndex;
-				projectm_select_preset(projectMHandle,currentIndex,projectm_get_hard_cut_enabled(projectMHandle));
-				projectm_set_title(projectMHandle, projectm_get_title(projectMHandle));
-			}
+		
+		if (oldIndex!=index) {
+			projectm_select_preset(projectMHandle,index,hard_cut);
+			oldIndex=index;
 		}
+		//projectm_set_title(projectMHandle, projectm_get_title(projectMHandle));
 	}
 }
 
 void myRenderer::handleWindowSize() {
-	//float zoomLevel= APP->scene->rackScroll->getZoom();
-	float zoomLevel = 1;
+	float zoomLevel= APP->scene->rackScroll->getZoom();
 	if (prevZoomlevel != zoomLevel) {
 		prevZoomlevel = zoomLevel;
 		
@@ -61,21 +57,35 @@ std::vector<std::string> myRenderer::getPresets() {
 	return presets;
 }
 
-void myRenderer::nextPreset() {
-	projectm_select_next_preset(projectMHandle,hard_cut);
+void myRenderer::nextPreset(bool next) {
+	if (next)
+		projectm_select_next_preset(projectMHandle,projectm_get_hard_cut_enabled(projectMHandle));
 }
 
-void myRenderer::prevPreset() {
-	projectm_select_previous_preset(projectMHandle,hard_cut);
+void myRenderer::prevPreset(bool prev) {
+	if (prev)
+		projectm_select_previous_preset(projectMHandle,projectm_get_hard_cut_enabled(projectMHandle));
+}
+
+void myRenderer::handleLocked(bool l) {
+	projectm_lock_preset(projectMHandle,l);
+}
+
+void myRenderer::handleHardCut(bool h) {
+	projectm_set_hard_cut_enabled(projectMHandle,h);
 }
 
 std::string myRenderer::getNamePreset(projectm_handle pm) {
 	return getPresets()[index];
 }
 
+std::string myRenderer::getName() {
+	return getNamePreset(projectMHandle);
+}
+
 void myRenderer::init(projectm_handle h) {
-	window = glfwCreateWindow(640, 480, "My Title",  NULL, NULL);
-	renderThread = std::thread([this,h](){ this->process(h); });
+//	window = glfwCreateWindow(640, 480, "My Title",  NULL, NULL);
+//	renderThread = std::thread([this,h](){ this->process(h); });
 }
 
 projectm_handle myRenderer::initSettings() {
@@ -103,11 +113,12 @@ projectm_handle myRenderer::initSettings() {
 	settings->soft_cut_ratings_enabled = false;
 	settings->menu_font_url = nullptr;
 	settings->title_font_url = nullptr;
-	projectMHandle = projectm_create_settings(settings, PROJECTM_FLAG_NONE);	
+	projectMHandle = projectm_create_settings(settings, PROJECTM_FLAG_NONE);
+		
 	return projectMHandle;
 }
 
-void myRenderer::process(projectm_handle h) {
+/*void myRenderer::process(projectm_handle h) {
 	projectMHandle=h;
 	//Initialize(s_ptr);
 	prevZoomlevel= 0;
@@ -122,9 +133,10 @@ void myRenderer::process(projectm_handle h) {
 		draw();
 	}
 	
-}
+}*/
 
 myRenderer::myRenderer() {
+	oldIndex=-1;
 }
 
 /*void myRenderer::Initialize(projectm_settings *s) {
@@ -134,7 +146,8 @@ myRenderer::myRenderer() {
 }*/
 
 myRenderer::~myRenderer() {
-	renderThread.join();
+	//renderThread.join();
+	//projectm_free_settings(settings);
 	projectm_destroy(projectMHandle);
 	projectMHandle = NULL;
 }
@@ -149,10 +162,18 @@ Display::~Display() {
 }
 
 void Display::step() {
-//	renderer.handleWindowSize();
-//	renderer.handlePreset();
-//	renderer.handlePCMData(module->pcmData);
-
+	if (module) {
+		renderer.handleWindowSize();
+		renderer.handlePreset();
+		renderer.handlePCMData(module->pcmData);
+		renderer.nextPreset(module->next);
+		renderer.prevPreset(module->prev);
+		renderer.locked = module->locked;
+		renderer.hard_cut = module->hard_cut;
+		renderer.index=module->index;
+		module->presetName = renderer.getName();
+		module->presetSize = renderer.getPresets().size();
+	}
 	// Render every frame
 	dirty = true;
 
@@ -161,6 +182,8 @@ void Display::step() {
 
 void Display::drawFramebuffer() {
 	//renderer.draw();
+	if (renderer.projectMHandle)
+		projectm_render_frame(renderer.projectMHandle);
 }
 
 RPJVisualizer::~RPJVisualizer() {
@@ -183,7 +206,7 @@ RPJVisualizer::RPJVisualizer() {
 	// Returns a list of all presets currently loaded by projectM
 	next=false;
 	prev=false;
-	hard_cut_old = true;
+	index=-1;
 }
 
 void RPJVisualizer::process(const ProcessArgs &args) {
@@ -294,7 +317,7 @@ struct VisualizerModuleWidget : ModuleWidget {
 		RPJVisualizer *module = dynamic_cast<RPJVisualizer*>(this->module);
 
 		menu->addChild(new MenuSeparator());
-		//menu->addChild(createIndexPtrSubmenuItem("PlayList", display->renderer.getPresets(), &module->index));
+		menu->addChild(createIndexPtrSubmenuItem("PlayList", display->renderer.getPresets(), &module->index));
 
 	}
 };
