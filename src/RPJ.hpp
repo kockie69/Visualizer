@@ -4,4 +4,4 @@ using namespace rack;
 
 extern Plugin *pluginInstance;
 extern Model *modelVisualizer;
-extern Model *modelVisualizerFull;
+//extern Model *modelVisualizerFull;

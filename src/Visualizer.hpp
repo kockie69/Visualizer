@@ -23,26 +23,28 @@ struct myRenderer {
 	void Initialize(projectm_settings *);
 	void process(projectm_handle);
 	std::vector<std::string> getPresets();
-	void handleWindowSize();
-	void handlePreset();
+	void handleWindowSize(float,float);
+	void handlePreset(int,int,bool);
 	void handleLocked(bool);
 	std::string getNamePreset(projectm_handle);
 	std::string getName();
 	void draw();
-	void nextPreset(bool);
-	void prevPreset(bool);
+	void nextPreset(bool,bool);
+	void prevPreset(bool,bool);
 	void handlePCMData(float *);
 	void handleHardCut(bool);
 	projectm_handle projectMHandle;
 	//projectm_settings *settings;
-	float prevZoomlevel;
+	float prevZoomlevel,prevRx,prevRy;
 	size_t renderWidth;
 	size_t renderHeight;
-	int index,oldIndex;
+	int index;
 	bool locked;
 	bool hard_cut;
 	std::thread renderThread;
 	GLFWwindow* window;
+	bool changed=false;
+	bool changeProcessed=false;
 };
 
 struct RPJVisualizer : Module {
@@ -52,6 +54,10 @@ struct RPJVisualizer : Module {
 		PARAM_PREV,
 		PARAM_LOCK,
 		PARAM_HARD_CUT,
+		PARAM_RESIZE_X,
+		PARAM_RESIZE_Y,
+		PARAM_POS_X,
+		PARAM_POS_Y,
 		NUM_PARAMS,
 	};
 
@@ -90,6 +96,8 @@ struct RPJVisualizer : Module {
 		int index;
 		std::string presetName;
 		int presetSize;
+		float resizeX,resizeY;
+		float posX,posY;
 };
 
 struct Display : OpenGlWidget {
@@ -99,6 +107,7 @@ struct Display : OpenGlWidget {
 	void step() override;
 	myRenderer renderer;
 	RPJVisualizer *module;
+	int oldIndex;
 };
 
 struct PresetNameDisplay : TransparentWidget {

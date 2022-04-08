@@ -1,5 +1,6 @@
 #include "RPJ.hpp"
 #include "Visualizer.hpp"
+#include "ctrl/RPJKnobs.hpp"
 
 void myRenderer::draw() {
 
@@ -12,31 +13,37 @@ void myRenderer::handlePCMData(float pcmData[2]) {
 		projectm_pcm_add_float_2ch_data(projectMHandle,pcmData,2);
 }
 
-void myRenderer::handlePreset() {
+void myRenderer::handlePreset(int i,int c,bool h) {
 
 	if (projectMHandle) {
-		projectm_set_hard_cut_enabled(projectMHandle,hard_cut);
-		projectm_lock_preset(projectMHandle,locked);	
-		
-		if (oldIndex!=index) {
-			projectm_select_preset(projectMHandle,index,hard_cut);
-			oldIndex=index;
-		}
-		//projectm_set_title(projectMHandle, projectm_get_title(projectMHandle));
+	
+		if (i!=c)
+			projectm_select_preset(projectMHandle,i,h);
 	}
 }
 
-void myRenderer::handleWindowSize() {
+void myRenderer::handleWindowSize(float rx,float ry) {
+	if (!projectMHandle)
+		return;
+	GLFWmonitor* monitor = glfwGetPrimaryMonitor();;
+	glfwGetVideoMode( monitor );
+	const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+
 	float zoomLevel= APP->scene->rackScroll->getZoom();
-	if (prevZoomlevel != zoomLevel) {
+	bool changing = ((prevZoomlevel != zoomLevel) || (prevRx != rx) || (prevRy != ry));
+	if (changing) {
+		changed=true;
 		prevZoomlevel = zoomLevel;
-		
-		renderWidth = WIDTH * zoomLevel;
-		renderHeight = HEIGHT * zoomLevel;
-		if (!projectMHandle)
-			return;
-		else 			
-			projectm_set_window_size(projectMHandle, renderWidth, renderHeight);
+		prevRx = rx;
+		prevRy =ry;
+	}
+	if (changed && !changing) {
+		renderWidth = (1920 * (1920 / mode->width)) /5.3 * zoomLevel * rx;
+		renderHeight = (1080 * (1080 / mode->height)) /2.95 * zoomLevel *ry;
+
+		projectm_set_window_size(projectMHandle, renderWidth, renderHeight);
+		changed=false;
+		changeProcessed=true;
 	}
 }
 
@@ -57,14 +64,14 @@ std::vector<std::string> myRenderer::getPresets() {
 	return presets;
 }
 
-void myRenderer::nextPreset(bool next) {
-	if (next)
-		projectm_select_next_preset(projectMHandle,projectm_get_hard_cut_enabled(projectMHandle));
+void myRenderer::nextPreset(bool n,bool h) {
+	if (n)
+		projectm_select_next_preset(projectMHandle,h);
 }
 
-void myRenderer::prevPreset(bool prev) {
-	if (prev)
-		projectm_select_previous_preset(projectMHandle,projectm_get_hard_cut_enabled(projectMHandle));
+void myRenderer::prevPreset(bool p,bool h) {
+	if (p)
+		projectm_select_previous_preset(projectMHandle,h);
 }
 
 void myRenderer::handleLocked(bool l) {
@@ -92,8 +99,8 @@ projectm_handle myRenderer::initSettings() {
 	projectm_settings *settings = projectm_alloc_settings();
 
 	// Window/rendering settings
-	settings->window_width = 150;
-	settings->window_height = 150;
+	settings->window_width = 700;
+	settings->window_height = 700;
 	settings->fps =  60;
 	settings->mesh_x = 220;
 	settings->mesh_y = 125;
@@ -136,7 +143,7 @@ projectm_handle myRenderer::initSettings() {
 }*/
 
 myRenderer::myRenderer() {
-	oldIndex=-1;
+	index=0;
 }
 
 /*void myRenderer::Initialize(projectm_settings *s) {
@@ -153,8 +160,9 @@ myRenderer::~myRenderer() {
 }
 
 Display::Display() {
-	if (module)
-		renderer.init(renderer.initSettings());
+//	if (module)
+	renderer.init(renderer.initSettings());
+	oldIndex=-1;
 }
 
 Display::~Display() {
@@ -163,16 +171,28 @@ Display::~Display() {
 
 void Display::step() {
 	if (module) {
-		renderer.handleWindowSize();
-		renderer.handlePreset();
-		renderer.handlePCMData(module->pcmData);
-		renderer.nextPreset(module->next);
-		renderer.prevPreset(module->prev);
-		renderer.locked = module->locked;
-		renderer.hard_cut = module->hard_cut;
-		renderer.index=module->index;
+		renderer.handleWindowSize(module->resizeX,module->resizeY);
+		unsigned int *currentIndex = (unsigned int *)malloc(sizeof(currentIndex));
+		if (projectm_get_selected_preset_index(renderer.projectMHandle,currentIndex)) {
+			if ((unsigned int)module->index != *(currentIndex)) {
+				if (oldIndex==module->index)
+					oldIndex=*(currentIndex);
+				else
+					oldIndex=module->index;
+				projectm_select_preset(renderer.projectMHandle,oldIndex,module->hard_cut);
+				module->index = oldIndex;
+			}
+		}
+		free(currentIndex);
+		
+		projectm_pcm_add_float_2ch_data(renderer.projectMHandle,module->pcmData,2);
+		
+		renderer.nextPreset(module->next,module->hard_cut);
+		renderer.prevPreset(module->prev,module->hard_cut);
+		projectm_lock_preset(renderer.projectMHandle,module->locked);
+		projectm_set_hard_cut_enabled(renderer.projectMHandle,module->hard_cut);
 		module->presetName = renderer.getName();
-		module->presetSize = renderer.getPresets().size();
+		//module->presetSize = renderer.getPresets().size();
 	}
 	// Render every frame
 	dirty = true;
@@ -182,8 +202,12 @@ void Display::step() {
 
 void Display::drawFramebuffer() {
 	//renderer.draw();
-	if (renderer.projectMHandle)
+
+	if (renderer.projectMHandle) {
+		this->setPosition(Vec(80+module->posX,-360+module->posY));
+		this->setSize(Vec(renderer.renderWidth,renderer.renderHeight));
 		projectm_render_frame(renderer.projectMHandle);
+	}
 }
 
 RPJVisualizer::~RPJVisualizer() {
@@ -198,6 +222,10 @@ RPJVisualizer::RPJVisualizer() {
 	configSwitch(PARAM_PREV, 0.f, 1.f, 1.f, "Previous preset");
 	configSwitch(PARAM_LOCK, 0.f, 1.f, 1.f, "Preset lock mode", {"Locked", "Unlocked"});
 	configSwitch(PARAM_HARD_CUT, 0.f, 1.f, 1.f, "Hard cut mode", {"Enabled", "Disabled"});
+	configParam(PARAM_RESIZE_X, 0.f, 1.f, 1.f, "Resize Preset X-axis");
+	configParam(PARAM_RESIZE_Y, 0.f, 1.f, 1.f, "Resize Preset Y-axis");
+	configParam(PARAM_POS_X, 0.f, 350.f, 0.f, "Position Preset X-axis");
+	configParam(PARAM_POS_Y, 0.f, 350.f, 0.f, "Position Preset Y-axis");
 	configButton(PARAM_NEXT, "Next preset");
 	configButton(PARAM_PREV, "Previous preset");
 	locked = false;
@@ -206,6 +234,7 @@ RPJVisualizer::RPJVisualizer() {
 	// Returns a list of all presets currently loaded by projectM
 	next=false;
 	prev=false;
+	hard_cut=false;
 	index=-1;
 }
 
@@ -218,6 +247,14 @@ void RPJVisualizer::process(const ProcessArgs &args) {
 	
 	hard_cut = params[PARAM_HARD_CUT].getValue() <= 0.f;
 	
+	resizeX = params[PARAM_RESIZE_X].getValue();
+	resizeY = params[PARAM_RESIZE_Y].getValue();
+
+	posX = params[PARAM_POS_X].getValue();
+	posY = params[PARAM_POS_Y].getValue();
+	//resizeX = 1;
+	//resizeY = 1;
+
 	if (nextTrigger.process(params[PARAM_NEXT].getValue() > 0.f)) {
 		next=true;
 	}
@@ -274,6 +311,7 @@ struct VisualizerModuleWidget : ModuleWidget {
 		display = new Display();
 		display->box.pos = Vec(80, 5);
 		display->box.size = Vec(WIDTH, HEIGHT);
+		//display->setSize(Vec(WIDTH, HEIGHT));
 		display->module = module;
 		addChild(display);
 
@@ -283,14 +321,20 @@ struct VisualizerModuleWidget : ModuleWidget {
 		//addChild(pnd);
 		
 		// Then do the knobs
-		const float knobX1 = 27;
-
-		const float knobY1 = 33;
-		const float knobY2 = 79;
+		const float knobX1 = 10;
+		const float knobX2 = 45;
+		const float knobY1 = 87;
+		const float knobY2 = 137;
+		//const float knobY2 = 79;
 		//const float knobY3 = 122;
 		//const float knobY4 = 150;
 		//const float knobY5 = 178;
 		//const float knobY6 = 206;
+
+		addParam(createParam<RPJKnob>(Vec(knobX1,knobY1), module, RPJVisualizer::PARAM_POS_X));
+		addParam(createParam<RPJKnob>(Vec(knobX2,knobY1), module, RPJVisualizer::PARAM_POS_Y));
+		addParam(createParam<RPJKnob>(Vec(knobX1,knobY2), module, RPJVisualizer::PARAM_RESIZE_X));
+		addParam(createParam<RPJKnob>(Vec(knobX2,knobY2), module, RPJVisualizer::PARAM_RESIZE_Y));
 
 		const float buttonX1 = 41;
 
