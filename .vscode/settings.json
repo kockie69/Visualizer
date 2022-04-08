@@ -75,7 +75,18 @@
         "xutility": "cpp",
         "numbers": "cpp",
         "semaphore": "cpp",
-        "cfenv": "cpp"
+        "cfenv": "cpp",
+        "condition_variable": "cpp",
+        "mutex": "cpp",
+        "format": "cpp",
+        "xlocmes": "cpp",
+        "xlocmon": "cpp",
+        "xloctime": "cpp",
+        "charconv": "cpp",
+        "forward_list": "cpp",
+        "locale": "cpp",
+        "xlocbuf": "cpp",
+        "xtree": "cpp"
     },
     "C_Cpp.errorSquiggles": "Disabled"
 }

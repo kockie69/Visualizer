@@ -100,7 +100,7 @@ build/src/Visualizer.cpp.o: src/Visualizer.cpp src/RPJ.hpp \
  ..//Rack-SDK/include/dsp/convert.hpp src/Visualizer.hpp \
  src/../dep/include/libprojectM/projectM.h \
  src/../dep/include/libprojectM/projectM_export.h \
- src/../dep/include/libprojectM/event.h
+ src/../dep/include/libprojectM/event.h src/ctrl/RPJKnobs.hpp
 src/RPJ.hpp:
 ..//Rack-SDK/include/rack.hpp:
 ..//Rack-SDK/include/common.hpp:
@@ -226,3 +226,4 @@ src/Visualizer.hpp:
 src/../dep/include/libprojectM/projectM.h:
 src/../dep/include/libprojectM/projectM_export.h:
 src/../dep/include/libprojectM/event.h:
+src/ctrl/RPJKnobs.hpp:

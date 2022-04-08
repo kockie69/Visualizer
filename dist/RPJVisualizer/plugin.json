@@ -19,13 +19,6 @@
       "description": "Psycho visualizer",
       "manualUrl": "https://github.com/kockie69/RPJ/blob/v2/docs/visualizer.md",
       "tags": ["Utilities"]
-    },
-    {
-      "slug": "RPJVisualizerFull",
-      "name": "RPJ Visualizer Full Screen",
-      "description": "Psycho visualizer",
-      "manualUrl": "https://github.com/kockie69/RPJ/blob/v2/docs/visualizer.md",
-      "tags": ["Utilities"]
     }
   ]
 }
