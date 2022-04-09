@@ -5,8 +5,8 @@
 using namespace rack;
 
 const int MODULE_WIDTH=31;
-const int WIDTH=370;
-const int HEIGHT=370;
+const int WIDTH=380;
+const int HEIGHT=380;
 const int PRESETDISPLAYLENGTH=12;
 
 struct Display;
@@ -42,7 +42,7 @@ struct myRenderer {
 	bool locked;
 	bool hard_cut;
 	std::thread renderThread;
-	GLFWwindow* window;
+	//GLFWwindow* window;
 	bool changed=false;
 	bool changeProcessed=false;
 };
@@ -58,12 +58,15 @@ struct RPJVisualizer : Module {
 		PARAM_RESIZE_Y,
 		PARAM_POS_X,
 		PARAM_POS_Y,
+		PARAM_TIMER,
 		NUM_PARAMS,
 	};
 
 	enum InputIds {
 		INPUT_INL,
 		INPUT_INR,
+		INPUT_NEXT,
+		INPUT_PREV,
 		NUM_INPUTS,
 	};
 
@@ -84,20 +87,22 @@ struct RPJVisualizer : Module {
 		void processChannel(Input&, Input&, Output&);
 		json_t *dataToJson() override;
 		void dataFromJson(json_t *) override;
-
-		dsp::BooleanTrigger nextTrigger,prevTrigger;
+		bool shuffleEnabled;
+		dsp::BooleanTrigger nextBoolTrigger,prevBoolTrigger;
+		dsp::SchmittTrigger nextSchmittTrigger,prevSchmittTrigger;
 		bool locked;
 		bool hard_cut;
 		dsp::ClockDivider lightDivider;
 		int rating_list[3] = {1,2,3};
 		unsigned int currentIndex;
-		bool next,prev;
+		bool next,prev,nextLight,prevLight;
 		float pcmData[2];
 		int index;
 		std::string presetName;
 		int presetSize;
 		float resizeX,resizeY;
 		float posX,posY;
+		int timer;
 };
 
 struct Display : OpenGlWidget {
@@ -105,6 +110,7 @@ struct Display : OpenGlWidget {
 	~Display();
 	void drawFramebuffer() override;
 	void step() override;
+	ModuleWidget *widget;
 	myRenderer renderer;
 	RPJVisualizer *module;
 	int oldIndex;

@@ -25,10 +25,7 @@ void myRenderer::handlePreset(int i,int c,bool h) {
 void myRenderer::handleWindowSize(float rx,float ry) {
 	if (!projectMHandle)
 		return;
-	GLFWmonitor* monitor = glfwGetPrimaryMonitor();;
-	glfwGetVideoMode( monitor );
-	const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-
+	Vec size = APP->window->getSize();
 	float zoomLevel= APP->scene->rackScroll->getZoom();
 	bool changing = ((prevZoomlevel != zoomLevel) || (prevRx != rx) || (prevRy != ry));
 	if (changing) {
@@ -38,10 +35,11 @@ void myRenderer::handleWindowSize(float rx,float ry) {
 		prevRy =ry;
 	}
 	if (changed && !changing) {
-		renderWidth = (1920 * (1920 / mode->width)) /5.3 * zoomLevel * rx;
-		renderHeight = (1080 * (1080 / mode->height)) /2.95 * zoomLevel *ry;
+		renderWidth = rx*380*zoomLevel;
+		renderHeight = ry*380*zoomLevel;
 
-		projectm_set_window_size(projectMHandle, renderWidth, renderHeight);
+		//projectm_set_window_size(projectMHandle, renderWidth, renderHeight);
+		projectm_set_window_size(projectMHandle, rx*380*zoomLevel, ry*380*zoomLevel);
 		changed=false;
 		changeProcessed=true;
 	}
@@ -171,6 +169,8 @@ Display::~Display() {
 
 void Display::step() {
 	if (module) {
+		projectm_set_shuffle_enabled(renderer.projectMHandle,module->shuffleEnabled);
+		projectm_set_preset_duration(renderer.projectMHandle,module->timer);
 		renderer.handleWindowSize(module->resizeX,module->resizeY);
 		unsigned int *currentIndex = (unsigned int *)malloc(sizeof(currentIndex));
 		if (projectm_get_selected_preset_index(renderer.projectMHandle,currentIndex)) {
@@ -188,7 +188,9 @@ void Display::step() {
 		projectm_pcm_add_float_2ch_data(renderer.projectMHandle,module->pcmData,2);
 		
 		renderer.nextPreset(module->next,module->hard_cut);
+		module->next=false;
 		renderer.prevPreset(module->prev,module->hard_cut);
+		module->prev=false;
 		projectm_lock_preset(renderer.projectMHandle,module->locked);
 		projectm_set_hard_cut_enabled(renderer.projectMHandle,module->hard_cut);
 		module->presetName = renderer.getName();
@@ -204,8 +206,13 @@ void Display::drawFramebuffer() {
 	//renderer.draw();
 
 	if (renderer.projectMHandle) {
-		this->setPosition(Vec(80+module->posX,-360+module->posY));
-		this->setSize(Vec(renderer.renderWidth,renderer.renderHeight));
+		math::Vec fbSize = getFramebufferSize();
+		float x = widget->getSize().x;
+		float y = widget->getSize().y;
+		this->setSize(Vec(module->resizeX*380,module->resizeX*380));
+		this->setPosition(Vec(85+module->posX, module->posY));
+		//this->setPosition(Vec(80,0));
+		//this->setSize(Vec(-85+widget->getSize().x,widget->getSize().y));
 		projectm_render_frame(renderer.projectMHandle);
 	}
 }
@@ -224,8 +231,9 @@ RPJVisualizer::RPJVisualizer() {
 	configSwitch(PARAM_HARD_CUT, 0.f, 1.f, 1.f, "Hard cut mode", {"Enabled", "Disabled"});
 	configParam(PARAM_RESIZE_X, 0.f, 1.f, 1.f, "Resize Preset X-axis");
 	configParam(PARAM_RESIZE_Y, 0.f, 1.f, 1.f, "Resize Preset Y-axis");
-	configParam(PARAM_POS_X, 0.f, 350.f, 0.f, "Position Preset X-axis");
-	configParam(PARAM_POS_Y, 0.f, 350.f, 0.f, "Position Preset Y-axis");
+	configParam(PARAM_POS_X, 0.f, 379.f, 0.f, "Position Preset X-axis");
+	configParam(PARAM_POS_Y, 0.f, 379.f, 0.f, "Position Preset Y-axis");
+	configParam(PARAM_TIMER, 0.f, 300.f, 30.f, "Time till next preset","Seconds");
 	configButton(PARAM_NEXT, "Next preset");
 	configButton(PARAM_PREV, "Previous preset");
 	locked = false;
@@ -247,6 +255,8 @@ void RPJVisualizer::process(const ProcessArgs &args) {
 	
 	hard_cut = params[PARAM_HARD_CUT].getValue() <= 0.f;
 	
+	timer = params[PARAM_TIMER].getValue();
+
 	resizeX = params[PARAM_RESIZE_X].getValue();
 	resizeY = params[PARAM_RESIZE_Y].getValue();
 
@@ -255,64 +265,70 @@ void RPJVisualizer::process(const ProcessArgs &args) {
 	//resizeX = 1;
 	//resizeY = 1;
 
-	if (nextTrigger.process(params[PARAM_NEXT].getValue() > 0.f)) {
+	if (nextBoolTrigger.process(params[PARAM_NEXT].getValue() > 0.f) || nextSchmittTrigger.process(inputs[INPUT_NEXT].getVoltage()) > 0.f) {
 		next=true;
+		nextLight=true;
 	}
-	if (params[PARAM_NEXT].getValue() == 0.f)
-		next=false;
 
-	if (prevTrigger.process(params[PARAM_PREV].getValue() > 0.f)) {
+	if (params[PARAM_NEXT].getValue() == 0.f )
+		nextLight=false;
+
+	if (prevBoolTrigger.process(params[PARAM_PREV].getValue() > 0.f) || prevSchmittTrigger.process(inputs[INPUT_PREV].getVoltage()) > 0.f) {
+		prevLight=true;
 		prev=true;
 	}
+
 	if (params[PARAM_PREV].getValue() == 0.f)
-		prev=false;
+		prevLight=false;
 
 	if (lightDivider.process()) {
 		lights[LOCK_LIGHT].setBrightness(locked);
 		lights[HARD_CUT_LIGHT].setBrightness(hard_cut);
 	}
 
-	lights[NEXT_LIGHT].setBrightness(next);
-	lights[PREV_LIGHT].setBrightness(prev);
+	lights[NEXT_LIGHT].setBrightness(nextLight);
+	lights[PREV_LIGHT].setBrightness(prevLight);
 }
 
 json_t *RPJVisualizer::dataToJson() {
 	json_t *rootJ=json_object();
-	json_object_set_new(rootJ, "Locked", json_boolean(this->locked));
 	json_object_set_new(rootJ, "Preset", json_integer(this->index));
+	json_object_set_new(rootJ, "Shuffle", json_boolean(this->shuffleEnabled));
 	return rootJ;
 }
 
 void RPJVisualizer::dataFromJson(json_t *rootJ) {
-	json_t *nLockedJ = json_object_get(rootJ, "Locked");
 	json_t *nPresetJ = json_object_get(rootJ, "Preset");
-	if (nLockedJ) {
-		this->locked = json_boolean_value(nLockedJ);
-	}
+	json_t *nShuffleJ = json_object_get(rootJ, "Shuffle");
 	if (nPresetJ) {
 		this->index = json_integer_value(nPresetJ);
+	}
+	if (nShuffleJ) {
+		this->shuffleEnabled = json_boolean_value(nShuffleJ);
 	}
 }
 
 struct VisualizerModuleWidget : ModuleWidget {
 	Display *display;
+
 	VisualizerModuleWidget(RPJVisualizer* module) {
 
 		setModule(module);
 		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/Visualizer.svg")));
 
 		addChild(createWidget<ScrewSilver>(Vec(0, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 15, 0)));
+		//addChild(createWidget<ScrewSilver>(Vec(box.size.x - 15, 0)));
 		addChild(createWidget<ScrewSilver>(Vec(0, 365)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 15, 365)));
+		//addChild(createWidget<ScrewSilver>(Vec(box.size.x - 15, 365)));
 
 		box.size = Vec(MODULE_WIDTH*RACK_GRID_WIDTH, RACK_GRID_HEIGHT);
 		
 		display = new Display();
-		display->box.pos = Vec(80, 5);
+		display->box.pos = Vec(80, 0);
 		display->box.size = Vec(WIDTH, HEIGHT);
 		//display->setSize(Vec(WIDTH, HEIGHT));
 		display->module = module;
+		display->widget = this;
 		addChild(display);
 
 		
@@ -322,21 +338,23 @@ struct VisualizerModuleWidget : ModuleWidget {
 		
 		// Then do the knobs
 		const float knobX1 = 10;
-		const float knobX2 = 45;
-		const float knobY1 = 87;
-		const float knobY2 = 137;
-		//const float knobY2 = 79;
-		//const float knobY3 = 122;
+		const float knobX2 = 27;
+		const float knobX3 = 45;
+		const float knobY1 = 45;
+		const float knobY2 = 95;
+		const float knobY3 = 137;
 		//const float knobY4 = 150;
 		//const float knobY5 = 178;
 		//const float knobY6 = 206;
 
 		addParam(createParam<RPJKnob>(Vec(knobX1,knobY1), module, RPJVisualizer::PARAM_POS_X));
-		addParam(createParam<RPJKnob>(Vec(knobX2,knobY1), module, RPJVisualizer::PARAM_POS_Y));
+		addParam(createParam<RPJKnob>(Vec(knobX3,knobY1), module, RPJVisualizer::PARAM_POS_Y));
 		addParam(createParam<RPJKnob>(Vec(knobX1,knobY2), module, RPJVisualizer::PARAM_RESIZE_X));
-		addParam(createParam<RPJKnob>(Vec(knobX2,knobY2), module, RPJVisualizer::PARAM_RESIZE_Y));
+		addParam(createParam<RPJKnob>(Vec(knobX3,knobY2), module, RPJVisualizer::PARAM_RESIZE_Y));
+		addParam(createParam<RPJKnob>(Vec(knobX2,knobY3), module, RPJVisualizer::PARAM_TIMER));
 
 		const float buttonX1 = 41;
+		const float buttonX2 = 61;
 
 		const float buttonY1 = 185;
 		const float buttonY2 = 215;
@@ -346,15 +364,20 @@ struct VisualizerModuleWidget : ModuleWidget {
 		const float jackX1 = 11;
 		const float jackX2 = 47;
 
-		const float jackY1 = 311;
+		const float jackY1 = 173;
+		const float jackY2 = 203;
+		const float jackY3 = 311;
 
-		addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY1), module, RPJVisualizer::PARAM_NEXT,RPJVisualizer::NEXT_LIGHT));
-		addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY2), module, RPJVisualizer::PARAM_PREV,RPJVisualizer::PREV_LIGHT));
+		addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX2,buttonY1), module, RPJVisualizer::PARAM_NEXT,RPJVisualizer::NEXT_LIGHT));
+		addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX2,buttonY2), module, RPJVisualizer::PARAM_PREV,RPJVisualizer::PREV_LIGHT));
 		addParam(createLightParamCentered<VCVLightLatch<MediumSimpleLight<WhiteLight>>>(Vec(buttonX1,buttonY3), module, RPJVisualizer::PARAM_HARD_CUT, RPJVisualizer::HARD_CUT_LIGHT));
 		addParam(createLightParamCentered<VCVLightLatch<MediumSimpleLight<WhiteLight>>>(Vec(buttonX1,buttonY4), module, RPJVisualizer::PARAM_LOCK, RPJVisualizer::LOCK_LIGHT));
 		
-		addInput(createInput<PJ301MPort>(Vec(jackX1, jackY1), module, RPJVisualizer::INPUT_INL));	
-		addInput(createInput<PJ301MPort>(Vec(jackX2, jackY1), module, RPJVisualizer::INPUT_INR));	
+		addInput(createInput<PJ301MPort>(Vec(jackX1, jackY1), module, RPJVisualizer::INPUT_NEXT));	
+		addInput(createInput<PJ301MPort>(Vec(jackX1, jackY2), module, RPJVisualizer::INPUT_PREV));	
+
+		addInput(createInput<PJ301MPort>(Vec(jackX1, jackY3), module, RPJVisualizer::INPUT_INL));	
+		addInput(createInput<PJ301MPort>(Vec(jackX2, jackY3), module, RPJVisualizer::INPUT_INR));	
 	}
 
 	void appendContextMenu(Menu *menu) override {
@@ -362,7 +385,7 @@ struct VisualizerModuleWidget : ModuleWidget {
 
 		menu->addChild(new MenuSeparator());
 		menu->addChild(createIndexPtrSubmenuItem("PlayList", display->renderer.getPresets(), &module->index));
-
+		menu->addChild(createBoolPtrMenuItem("Shuffle enabled","",&module->shuffleEnabled));
 	}
 };
 
