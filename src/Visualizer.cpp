@@ -1,12 +1,7 @@
 #include "RPJ.hpp"
 #include "Visualizer.hpp"
 #include "ctrl/RPJKnobs.hpp"
-
-void myRenderer::draw() {
-
-	if (projectMHandle)
-		projectm_render_frame(projectMHandle);
-}
+#include "JWResizableHandle.hpp"
 
 void myRenderer::handlePCMData(float pcmData[2]) {
 	if (projectMHandle)
@@ -22,24 +17,24 @@ void myRenderer::handlePreset(int i,int c,bool h) {
 	}
 }
 
-void myRenderer::handleWindowSize(float rx,float ry) {
+void myRenderer::handleWindowSize(float rx,float ry,float w) {
 	if (!projectMHandle)
 		return;
-	Vec size = APP->window->getSize();
+
 	float zoomLevel= APP->scene->rackScroll->getZoom();
-	bool changing = ((prevZoomlevel != zoomLevel) || (prevRx != rx) || (prevRy != ry));
+	bool changing = ((prevZoomlevel != zoomLevel) || (prevRx != rx) || (prevRy != ry) || (prevWidth != w));
 	if (changing) {
 		changed=true;
 		prevZoomlevel = zoomLevel;
 		prevRx = rx;
-		prevRy =ry;
+		prevRy = ry;
+		prevWidth = w;
 	}
 	if (changed && !changing) {
-		renderWidth = rx*380*zoomLevel;
+		renderWidth = rx*w*zoomLevel;
 		renderHeight = ry*380*zoomLevel;
 
-		//projectm_set_window_size(projectMHandle, renderWidth, renderHeight);
-		projectm_set_window_size(projectMHandle, rx*380*zoomLevel, ry*380*zoomLevel);
+		projectm_set_window_size(projectMHandle, rx*w*zoomLevel, ry*380*zoomLevel);
 		changed=false;
 		changeProcessed=true;
 	}
@@ -88,17 +83,12 @@ std::string myRenderer::getName() {
 	return getNamePreset(projectMHandle);
 }
 
-void myRenderer::init(projectm_handle h) {
-//	window = glfwCreateWindow(640, 480, "My Title",  NULL, NULL);
-//	renderThread = std::thread([this,h](){ this->process(h); });
-}
-
 projectm_handle myRenderer::initSettings() {
 	projectm_settings *settings = projectm_alloc_settings();
 
 	// Window/rendering settings
-	settings->window_width = 700;
-	settings->window_height = 700;
+	settings->window_width = 100;
+	settings->window_height = 100;
 	settings->fps =  60;
 	settings->mesh_x = 220;
 	settings->mesh_y = 125;
@@ -123,43 +113,17 @@ projectm_handle myRenderer::initSettings() {
 	return projectMHandle;
 }
 
-/*void myRenderer::process(projectm_handle h) {
-	projectMHandle=h;
-	//Initialize(s_ptr);
-	prevZoomlevel= 0;
-	index=0;
-	if (!window)
-		return;
-	glfwMakeContextCurrent(window);
-
-	//getPresets();
-	while (true) {
-		handleWindowSize();
-		draw();
-	}
-	
-}*/
-
 myRenderer::myRenderer() {
 	index=0;
 }
 
-/*void myRenderer::Initialize(projectm_settings *s) {
-	prevZoomlevel= 0;
-	index=0;
-	projectMHandle = projectm_create_settings(s, PROJECTM_FLAG_DISABLE_PLAYLIST_LOAD);	
-}*/
-
 myRenderer::~myRenderer() {
-	//renderThread.join();
-	//projectm_free_settings(settings);
 	projectm_destroy(projectMHandle);
 	projectMHandle = NULL;
 }
 
 Display::Display() {
-//	if (module)
-	renderer.init(renderer.initSettings());
+	renderer.initSettings();
 	oldIndex=-1;
 }
 
@@ -171,7 +135,7 @@ void Display::step() {
 	if (module) {
 		projectm_set_shuffle_enabled(renderer.projectMHandle,module->shuffleEnabled);
 		projectm_set_preset_duration(renderer.projectMHandle,module->timer);
-		renderer.handleWindowSize(module->resizeX,module->resizeY);
+		renderer.handleWindowSize(module->resizeX,module->resizeY,module->width);
 		unsigned int *currentIndex = (unsigned int *)malloc(sizeof(currentIndex));
 		if (projectm_get_selected_preset_index(renderer.projectMHandle,currentIndex)) {
 			if ((unsigned int)module->index != *(currentIndex)) {
@@ -194,7 +158,6 @@ void Display::step() {
 		projectm_lock_preset(renderer.projectMHandle,module->locked);
 		projectm_set_hard_cut_enabled(renderer.projectMHandle,module->hard_cut);
 		module->presetName = renderer.getName();
-		//module->presetSize = renderer.getPresets().size();
 	}
 	// Render every frame
 	dirty = true;
@@ -203,16 +166,10 @@ void Display::step() {
 }
 
 void Display::drawFramebuffer() {
-	//renderer.draw();
 
 	if (renderer.projectMHandle) {
-		math::Vec fbSize = getFramebufferSize();
-		float x = widget->getSize().x;
-		float y = widget->getSize().y;
-		this->setSize(Vec(module->resizeX*380,module->resizeX*380));
-		this->setPosition(Vec(85+module->posX, module->posY));
-		//this->setPosition(Vec(80,0));
-		//this->setSize(Vec(-85+widget->getSize().x,widget->getSize().y));
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f );
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		projectm_render_frame(renderer.projectMHandle);
 	}
 }
@@ -262,8 +219,6 @@ void RPJVisualizer::process(const ProcessArgs &args) {
 
 	posX = params[PARAM_POS_X].getValue();
 	posY = params[PARAM_POS_Y].getValue();
-	//resizeX = 1;
-	//resizeY = 1;
 
 	if (nextBoolTrigger.process(params[PARAM_NEXT].getValue() > 0.f) || nextSchmittTrigger.process(inputs[INPUT_NEXT].getVoltage()) > 0.f) {
 		next=true;
@@ -294,23 +249,30 @@ json_t *RPJVisualizer::dataToJson() {
 	json_t *rootJ=json_object();
 	json_object_set_new(rootJ, "Preset", json_integer(this->index));
 	json_object_set_new(rootJ, "Shuffle", json_boolean(this->shuffleEnabled));
+	json_object_set_new(rootJ, "Width", json_real(this->width));
 	return rootJ;
 }
 
 void RPJVisualizer::dataFromJson(json_t *rootJ) {
 	json_t *nPresetJ = json_object_get(rootJ, "Preset");
 	json_t *nShuffleJ = json_object_get(rootJ, "Shuffle");
+	json_t *nWidthJ = json_object_get(rootJ, "Width");
 	if (nPresetJ) {
 		this->index = json_integer_value(nPresetJ);
 	}
 	if (nShuffleJ) {
 		this->shuffleEnabled = json_boolean_value(nShuffleJ);
 	}
+	if (nWidthJ) {
+		this->width = json_number_value(nWidthJ);
+	}
 }
 
 struct VisualizerModuleWidget : ModuleWidget {
 	Display *display;
-
+	JWModuleResizeHandle *rightHandle;
+	BGPanel *panel;
+	
 	VisualizerModuleWidget(RPJVisualizer* module) {
 
 		setModule(module);
@@ -320,22 +282,33 @@ struct VisualizerModuleWidget : ModuleWidget {
 		//addChild(createWidget<ScrewSilver>(Vec(box.size.x - 15, 0)));
 		addChild(createWidget<ScrewSilver>(Vec(0, 365)));
 		//addChild(createWidget<ScrewSilver>(Vec(box.size.x - 15, 365)));
+		if (module)
+			box.size = Vec(module->width, RACK_GRID_HEIGHT);
+		else
+			box.size = Vec(WIDTH, HEIGHT);
+		panel = new BGPanel(nvgRGB(0, 0, 0));
+		panel->box.size = box.size;
+		int x = box.size.x;
+		int y = box.size.y;
+		addChild(panel);
+	
 
-		box.size = Vec(MODULE_WIDTH*RACK_GRID_WIDTH, RACK_GRID_HEIGHT);
-		
+		//JWModuleResizeHandle *leftHandle = new JWModuleResizeHandle;
+		JWModuleResizeHandle *rightHandle = new JWModuleResizeHandle;
+		rightHandle->right = true;
+		this->rightHandle = rightHandle;
+		//addChild(leftHandle);
+		addChild(rightHandle);
+
 		display = new Display();
-		display->box.pos = Vec(80, 0);
-		display->box.size = Vec(WIDTH, HEIGHT);
-		//display->setSize(Vec(WIDTH, HEIGHT));
-		display->module = module;
-		display->widget = this;
-		addChild(display);
+		display->box.pos = Vec(85, 0);
+		if (module) {
+			display->box.size = Vec(module->width, HEIGHT);
+			display->module = module;
+			display->widget = this;
+			addChild(display);
+		}
 
-		
-		//PresetNameDisplay * pnd = new PresetNameDisplay(Vec(29,130));
-		//pnd->module = module;
-		//addChild(pnd);
-		
 		// Then do the knobs
 		const float knobX1 = 10;
 		const float knobX2 = 27;
@@ -343,9 +316,6 @@ struct VisualizerModuleWidget : ModuleWidget {
 		const float knobY1 = 45;
 		const float knobY2 = 95;
 		const float knobY3 = 137;
-		//const float knobY4 = 150;
-		//const float knobY5 = 178;
-		//const float knobY6 = 206;
 
 		addParam(createParam<RPJKnob>(Vec(knobX1,knobY1), module, RPJVisualizer::PARAM_POS_X));
 		addParam(createParam<RPJKnob>(Vec(knobX3,knobY1), module, RPJVisualizer::PARAM_POS_Y));
@@ -378,6 +348,20 @@ struct VisualizerModuleWidget : ModuleWidget {
 
 		addInput(createInput<PJ301MPort>(Vec(jackX1, jackY3), module, RPJVisualizer::INPUT_INL));	
 		addInput(createInput<PJ301MPort>(Vec(jackX2, jackY3), module, RPJVisualizer::INPUT_INR));	
+	}
+
+	void step() override {
+		panel->box.size = box.size;
+		//display->box.size = Vec(box.size.x, box.size.y);
+		rightHandle->box.pos.x = box.size.x - rightHandle->box.size.x;
+
+		RPJVisualizer *rpjVisualizer = dynamic_cast<RPJVisualizer*>(module);
+		if(rpjVisualizer){
+			rpjVisualizer->width = box.size.x-85;
+			display->setSize(Vec(rpjVisualizer->resizeX*rpjVisualizer->width,rpjVisualizer->resizeY*380));
+			display->setPosition(Vec(85+rpjVisualizer->posX, rpjVisualizer->posY));
+		}
+		ModuleWidget::step();
 	}
 
 	void appendContextMenu(Menu *menu) override {
