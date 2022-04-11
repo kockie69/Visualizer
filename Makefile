@@ -20,6 +20,10 @@ ifdef ARCH_WIN
 	LDLIBS += -lopengl32  -lpthread -mthreads -pthread
 endif
 
+ifdef ARCH_LIN
+	LDFLAGS += ./dep/lib/libprojectM.a
+endif
+
 # Add .cpp files to the build
 SOURCES += $(wildcard src/*.cpp) 
 
