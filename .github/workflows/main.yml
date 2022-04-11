@@ -40,7 +40,7 @@ jobs:
       - name: Get Rack-SDK
         run: |
           pushd $HOME
-          curl -o RackSDK.zip https://vcvrack.com/downloads/Rack-SDK-${{ env.rack-sdk-version }}qqq${{ matrix.os.arch }}.zip
+          curl -o RackSDK.zip https://vcvrack.com/downloads/Rack-SDK-${{ env.rack-sdk-version }}qqq${{ matrix.arch }}.zip
           unzip RackSDK.zip
       - name: Patch makefiles, use 7zip on Windows
         if: runner.os == 'windows'
