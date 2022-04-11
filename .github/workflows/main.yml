@@ -23,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: Development
+          ref: main
           submodules: recursive
       - name: Get RackSDK
         shell: bash
