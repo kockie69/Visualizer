@@ -34,7 +34,6 @@ jobs:
               arch: win
               compiler: gcc
               install-dependencies: |
-                choco install --no-progress -y zip
     steps:
       - uses: actions/checkout@v2
         with:
