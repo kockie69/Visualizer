@@ -2,7 +2,7 @@ name: Build VCV Rack Plugin
 on: [workflow_dispatch,push,pull_request]
 
 env:
-  rack-sdk-version: 1.0
+  rack-sdk-version: 2.1.0
 
 defaults:
   run:
@@ -27,7 +27,7 @@ jobs:
       - name: Get Rack-SDK
         run: |
           pushd $HOME
-          curl -o RackSDK.zip https://vcvrack.com/downloads/Rack-SDK-2.1.0-${{ matrix.arch }}.zip
+          curl -o RackSDK.zip https://vcvrack.com/downloads/Rack-SDK-${{ rack-sdk-version }}-${{ matrix.arch }}.zip
           unzip RackSDK.zip
       - name: Patch makefiles, use 7zip on Windows
         if: runner.os == 'windows'
