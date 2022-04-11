@@ -1,13 +1,17 @@
 # If RACK_DIR is not defined when calling the Makefile, default to two directories above
 RACK_DIR ?= ../..
 
+include $(RACK_DIR)/arch.mk
+
 # FLAGS will be passed to both the C and C++ compiler
-FLAGS += 
+
+ifdef ARCH_WIN
+	FLAGS += -D_USE_MATH_DEFINES -DprojectM_main_EXPORTS
+endif
+
 FLAGS += 
 CFLAGS += /mingw64/include/
 CXXFLAGS += 
-
-include $(RACK_DIR)/arch.mk
 
 # Careful about linking to shared libraries, since you can't assume much about the user's environment and library search path.
 # Static libraries are fine, but they should be added to this plugin's build system.
