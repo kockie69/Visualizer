@@ -9,6 +9,10 @@ ifdef ARCH_WIN
 	FLAGS += -D_USE_MATH_DEFINES -DprojectM_main_EXPORTS
 endif
 
+ifdef ARCH_LIN
+	LDFLAGS += ./dep/lib/libprojectM.so
+endif
+
 FLAGS += 
 CFLAGS += /mingw64/include/
 CXXFLAGS += 
@@ -17,15 +21,8 @@ CXXFLAGS +=
 # Static libraries are fine, but they should be added to this plugin's build system.
 
 ifdef ARCH_WIN
-	LDFLAGS += ./dep/lib/liblibprojectM.a /mingw64/lib/libopengl32.a /mingw64/lib/libgomp.a
-endif
-
-ifdef ARCH_WIN
-	LDLIBS += -lopengl32  -lpthread -mthreads -pthread
-endif
-
-ifdef ARCH_LIN
-	LDFLAGS += ./dep/lib/libprojectM.so
+	#LDFLAGS += ./dep/lib/liblibprojectM.a /mingw64/lib/libopengl32.a /mingw64/lib/libgomp.a
+	LDFLAGS += ./dep/lib/liblibprojectM.a -lglew32 -lopengl32 -lglu32 -lgdi32 -lopengl32 -lgomp -lpthread -mthreads -pthread
 endif
 
 # Add .cpp files to the build
