@@ -21,7 +21,7 @@ ifdef ARCH_WIN
 endif
 
 ifdef ARCH_LIN
-	LDFLAGS += ./dep/lib/libprojectM.a
+	LDFLAGS += ./dep/lib/libprojectM.so
 endif
 
 # Add .cpp files to the build
