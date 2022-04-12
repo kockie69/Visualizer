@@ -33,7 +33,7 @@ jobs:
               name: Windows
               arch: win
               compiler: gcc
-              install-dependenvies: |
+              install-dependencies: |
                 pacman -S mingw-w64-x86_64-glew
     steps:
       - uses: actions/checkout@v2
