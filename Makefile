@@ -22,7 +22,7 @@ CXXFLAGS +=
 
 ifdef ARCH_WIN
 	#LDFLAGS += ./dep/lib/liblibprojectM.a /mingw64/lib/libopengl32.a /mingw64/lib/libgomp.a
-	LDFLAGS += ./dep/lib/liblibprojectM.a -lopengl32 -lgomp -lpthread -mthreads -pthread -Wl,--default-image-base-high
+	LDFLAGS += ./dep/lib/liblibprojectM.a -lpsapi -lopengl32 -lgomp -lpthread -mthreads -pthread
 endif
 
 # Add .cpp files to the build
@@ -34,6 +34,19 @@ SOURCES += $(wildcard src/*.cpp)
 DISTRIBUTABLES += $(wildcard LICENSE*) res
 DISTRIBUTABLES += $(wildcard LICENSE*)
 
+# Define the path of the built static library
+projectm := dep/lib/liblibprojectM.a
+# Build the static library into your plugin.dll/dylib/so
+OBJECTS += $(projectm)
+# Trigger the static library to be built when running `make dep`
+DEPS += $(projectm)
+
+$(projectm):
+	# Out-of-source build dir
+	cd src/deps/projectm && mkdir -p build
+	cd src/deps/projectm/build && $(CMAKE) -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=D:/msys64/home/rober/Visualizer/dep ..
+	# Install to dep/
+	cd src/deps/projectm/build && $(MAKE) install
+
 # Include the Rack plugin Makefile framework
 include $(RACK_DIR)/plugin.mk
-

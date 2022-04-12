@@ -5,7 +5,8 @@
 
 void myRenderer::handlePCMData(float pcmData[2]) {
 	if (projectMHandle)
-		projectm_pcm_add_float_2ch_data(projectMHandle,pcmData,2);
+		//projectm_pcm_add_float_2ch_data(projectMHandle,pcmData,2);
+		projectm_pcm_add_float(projectMHandle,pcmData,2,PROJECTM_STEREO);
 }
 
 void myRenderer::handlePreset(int i,int c,bool h) {
@@ -17,7 +18,7 @@ void myRenderer::handlePreset(int i,int c,bool h) {
 	}
 }
 
-void myRenderer::handleWindowSize(float rx,float ry,float w) {
+void myRenderer::handleWindowSize(float rx,float ry,float w,float h) {
 	if (!projectMHandle)
 		return;
 
@@ -32,9 +33,9 @@ void myRenderer::handleWindowSize(float rx,float ry,float w) {
 	}
 	if (changed && !changing) {
 		renderWidth = rx*w*zoomLevel;
-		renderHeight = ry*380*zoomLevel;
+		renderHeight = ry*h*zoomLevel;
 
-		projectm_set_window_size(projectMHandle, rx*w*zoomLevel, ry*380*zoomLevel);
+		projectm_set_window_size(projectMHandle, rx*w*zoomLevel, ry*h*zoomLevel);
 		changed=false;
 		changeProcessed=true;
 	}
@@ -135,7 +136,7 @@ void Display::step() {
 	if (module) {
 		projectm_set_shuffle_enabled(renderer.projectMHandle,module->shuffleEnabled);
 		projectm_set_preset_duration(renderer.projectMHandle,module->timer);
-		renderer.handleWindowSize(module->resizeX,module->resizeY,module->width);
+		renderer.handleWindowSize(module->resizeX,module->resizeY,module->width,widget->box.size.y);
 		unsigned int *currentIndex = (unsigned int *)malloc(sizeof(currentIndex));
 		if (projectm_get_selected_preset_index(renderer.projectMHandle,currentIndex)) {
 			if ((unsigned int)module->index != *(currentIndex)) {
@@ -149,7 +150,7 @@ void Display::step() {
 		}
 		free(currentIndex);
 		
-		projectm_pcm_add_float_2ch_data(renderer.projectMHandle,module->pcmData,2);
+		projectm_pcm_add_float(renderer.projectMHandle,module->pcmData,2,PROJECTM_STEREO);
 		
 		renderer.nextPreset(module->next,module->hard_cut);
 		module->next=false;
@@ -283,13 +284,11 @@ struct VisualizerModuleWidget : ModuleWidget {
 		addChild(createWidget<ScrewSilver>(Vec(0, 365)));
 		//addChild(createWidget<ScrewSilver>(Vec(box.size.x - 15, 365)));
 		if (module)
-			box.size = Vec(module->width, RACK_GRID_HEIGHT);
+			box.size = Vec(module->width, this->box.size.y);
 		else
-			box.size = Vec(WIDTH, HEIGHT);
+			box.size = Vec(WIDTH, this->box.size.y);
 		panel = new BGPanel(nvgRGB(0, 0, 0));
 		panel->box.size = box.size;
-		int x = box.size.x;
-		int y = box.size.y;
 		addChild(panel);
 	
 
@@ -303,7 +302,7 @@ struct VisualizerModuleWidget : ModuleWidget {
 		display = new Display();
 		display->box.pos = Vec(85, 0);
 		if (module) {
-			display->box.size = Vec(module->width, HEIGHT);
+			display->box.size = Vec(module->width, this->box.size.y);
 			display->module = module;
 			display->widget = this;
 			addChild(display);
@@ -358,7 +357,7 @@ struct VisualizerModuleWidget : ModuleWidget {
 		RPJVisualizer *rpjVisualizer = dynamic_cast<RPJVisualizer*>(module);
 		if(rpjVisualizer){
 			rpjVisualizer->width = box.size.x-85;
-			display->setSize(Vec(rpjVisualizer->resizeX*rpjVisualizer->width,rpjVisualizer->resizeY*380));
+			display->setSize(Vec(rpjVisualizer->resizeX*rpjVisualizer->width,rpjVisualizer->resizeY*this->box.size.y));
 			display->setPosition(Vec(85+rpjVisualizer->posX, rpjVisualizer->posY));
 		}
 		ModuleWidget::step();

@@ -2,8 +2,8 @@ build/src/Visualizer.cpp.o: src/Visualizer.cpp src/RPJ.hpp \
  ..//Rack-SDK/include/rack.hpp ..//Rack-SDK/include/common.hpp \
  ..//Rack-SDK/include/logger.hpp ..//Rack-SDK/include/math.hpp \
  ..//Rack-SDK/include/string.hpp ..//Rack-SDK/include/system.hpp \
- ..//Rack-SDK/include/random.hpp ..//Rack-SDK/include/network.hpp \
- ..//Rack-SDK/dep/include/jansson.h \
+ ..//Rack-SDK/include/mutex.hpp ..//Rack-SDK/include/random.hpp \
+ ..//Rack-SDK/include/network.hpp ..//Rack-SDK/dep/include/jansson.h \
  ..//Rack-SDK/dep/include/jansson_config.h ..//Rack-SDK/include/asset.hpp \
  ..//Rack-SDK/include/window/Window.hpp \
  ..//Rack-SDK/include/window/Svg.hpp ..//Rack-SDK/dep/include/nanovg.h \
@@ -100,7 +100,8 @@ build/src/Visualizer.cpp.o: src/Visualizer.cpp src/RPJ.hpp \
  ..//Rack-SDK/include/dsp/convert.hpp src/Visualizer.hpp \
  src/../dep/include/libprojectM/projectM.h \
  src/../dep/include/libprojectM/projectM_export.h \
- src/../dep/include/libprojectM/event.h src/ctrl/RPJKnobs.hpp
+ src/../dep/include/libprojectM/event.h src/ctrl/RPJKnobs.hpp \
+ src/JWResizableHandle.hpp
 src/RPJ.hpp:
 ..//Rack-SDK/include/rack.hpp:
 ..//Rack-SDK/include/common.hpp:
@@ -108,6 +109,7 @@ src/RPJ.hpp:
 ..//Rack-SDK/include/math.hpp:
 ..//Rack-SDK/include/string.hpp:
 ..//Rack-SDK/include/system.hpp:
+..//Rack-SDK/include/mutex.hpp:
 ..//Rack-SDK/include/random.hpp:
 ..//Rack-SDK/include/network.hpp:
 ..//Rack-SDK/dep/include/jansson.h:
@@ -227,3 +229,4 @@ src/../dep/include/libprojectM/projectM.h:
 src/../dep/include/libprojectM/projectM_export.h:
 src/../dep/include/libprojectM/event.h:
 src/ctrl/RPJKnobs.hpp:
+src/JWResizableHandle.hpp:

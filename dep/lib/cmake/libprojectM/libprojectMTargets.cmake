@@ -56,7 +56,7 @@ add_library(libprojectM::static STATIC IMPORTED)
 set_target_properties(libprojectM::static PROPERTIES
   INTERFACE_COMPILE_OPTIONS "-DPROJECTM_STATIC_DEFINE"
   INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
-  INTERFACE_LINK_LIBRARIES "\$<LINK_ONLY:GLM::GLM>;OpenGL::GL;GLEW::glew"
+  INTERFACE_LINK_LIBRARIES "OpenGL::GL;GLEW::glew;Threads::Threads"
 )
 
 # Create imported target libprojectM::shared
@@ -64,7 +64,7 @@ add_library(libprojectM::shared SHARED IMPORTED)
 
 set_target_properties(libprojectM::shared PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
-  INTERFACE_LINK_LIBRARIES "OpenGL::GL;GLEW::glew"
+  INTERFACE_LINK_LIBRARIES "OpenGL::GL;GLEW::glew;Threads::Threads"
 )
 
 if(CMAKE_VERSION VERSION_LESS 2.8.12)

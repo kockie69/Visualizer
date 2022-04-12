@@ -4,4 +4,5 @@ void init(Plugin *p) {
     pluginInstance = p;
     p->addModel(modelVisualizer);
     //p->addModel(modelVisualizerFull);
+    p->addModel(modelTest);
 }

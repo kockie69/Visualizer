@@ -19,6 +19,13 @@
       "description": "Psycho visualizer",
       "manualUrl": "https://github.com/kockie69/RPJ/blob/v2/docs/visualizer.md",
       "tags": ["Utilities"]
+    },
+    {
+      "slug": "Test",
+      "name": "Test",
+      "description": "Test Module",
+      "manualUrl": "https://github.com/kockie69/RPJ/blob/v2/docs/visualizer.md",
+      "tags": ["Utilities"]
     }
   ]
 }

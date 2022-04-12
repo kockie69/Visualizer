@@ -5,6 +5,7 @@ using namespace rack;
 extern Plugin *pluginInstance;
 extern Model *modelVisualizer;
 //extern Model *modelVisualizerFull;
+extern Model *modelTest;
 
 struct BGPanel : Widget {
 	Widget *panelBorder;

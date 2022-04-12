@@ -22,7 +22,7 @@ struct myRenderer {
 	projectm_handle initSettings();
 	void Initialize(projectm_settings *);
 	std::vector<std::string> getPresets();
-	void handleWindowSize(float,float,float);
+	void handleWindowSize(float,float,float,float);
 	void handlePreset(int,int,bool);
 	void handleLocked(bool);
 	std::string getNamePreset(projectm_handle);
