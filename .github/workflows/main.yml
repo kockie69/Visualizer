@@ -37,7 +37,7 @@ jobs:
     steps:
       - name: Install glew
         run: |
-          wget https://sourceforge.net/projects/glew/files/glew/2.0.0/glew-2.0.0-win32.zip
+          curl -L Glew.zip https://sourceforge.net/projects/glew/files/glew/2.0.0/glew-2.0.0-win32.zip
           unzip Glew.zip
       - uses: actions/checkout@v2
         with:
