@@ -37,7 +37,8 @@ jobs:
     steps:
       - name: Install glew
         run: |
-          pacman -S mingw-w64-x86_64-glew 
+          curl -o Glew.zip https://sourceforge.net/projects/glew/files/glew/2.0.0/glew-2.0.0-win32.zip
+          unzip Glew.zip
       - uses: actions/checkout@v2
         with:
           submodules: recursive
