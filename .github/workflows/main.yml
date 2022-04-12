@@ -34,6 +34,11 @@ jobs:
               arch: win
               compiler: gcc
               install-dependencies: |
+                pwd
+                ls
+                mkdir src/deps/projectm/build
+                cp ./glew-2.0.0/include/GL/* src/deps/projectm/build/include/GL
+          # set GLEW_LIBRARIES=./glew-2.0.0/lib/
     steps:
       - name: Install glew
         run: |
@@ -66,9 +71,6 @@ jobs:
         run: |
           ${{ matrix.install-dependencies }}
           export RACK_DIR=$HOME/Rack-SDK
-          mkdir src/deps/projectm/build
-          cp ./glew-2.0.0/include/GL/* src/deps/projectm/build/include/GL
-          # set GLEW_LIBRARIES=./glew-2.0.0/lib/
           make dep
           make dist
       - name: Upload artifact
