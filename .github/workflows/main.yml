@@ -67,8 +67,7 @@ jobs:
           ${{ matrix.install-dependencies }}
           export RACK_DIR=$HOME/Rack-SDK
           mkdir src/deps/projectm/build
-          cd src/deps/projectm/build
-          cp ./glew-2.0.0/include/GL/* include/GL
+          cp ./glew-2.0.0/include/GL/* src/deps/projectm/build/include/GL
           # set GLEW_LIBRARIES=./glew-2.0.0/lib/
           make dep
           make dist
