@@ -22,7 +22,7 @@ CXXFLAGS +=
 
 ifdef ARCH_WIN
 	#LDFLAGS += ./dep/lib/liblibprojectM.a /mingw64/lib/libopengl32.a /mingw64/lib/libgomp.a
-	LDFLAGS += ./dep/lib/liblibprojectM.a -lpsapi -lopengl32 -lgomp -lpthread -mthreads -pthread
+	LDFLAGS += ./dep/lib/liblibprojectM.a -lpsapi /mingw64/lib/libopengl32.a /mingw64/lib/libgomp.a -lpthread -mthreads -pthread
 endif
 
 # Add .cpp files to the build

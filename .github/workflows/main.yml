@@ -34,8 +34,10 @@ jobs:
               arch: win
               compiler: gcc
               install-dependencies: |
-                choco install mingw
     steps:
+      - name: Install glew
+        run: |
+          pacman -S mingw-w64-x86_64-glew 
       - uses: actions/checkout@v2
         with:
           submodules: recursive
