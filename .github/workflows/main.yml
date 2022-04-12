@@ -36,14 +36,11 @@ jobs:
               install-dependencies: |
                 pwd
                 ls
+                curl -L -o Glew.zip https://sourceforge.net/projects/glew/files/glew/2.0.0/glew-2.0.0-win32.zip/download
+                unzip Glew.zip
                 mkdir src/deps/projectm/build
                 cp ./glew-2.0.0/include/GL/* src/deps/projectm/build/include/GL
-          # set GLEW_LIBRARIES=./glew-2.0.0/lib/
     steps:
-      - name: Install glew
-        run: |
-          curl -L -o Glew.zip https://sourceforge.net/projects/glew/files/glew/2.0.0/glew-2.0.0-win32.zip/download
-          unzip Glew.zip
       - uses: actions/checkout@v2
         with:
           submodules: recursive
