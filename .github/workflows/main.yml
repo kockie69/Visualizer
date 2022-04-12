@@ -39,8 +39,6 @@ jobs:
         run: |
           curl -L -o Glew.zip https://sourceforge.net/projects/glew/files/glew/2.0.0/glew-2.0.0-win32.zip/download
           unzip Glew.zip
-          set GLEW_INCLUDE_DIRS=./glew-2.0.0/include/GL/
-          set GLEW_LIBRARIES=./glew-2.0.0/lib/
       - uses: actions/checkout@v2
         with:
           submodules: recursive
@@ -68,6 +66,10 @@ jobs:
         run: |
           ${{ matrix.install-dependencies }}
           export RACK_DIR=$HOME/Rack-SDK
+          mkdir src/deps/projectm/build
+          cd src/deps/projectm/build
+          copy ./glew-2.0.0/include/GL/* include/GL
+          # set GLEW_LIBRARIES=./glew-2.0.0/lib/
           make dep
           make dist
       - name: Upload artifact
