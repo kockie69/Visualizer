@@ -2,8 +2,8 @@ build/src/RPJ.cpp.o: src/RPJ.cpp src/RPJ.hpp \
  ..//Rack-SDK/include/rack.hpp ..//Rack-SDK/include/common.hpp \
  ..//Rack-SDK/include/logger.hpp ..//Rack-SDK/include/math.hpp \
  ..//Rack-SDK/include/string.hpp ..//Rack-SDK/include/system.hpp \
- ..//Rack-SDK/include/random.hpp ..//Rack-SDK/include/network.hpp \
- ..//Rack-SDK/dep/include/jansson.h \
+ ..//Rack-SDK/include/mutex.hpp ..//Rack-SDK/include/random.hpp \
+ ..//Rack-SDK/include/network.hpp ..//Rack-SDK/dep/include/jansson.h \
  ..//Rack-SDK/dep/include/jansson_config.h ..//Rack-SDK/include/asset.hpp \
  ..//Rack-SDK/include/window/Window.hpp \
  ..//Rack-SDK/include/window/Svg.hpp ..//Rack-SDK/dep/include/nanovg.h \
@@ -105,6 +105,7 @@ src/RPJ.hpp:
 ..//Rack-SDK/include/math.hpp:
 ..//Rack-SDK/include/string.hpp:
 ..//Rack-SDK/include/system.hpp:
+..//Rack-SDK/include/mutex.hpp:
 ..//Rack-SDK/include/random.hpp:
 ..//Rack-SDK/include/network.hpp:
 ..//Rack-SDK/dep/include/jansson.h:
