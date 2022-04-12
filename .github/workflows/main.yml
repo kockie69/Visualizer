@@ -39,6 +39,8 @@ jobs:
         run: |
           curl -L -o Glew.zip https://sourceforge.net/projects/glew/files/glew/2.0.0/glew-2.0.0-win32.zip/download
           unzip Glew.zip
+          set GLEW_INCLUDE_DIRS=./glew-2.0.0/include/GL/
+          set GLEW_LIBRARIES=./glew-2.0.0/lib/
       - uses: actions/checkout@v2
         with:
           submodules: recursive
