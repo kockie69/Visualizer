@@ -38,9 +38,9 @@ jobs:
                 ls /mingw64
                 curl -L -o Glew.zip https://sourceforge.net/projects/glew/files/glew/2.0.0/glew-2.0.0-win32.zip/download
                 unzip Glew.zip
-                mkdir -p src/deps/projectm/build/include/GL
-                sudo cp ./glew-2.0.0/include/GL/* /mingw64/include/
-                sudo cp ./glew-2.0.0/lib/Release/x64/* /mingw64/lib
+                mkdir -p /mingw64/include
+                cp ./glew-2.0.0/include/GL/* /mingw64/include/
+                cp ./glew-2.0.0/lib/Release/x64/* /mingw64/lib
     steps:
       - uses: actions/checkout@v2
         with:
