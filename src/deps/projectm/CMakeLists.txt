@@ -172,7 +172,7 @@ else()
 endif()
 
 # Assume path to the additional library is <a-dir>/<a-filename>
-set(CMAKE_CXX_STANDARD_LIBRARIES /mingw64/lib/libpsapi.a)
+# set(CMAKE_CXX_STANDARD_LIBRARIES /mingw64/lib/libpsapi.a)
 
 include(features.cmake)
 
