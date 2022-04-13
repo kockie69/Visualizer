@@ -171,6 +171,9 @@ else()
     set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
 endif()
 
+# Assume path to the additional library is <a-dir>/<a-filename>
+set(CMAKE_CXX_STANDARD_LIBRARIES /mingw64/lib/libpsapi.a)
+
 include(features.cmake)
 
 add_subdirectory(presets)
