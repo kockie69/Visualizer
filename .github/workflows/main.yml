@@ -36,7 +36,7 @@ jobs:
               install-dependencies: |
                 pwd
                 cd / && ls
-                cd / && find ./mingw64/ -depth -print | grep libpsapi.a
+                find /mingw64 -name libpsapi.a
                 curl -L -o Glew.zip https://sourceforge.net/projects/glew/files/glew/2.0.0/glew-2.0.0-win32.zip/download
                 unzip Glew.zip
                 mkdir -p /mingw64/include/GL
