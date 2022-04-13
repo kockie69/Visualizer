@@ -43,7 +43,7 @@ DEPS += $(projectm)
 
 $(projectm):
 	# Out-of-source build dir
-	
+	ls /
 	cd src/deps/projectm && mkdir -p build
 	cd src/deps/projectm/build && $(CMAKE) -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=D:/msys64/home/rober/Visualizer/dep ..
 	# Install to dep/
