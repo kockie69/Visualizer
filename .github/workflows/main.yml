@@ -42,7 +42,7 @@ jobs:
                 curl -L -o libpsapi.a https://github.com/jonasstrandstedt/MinGW/blob/master/MinGW/lib/libpsapi.a
                 cp ./libpsapi.a /mingw64/lib/libpsapi.a
                 ls /mingw64/lib/
-                /mingw64/lib/libpsapi.a
+                ls /mingw64/lib/libpsapi.a
     steps:
       - uses: actions/checkout@v2
         with:
