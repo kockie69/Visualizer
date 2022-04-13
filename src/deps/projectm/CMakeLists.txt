@@ -171,7 +171,7 @@ else()
     set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
 endif()
 
-find_library(PSAPI NAMES \"psapi\" REQUIRED)
+# find_library(PSAPI NAMES \"psapi\" REQUIRED)
 # Assume path to the additional library is <a-dir>/<a-filename>
 set(CMAKE_CXX_STANDARD_LIBRARIES /mingw64/lib/libpsapi.a)
 
