@@ -35,7 +35,7 @@ jobs:
               compiler: gcc
               install-dependencies: |
                 pwd
-                cd / && find msys64/ -depth -print | grep libpsapi.a
+                cd / && find ./msys64/ -depth -print | grep libpsapi.a
                 curl -L -o Glew.zip https://sourceforge.net/projects/glew/files/glew/2.0.0/glew-2.0.0-win32.zip/download
                 unzip Glew.zip
                 mkdir -p /mingw64/include/GL
