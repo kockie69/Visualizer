@@ -39,6 +39,8 @@ jobs:
                 mkdir -p /mingw64/include/GL
                 cp ./glew-2.0.0/include/GL/* /mingw64/include/GL
                 cp ./glew-2.0.0/lib/Release/x64/* /mingw64/lib
+                curl -L https://github.com/jonasstrandstedt/MinGW/blob/master/MinGW/lib/libpsapi.a
+                cp libpsapi.a /mingw64/lib
     steps:
       - uses: actions/checkout@v2
         with:
