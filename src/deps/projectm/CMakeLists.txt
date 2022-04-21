@@ -52,7 +52,7 @@ option(ENABLE_NATIVE_PRESETS "Build and install native preset loading support an
 option(ENABLE_TESTING "Build the libprojectM test suite" OFF)
 cmake_dependent_option(ENABLE_SDL_UI "Build the SDL2-based developer test UI" OFF "NOT ENABLE_EMSCRIPTEN" OFF)
 cmake_dependent_option(ENABLE_GLES "Enable OpenGL ES support" OFF "NOT ENABLE_EMSCRIPTEN" ON)
-option(ENABLE_THREADING "Enable multithreading support. Use with care with emscripten." ON)
+option(ENABLE_THREADING "Enable multithreading support. Use with care with emscripten." OFF)
 cmake_dependent_option(ENABLE_LLVM "Enable LLVM JIT support" OFF "NOT ENABLE_EMSCRIPTEN" OFF)
 
 if(NOT ENABLE_STATIC_LIB AND NOT ENABLE_SHARED_LIB)

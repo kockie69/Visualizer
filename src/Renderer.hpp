@@ -2,9 +2,8 @@
 #ifndef RENDERER_HPP
 #define RENDERER_HPP
 
-
 #include "GLFW/glfw3.h"
-#include "../dep/include/libprojectM/projectM.h"
+#include "deps/projectm/src/libprojectM/projectM.hpp"
 #include <list>
 #include <thread>
 #include <mutex>
@@ -35,17 +34,16 @@ private:
   mutable std::mutex flags_m;
 
 protected:
-  projectm_handle pm;;
+  projectM* pm = nullptr;
   bool dirtySize = false;
 
 public:
-  projectm_settings settings;
   ProjectMRenderer() {}
 
   // init creates the OpenGL context to render in, in the main thread,
   // then starts the rendering thread. This can't be done in the ctor
   // because creating the window calls out to virtual methods.
-  void init(projectm_settings const& s);
+  void init(projectM::Settings const& s);
 
   // The dtor signals the rendering thread to terminate, then waits
   // for it to do so. It then deletes the OpenGL context in the main
@@ -91,7 +89,7 @@ private:
   // the render thread.
   void renderLoopSetPreset(unsigned int i);
   void renderLoopNextPreset();
-  void renderLoop(projectm_settings s);
+  void renderLoop(projectM::Settings s);
   virtual GLFWwindow* createWindow() = 0;
 };
 

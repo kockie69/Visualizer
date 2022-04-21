@@ -1,6 +1,8 @@
 #define NANOVG_GL2
 #include "RPJ.hpp"
-#include "../dep/include/libprojectM/projectM.h"
+#include "dsp/digital.hpp"
+#include "nanovg_gl.h"
+#include "deps/projectm/src/libprojectM/projectM.hpp"
 #include "Renderer.hpp"
 
 #include <thread>
@@ -23,7 +25,6 @@ struct MilkrackModule : Module {
   enum LightIds {
     NUM_LIGHTS
   };
-
 
   MilkrackModule() {
     config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
@@ -56,19 +57,17 @@ struct MilkrackModule : Module {
 struct BaseProjectMWidget : FramebufferWidget {
   const int fps = 60;
   const bool debug = true;
-  const projectm_settings s = initSettings("");
+  const projectM::Settings s;
 
   MilkrackModule* module;
 
   std::shared_ptr<Font> font;
 
   BaseProjectMWidget() {}
-
   virtual ~BaseProjectMWidget() {}
 
   void init(std::string presetURL) {
     getRenderer()->init(initSettings(presetURL));
-    getRenderer()->settings = initSettings(presetURL);
   }
 
   template<typename T>
@@ -82,19 +81,19 @@ struct BaseProjectMWidget : FramebufferWidget {
   virtual ProjectMRenderer* getRenderer() = 0;
 
   void step() override {
+    dirty = true;
     if (module) {
-      dirty = true;
-     if (module->full) {
-       getRenderer()->addPCMData(module->pcm_data, kSampleWindow);
-       module->full = false;
-     }
-      // If the module requests that we change the preset at random
+      if (module->full) {
+        getRenderer()->addPCMData(module->pcm_data, kSampleWindow);
+        module->full = false;
+      }
+     // If the module requests that we change the preset at random
      // (i.e. the random button was clicked), tell the render thread to
      // do so on the next pass.
-     if (module->nextPreset) {
-       module->nextPreset = false;
-       getRenderer()->requestPresetID(kPresetIDRandom);
-     }
+      if (module->nextPreset) {
+        module->nextPreset = false;
+        getRenderer()->requestPresetID(kPresetIDRandom);
+      }
     }
   }
 
@@ -108,12 +107,12 @@ struct BaseProjectMWidget : FramebufferWidget {
   // object.  This is needed because we must initialize this->settings
   // before starting this->renderThread, and that has to be done in
   // ProjectMWidget's ctor init list.
-  projectm_settings initSettings(std::string presetURL) const {
-    projectm_settings *settings = projectm_alloc_settings();
-    settings->preset_url = (char *)presetURL.c_str();
-    settings->window_width = 360;
-    settings->window_height = 360;
-    return *settings;
+  projectM::Settings initSettings(std::string presetURL) const {
+    projectM::Settings s;
+    s.presetURL = presetURL;
+    s.windowWidth = 360;
+    s.windowHeight = 360;
+    return s;
   }
 };
 
@@ -146,11 +145,48 @@ struct WindowedProjectMWidget : BaseProjectMWidget {
   }
 };
 
+struct EmbeddedProjectMWidget : BaseProjectMWidget {
+  static const int x = 360;
+  static const int y = 360;
+
+  TextureRenderer* renderer;
+
+  EmbeddedProjectMWidget() : renderer(new TextureRenderer) {}
+
+  ~EmbeddedProjectMWidget() { delete renderer; }
+
+  ProjectMRenderer* getRenderer() override { return renderer; }
+
+  void draw(NVGcontext* vg) override {
+    int img = nvglCreateImageFromHandleGL2(vg, renderer->getTextureID(), x, y, 0);
+    NVGpaint imgPaint = nvgImagePattern(vg, 0, 0, x, y, 0.0f, img, 1.0f);
+
+    nvgBeginPath(vg);
+    nvgRect(vg, 0, 0, x, y);
+    nvgFillPaint(vg, imgPaint);
+    nvgFill(vg);
+    nvgClosePath(vg);
+
+    nvgSave(vg);
+    nvgScissor(vg, 0, 0, x, y);
+    nvgBeginPath(vg);
+    nvgFillColor(vg, nvgRGB(0x06, 0xbd, 0x01));
+    nvgFontSize(vg, 14);
+    nvgFontFaceId(vg, font->handle);
+    nvgTextAlign(vg, NVG_ALIGN_BOTTOM);
+    nvgText(vg, 10, 20, getRenderer()->activePresetName().c_str(), nullptr);
+    nvgFill(vg);
+    nvgClosePath(vg);
+    nvgRestore(vg);
+  }
+};
+
+
 struct SetPresetMenuItem : MenuItem {
   BaseProjectMWidget* w;
   unsigned int presetId;
 
-  void onAction(const ActionEvent & e) override {
+  void onAction(const ActionEvent& e) override {
     w->getRenderer()->requestPresetID(presetId);
   }
 
@@ -171,7 +207,7 @@ struct SetPresetMenuItem : MenuItem {
 struct ToggleAutoplayMenuItem : MenuItem {
   BaseProjectMWidget* w;
 
-  void onAction(const ActionEvent & e) override {
+  void onAction(const ActionEvent& e) override {
     w->getRenderer()->requestToggleAutoplay();
   }
 
@@ -192,9 +228,9 @@ struct ToggleAutoplayMenuItem : MenuItem {
 struct BaseMilkrackModuleWidget : ModuleWidget {
   BaseProjectMWidget* w;
 
-  //void randomize() override {
+  //void randomizeAction() override {
   //  w->randomize();
- // }
+  //}
 
   void appendContextMenu(Menu* menu) override {
     MilkrackModule* m = dynamic_cast<MilkrackModule*>(module);
@@ -215,7 +251,7 @@ struct BaseMilkrackModuleWidget : ModuleWidget {
 
 struct MilkrackModuleWidget : BaseMilkrackModuleWidget {
   MilkrackModuleWidget(MilkrackModule* module) {
-    setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/MilkrackSeparateWindow.svg")));
+    APP->window->loadSvg(asset::plugin(pluginInstance, "res/MilkrackSeparateWindow.svg"));
 
     addInput(createInput<PJ301MPort>(Vec(15, 60), module, MilkrackModule::LEFT_INPUT));
     addInput(createInput<PJ301MPort>(Vec(15, 90), module, MilkrackModule::RIGHT_INPUT));
@@ -224,13 +260,33 @@ struct MilkrackModuleWidget : BaseMilkrackModuleWidget {
     addInput(createInput<PJ301MPort>(Vec(15, 170), module, MilkrackModule::NEXT_PRESET_INPUT));
 
     std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
+    w = BaseProjectMWidget::create<WindowedProjectMWidget>(Vec(50, 20), asset::plugin(pluginInstance, "res/presets_projectM/"));
     if (module) {
-      w = BaseProjectMWidget::create<WindowedProjectMWidget>(Vec(50, 20), asset::plugin(pluginInstance, "res/presets_projectM/"));
-      w->module = module;
-      w->font = font;
-      addChild(w);
+        w->module = module;
+        w->font = font;
+        addChild(w);
     }
   }
 };
 
-Model * modelVisualizerFull = createModel<MilkrackModule, MilkrackModuleWidget>("RPJVisualizerFull");
+
+struct EmbeddedMilkrackModuleWidget : BaseMilkrackModuleWidget {
+  EmbeddedMilkrackModuleWidget(MilkrackModule* module) {
+    APP->window->loadSvg(asset::plugin(pluginInstance, "res/MilkrackModule.svg"));
+
+    addInput(createInput<PJ301MPort>(Vec(15, 60), module, MilkrackModule::LEFT_INPUT));
+    addInput(createInput<PJ301MPort>(Vec(15, 90), module, MilkrackModule::RIGHT_INPUT));
+
+    addParam(createParam<TL1105>(Vec(19, 150), module, MilkrackModule::NEXT_PRESET_PARAM));
+    addInput(createInput<PJ301MPort>(Vec(15, 170), module, MilkrackModule::NEXT_PRESET_INPUT));
+
+    std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
+    w = BaseProjectMWidget::create<EmbeddedProjectMWidget>(Vec(50, 10), asset::plugin(pluginInstance, "presets_projectM/"));
+    w->module = module;
+    w->font = font;
+    addChild(w);
+  }
+};
+
+Model *modelWindowedMilkrackModule = createModel<MilkrackModule, MilkrackModuleWidget>("MilkrackFull");
+Model *modelEmbeddedMilkrackModule = createModel<MilkrackModule, EmbeddedMilkrackModuleWidget>("MilkrackEmbedded");

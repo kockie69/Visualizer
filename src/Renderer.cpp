@@ -3,10 +3,11 @@
 #include "Renderer.hpp"
 #include "GLFW/glfw3.h"
 #include "../dep/include/libprojectM/projectM.h"
+#include "glfwUtils.hpp"
 #include <thread>
 #include <mutex>
 
-void ProjectMRenderer::init(projectm_settings const& s) {
+void ProjectMRenderer::init(projectM::Settings const& s) {
   window = createWindow();
   renderThread = std::thread([this, s](){ this->renderLoop(s); });
 }
@@ -24,7 +25,7 @@ ProjectMRenderer::~ProjectMRenderer() {
 void ProjectMRenderer::addPCMData(float* data, unsigned int nsamples) {
   std::lock_guard<std::mutex> l(pm_m);
   if (!pm) return;
-  projectm_pcm_add_float_2ch_data(pm,data, nsamples);
+  pm->pcm()->AddStereo(data, nsamples);
 }
 
 // Requests that projectM changes the preset at the next opportunity
@@ -43,7 +44,7 @@ void ProjectMRenderer::requestToggleAutoplay() {
 bool ProjectMRenderer::isAutoplayEnabled() const {
   std::lock_guard<std::mutex> l(pm_m);
   if (!pm) return false;
-  return !projectm_is_preset_locked(pm);
+  return !pm->isPresetLocked();
 }
 
 // ID of the current preset in projectM's list
@@ -51,18 +52,18 @@ unsigned int ProjectMRenderer::activePreset() const {
   unsigned int presetIdx;
   std::lock_guard<std::mutex> l(pm_m);
   if (!pm) return 0;
-  projectm_select_preset_position(pm,presetIdx);
+  pm->selectedPresetIndex(presetIdx);
   return presetIdx;
 }
 
 // Name of the preset projectM is currently displaying
 std::string ProjectMRenderer::activePresetName() const {
-  unsigned int *presetIdx = (unsigned int *)malloc(sizeof(presetIdx));;
+  unsigned int presetIdx;
   std::unique_lock<std::mutex> l(pm_m);
   if (!pm) return "";
-  if (projectm_get_selected_preset_index(pm,presetIdx)) {
+  if (pm->selectedPresetIndex(presetIdx)) {
     l.unlock();
-    return projectm_get_preset_name(pm,*(presetIdx));
+    return pm->getPresetName(presetIdx);
   }
   return "";
 }
@@ -74,7 +75,7 @@ std::list<std::pair<unsigned int, std::string> > ProjectMRenderer::listPresets()
   {
     std::lock_guard<std::mutex> l(pm_m);
     if (!pm) return presets;
-    n = projectm_get_playlist_size(pm);
+    n = pm->getPlaylistSize();
   }
   if (!n) {
     return presets;
@@ -83,7 +84,7 @@ std::list<std::pair<unsigned int, std::string> > ProjectMRenderer::listPresets()
     std::string s;
     {
       std::lock_guard<std::mutex> l(pm_m);
-      s = projectm_get_preset_name(pm,i);
+      s = pm->getPresetName(i);
     }
     presets.push_back(std::make_pair(i, std::string(s)));
   }
@@ -121,17 +122,16 @@ void ProjectMRenderer::setStatus(Status s) {
 
 void ProjectMRenderer::renderSetAutoplay(bool enable) {
   std::lock_guard<std::mutex> l(pm_m);
-  projectm_lock_preset(pm,!enable);
+  pm->setPresetLock(!enable);
 }
 
 // Switch to the next preset. This should be called only from the
 // render thread.
 void ProjectMRenderer::renderLoopNextPreset() {
   std::lock_guard<std::mutex> l(pm_m);
-  unsigned int n = projectm_get_playlist_size(pm);
+  unsigned int n = pm->getPlaylistSize();
   if (n) {
-//  RPJ: added true, must be variable hard_cut  
-    projectm_select_preset(pm,std::rand() % n,true);
+    pm->selectPreset(rand() % n);
   }
 }
 
@@ -139,26 +139,24 @@ void ProjectMRenderer::renderLoopNextPreset() {
 // the render thread.
 void ProjectMRenderer::renderLoopSetPreset(unsigned int i) {
   std::lock_guard<std::mutex> l(pm_m);
-  unsigned int n = projectm_get_playlist_size(pm);
+  unsigned int n = pm->getPlaylistSize();
   if (n && i < n) {
-    //  RPJ: added true, must be variable hard_cut  
-    projectm_select_preset(pm,i,true);
+    pm->selectPreset(i);
   }
 }
 
-void ProjectMRenderer::renderLoop(projectm_settings s) {
+void ProjectMRenderer::renderLoop(projectM::Settings s) {
   if (!window) {
     setStatus(Status::FAILED);
     return;
   }
   glfwMakeContextCurrent(window);
-  logContextInfo("Marbles window", window);
+  logContextInfo("Milkrack window", window);
   
   // Initialize projectM
   {
     std::lock_guard<std::mutex> l(pm_m);
-    projectm_settings *settingsPtr = & settings;
-    pm = projectm_create_settings(settingsPtr,PROJECTM_FLAG_NONE);
+    pm = new projectM(s);
     extraProjectMInitialization();
   }
   
@@ -177,7 +175,7 @@ void ProjectMRenderer::renderLoop(projectm_settings s) {
       if (dirtySize) {
 	int x, y;
 	glfwGetFramebufferSize(window, &x, &y);
-	projectm_set_window_size(pm,x, y);
+	pm->projectM_resetGL(x, y);
 	dirtySize = false;
       }
       
@@ -200,12 +198,11 @@ void ProjectMRenderer::renderLoop(projectm_settings s) {
       
       {
 	std::lock_guard<std::mutex> l(pm_m);
-	projectm_render_frame(pm);
+	pm->renderFrame();
       }
       glfwSwapBuffers(window);
     }
-    //usleep(1000000/60); // TODO fps
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000000/60));
+    usleep(1000000/60); // TODO fps
   }
 
   {
@@ -222,11 +219,11 @@ void ProjectMRenderer::logContextInfo(std::string name, GLFWwindow* w) const {
   int minor = glfwGetWindowAttrib(w, GLFW_CONTEXT_VERSION_MINOR);
   int revision = glfwGetWindowAttrib(w, GLFW_CONTEXT_REVISION);
   int api = glfwGetWindowAttrib(w, GLFW_CLIENT_API);
-  //rack::loggerLog(rack::DEBUG_LEVEL, "Milkrack/" __FILE__, __LINE__, "%s context using API %d version %d.%d.%d", name.c_str(), api, major, minor, revision);
+  rack::logger::log(rack::DEBUG_LEVEL, "Milkrack/" __FILE__, __LINE__, "%s context using API %d version %d.%d.%d", name.c_str(), api, major, minor, revision);
 }
 
 void ProjectMRenderer::logGLFWError(int errcode, const char* errmsg) {
-  //rack::loggerLog(rack::WARN_LEVEL, "Milkrack/" __FILE__, 0, "GLFW error %d: %s", errcode, errmsg);
+  //rack::logger::log(rack::WARN_LEVEL, "Milkrack/" __FILE__, 0, "GLFW error %s: %s", std::to_string(errcode), errmsg);
 }
 
 GLFWwindow* WindowedRenderer::createWindow() {
@@ -239,7 +236,7 @@ GLFWwindow* WindowedRenderer::createWindow() {
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
   GLFWwindow* c = glfwCreateWindow(360, 360, "", NULL, NULL);  
   if (!c) {
-    //rack::loggerLog(rack::DEBUG_LEVEL, "Milkrack/" __FILE__, __LINE__, "Milkrack renderLoop could not create a context, bailing.");
+    //rack::logger::log(rack::DEBUG_LEVEL, "Milkrack/" __FILE__, __LINE__, "Milkrack renderLoop could not create a context, bailing.");
     return nullptr;
   }
   glfwSetWindowUserPointer(c, reinterpret_cast<void*>(this));
@@ -266,9 +263,7 @@ void WindowedRenderer::keyCallback(GLFWwindow* win, int key, int scancode, int a
     {
       const GLFWmonitor* current_monitor = glfwGetWindowMonitor(win);
       if (!current_monitor) {
-        //RPJ: implement last c++ file
-	//GLFWmonitor* best_monitor = glfwWindowGetNearestMonitor(win);
-  GLFWmonitor* best_monitor = glfwGetPrimaryMonitor();
+	GLFWmonitor* best_monitor = glfwWindowGetNearestMonitor(win);
 	const GLFWvidmode* mode = glfwGetVideoMode(best_monitor);
 	glfwGetWindowPos(win, &r->last_xpos, &r->last_ypos);
 	glfwGetWindowSize(win, &r->last_width, &r->last_height);
@@ -300,17 +295,15 @@ void WindowedRenderer::keyCallback(GLFWwindow* win, int key, int scancode, int a
 
 GLFWwindow* TextureRenderer::createWindow() {
   glfwSetErrorCallback(logGLFWError);
-  //logContextInfo("gWindow", rack::gWindow);
+  logContextInfo("gWindow", APP->window->win);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
   glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-  //RPJ: Share window
-  //GLFWwindow* c = glfwCreateWindow(360, 360, "", NULL, rack::Window);
-  GLFWwindow* c = glfwCreateWindow(360, 360, "", NULL, NULL);
+  GLFWwindow* c = glfwCreateWindow(360, 360, "", NULL, APP->window->win);
   if (!c) {
-    //rack::loggerLog(rack::DEBUG_LEVEL, "Milkrack/" __FILE__, __LINE__, "Milkrack renderLoop could not create a context, bailing.");
+    //rack::logger::log(rack::DEBUG_LEVEL, "Milkrack/" __FILE__, __LINE__, "Milkrack renderLoop could not create a context, bailing.");
     return nullptr;
   }
   logContextInfo("Milkrack context", c);
@@ -319,7 +312,7 @@ GLFWwindow* TextureRenderer::createWindow() {
 
 
 void TextureRenderer::extraProjectMInitialization() {
-  texture = projectm_init_render_to_texture(pm);
+  texture = pm->initRenderToTexture();
 }
 
 int TextureRenderer::getTextureID() const {
