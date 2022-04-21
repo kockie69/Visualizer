@@ -21,8 +21,8 @@ CXXFLAGS +=
 # Static libraries are fine, but they should be added to this plugin's build system.
 
 ifdef ARCH_WIN
-	#LDFLAGS += ./dep/lib/liblibprojectM.a /mingw64/lib/libopengl32.a /mingw64/lib/libgomp.a
-	LDFLAGS += ./dep/lib/liblibprojectM.a -lpsapi /mingw64/lib/libopengl32.a /mingw64/lib/libgomp.a -lpthread -mthreads -pthread
+	LDFLAGS += ./dep/lib/libprojectM.lib /mingw64/lib/libopengl32.a /mingw64/lib/libgomp.a
+	#LDFLAGS += ./dep/lib/liblibprojectM.a -lpsapi /mingw64/lib/libopengl32.a /mingw64/lib/libgomp.a -lpthread -mthreads -pthread 
 endif
 
 # Add .cpp files to the build
@@ -44,9 +44,9 @@ DEPS += $(projectm)
 $(projectm):
 	# Out-of-source build dir
 	# check /d
-	ls /d
+	#ls /d
 	# check /a
-	ls /d/a/Visualizer
+	#ls /d/a/Visualizer
 	cd src/deps/projectm && mkdir -p build
 	cd src/deps/projectm/build && $(CMAKE) -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=D:/msys64/home/rober/Visualizer/dep ..
 	# Install to dep/

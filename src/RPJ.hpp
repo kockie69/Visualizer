@@ -3,9 +3,8 @@
 using namespace rack;
 
 extern Plugin *pluginInstance;
-extern Model *modelVisualizer;
-//extern Model *modelVisualizerFull;
-extern Model *modelTest;
+extern Model *modelWindowedMilkrackModule;
+extern Model *modelEmbeddedMilkrackModule;
 
 struct BGPanel : Widget {
 	Widget *panelBorder;

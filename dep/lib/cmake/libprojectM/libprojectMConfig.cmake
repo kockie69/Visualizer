@@ -29,7 +29,7 @@ endmacro()
 include(CMakeFindDependencyMacro)
 
 find_dependency(OpenGL)
-if("ON") # ENABLE_THREADING
+if("OFF") # ENABLE_THREADING
     find_dependency(Threads)
 endif()
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
