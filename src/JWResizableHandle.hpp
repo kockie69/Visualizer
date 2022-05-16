@@ -7,9 +7,11 @@ struct JWModuleResizeHandle : OpaqueWidget {
 	bool right = false;
 	Vec dragPos;
 	Rect originalBox;
+	GLFWwindow *window;
 
-	JWModuleResizeHandle() {
+	JWModuleResizeHandle(GLFWwindow *w) {
 		box.size = Vec(RACK_GRID_WIDTH * 1, RACK_GRID_HEIGHT);
+		window = w;
 	}
 
 	void onDragStart(const event::DragStart &e) override {
@@ -48,6 +50,7 @@ struct JWModuleResizeHandle : OpaqueWidget {
 		mw->box = newBox;
 		if (!APP->scene->rack->requestModulePos(mw, newBox.pos)) {
 			mw->box = oldBox;
-		}
+		}	
+		glfwSetWindowSize(window,mw->box.size.x,mw->box.size.y);
 	}
 };
