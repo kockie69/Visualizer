@@ -4,18 +4,46 @@
 #include "nanovg_gl.h"
 #include "deps/projectm/src/libprojectM/projectM.hpp"
 #include "Renderer.hpp"
+#include "linmath.h"
+#include "stb_image.h"
+#include "ctrl/RPJKnobs.hpp"
+#include "JWResizableHandle.hpp"
 
 #include <thread>
 
-static const unsigned int kSampleWindow = 512;
+static const unsigned int kSampleWindow = 1;
+
+      		// Then do the knobs
+		const float knobX1 = 11;
+		const float knobX2 = 27;
+		const float knobX3 = 47;
+
+		const float knobY1 = 44;
+		const float knobY2 = 311;
+		//const float knobY3 = 122;
+		//const float knobY4 = 150;
+		//const float knobY5 = 178;
+		//const float knobY6 = 206;
+
+		const float buttonX1 = 41;
+
+    const float buttonY0 = 100;
+		const float buttonY1 = 185;
+    const float buttonY2 = 215;
+    const float buttonY3 = 245;
+		const float buttonY4 = 275;
 
 struct MilkrackModule : Module {
   enum ParamIds {
-    NEXT_PRESET_PARAM,
+    PARAM_NEXT,
+		PARAM_PREV,
+    PARAM_HARD_CUT,
+    PARAM_TIMER,
     NUM_PARAMS
   };
   enum InputIds {
-    LEFT_INPUT, RIGHT_INPUT,
+    LEFT_INPUT, 
+    RIGHT_INPUT,
     NEXT_PRESET_INPUT,
     NUM_INPUTS
   };
@@ -23,21 +51,34 @@ struct MilkrackModule : Module {
     NUM_OUTPUTS
   };
   enum LightIds {
+    NEXT_LIGHT,
+		PREV_LIGHT,
+    HARD_CUT_LIGHT,
     NUM_LIGHTS
   };
 
   MilkrackModule() {
     config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-    configParam(NEXT_PRESET_PARAM, 0.0, 1.0, 0.0);
+    configButton(PARAM_NEXT, "Next preset");
+	  configButton(PARAM_PREV, "Previous preset");
+    configSwitch(PARAM_HARD_CUT, 0.f, 1.f, 1.f, "Hard cut mode", {"Enabled", "Disabled"});
+    configParam(PARAM_TIMER, 0.f, 300.f, 30.f, "Time till next preset","Seconds");
+    lightDivider.setDivision(16);
   }
 
   unsigned int i = 0;
   bool full = false;
   bool nextPreset = false;
-  dsp::SchmittTrigger nextPresetTrig;
+  bool prevPreset = false;
+  bool changeHardcut = false;
+  bool hard_cut = false;
+  dsp::SchmittTrigger hardcutTrigger;
+  dsp::BooleanTrigger nextTrigger,prevTrigger;
+  dsp::ClockDivider lightDivider;
   float pcm_data[kSampleWindow];
 
   void step() override {
+    
     pcm_data[i++] = inputs[LEFT_INPUT].value;
     if (inputs[RIGHT_INPUT].active)
       pcm_data[i++] = inputs[RIGHT_INPUT].value;
@@ -47,9 +88,31 @@ struct MilkrackModule : Module {
       i = 0;
       full = true;
     }
-    if (nextPresetTrig.process(params[NEXT_PRESET_PARAM].value + inputs[NEXT_PRESET_INPUT].value)) {
-      nextPreset = true;
-    }
+
+    hard_cut = params[PARAM_HARD_CUT].getValue() <= 0.f;
+
+    if (hardcutTrigger.process(params[PARAM_HARD_CUT].getValue(), 0.f,1.f)) {
+		  changeHardcut=true;
+	  }
+
+    if (hardcutTrigger.process(params[PARAM_HARD_CUT].getValue(), 1.f,0.f)) {
+		  changeHardcut=true;
+	  }
+    
+    if (nextTrigger.process(params[PARAM_NEXT].getValue()) > 0.f || nextTrigger.process(inputs[NEXT_PRESET_INPUT].getVoltage() > 0.f)) {
+		  nextPreset=true;
+	  }
+
+    if (prevTrigger.process(params[PARAM_PREV].getValue()) > 0.f) {
+		  prevPreset=true;
+	  }
+    
+    lights[NEXT_LIGHT].setBrightness(nextPreset);
+	  lights[PREV_LIGHT].setBrightness(prevPreset);
+
+    if (lightDivider.process()) {
+		  lights[HARD_CUT_LIGHT].setBrightness(hard_cut);
+	  }
   }
 };
 
@@ -58,6 +121,7 @@ struct BaseProjectMWidget : FramebufferWidget {
   const int fps = 60;
   const bool debug = true;
   const projectM::Settings s;
+  bool displayPresetName = false;
 
   MilkrackModule* module;
 
@@ -83,16 +147,31 @@ struct BaseProjectMWidget : FramebufferWidget {
   void step() override {
     dirty = true;
     if (module) {
+      
       if (module->full) {
         getRenderer()->addPCMData(module->pcm_data, kSampleWindow);
         module->full = false;
+      }
+      if (module->changeHardcut) {
+        module->changeHardcut = false;
+        getRenderer()->requestToggleHardcut();
       }
      // If the module requests that we change the preset at random
      // (i.e. the random button was clicked), tell the render thread to
      // do so on the next pass.
       if (module->nextPreset) {
         module->nextPreset = false;
-        getRenderer()->requestPresetID(kPresetIDRandom);
+        if (!getRenderer()->isAutoplayEnabled())
+          getRenderer()->selectNextPreset(getRenderer()->isHardcutEnabled());
+        else 
+          getRenderer()->requestPresetID(kPresetIDRandom);
+      }
+      if (module->prevPreset) {
+        module->prevPreset = false;
+        if (!getRenderer()->isAutoplayEnabled())
+          getRenderer()->selectPreviousPreset(getRenderer()->isHardcutEnabled());
+        else
+          getRenderer()->requestPresetID(kPresetIDRandom);
       }
     }
   }
@@ -109,9 +188,29 @@ struct BaseProjectMWidget : FramebufferWidget {
   // ProjectMWidget's ctor init list.
   projectM::Settings initSettings(std::string presetURL) const {
     projectM::Settings s;
+
+    // Window/rendering settings
     s.presetURL = presetURL;
     s.windowWidth = 360;
     s.windowHeight = 360;
+    s.fps =  60;
+    s.meshX = 220;
+    s.meshY = 125;
+    s.aspectCorrection = true;
+
+    // Preset display settings
+    s.presetDuration = 30;
+    s.softCutDuration = 10;
+    s.hardCutEnabled = false;
+    s.hardCutDuration= 20;
+    s.hardCutSensitivity =  1.0;
+    s.beatSensitivity = 1.0;
+    s.shuffleEnabled = false;
+
+    // Unsupported settings
+    //s.softCutRatingsEnabled = false;
+    //s.menuFontURL = nullptr;
+    //s.titleFontURL = nullptr;
     return s;
   }
 };
@@ -128,16 +227,16 @@ struct WindowedProjectMWidget : BaseProjectMWidget {
   void draw(NVGcontext* vg) override {
     nvgSave(vg);
     nvgBeginPath(vg);
-    nvgFillColor(vg, nvgRGB(0x06, 0xbd, 0x01));
+    nvgFillColor(vg, nvgRGB(0xff, 0xff, 0xff));
     nvgFontSize(vg, 14);
     nvgFontFaceId(vg, font->handle);
     nvgTextAlign(vg, NVG_ALIGN_BOTTOM);
     nvgScissor(vg, 5, 5, 20, 330);
     nvgRotate(vg, M_PI/2);
     if (!getRenderer()->isRendering()) {
-      nvgText(vg, 5, -7, "Unable to initialize rendering. See log for details.", nullptr);
+      nvgText(vg, 5, -5, "Unable to initialize rendering. See log for details.", nullptr);
     } else {
-      nvgText(vg, 5, -7, getRenderer()->activePresetName().c_str(), nullptr);
+      nvgText(vg, 5, -5, getRenderer()->activePresetName().c_str(), nullptr);
     }
     nvgFill(vg);
     nvgClosePath(vg);
@@ -146,41 +245,52 @@ struct WindowedProjectMWidget : BaseProjectMWidget {
 };
 
 struct EmbeddedProjectMWidget : BaseProjectMWidget {
-  static const int x = 360;
-  static const int y = 360;
-
+  int img;
+  unsigned int shaderProgram;
+  
   TextureRenderer* renderer;
 
-  EmbeddedProjectMWidget() : renderer(new TextureRenderer) {}
+  EmbeddedProjectMWidget() : renderer(new TextureRenderer) {
+  }
 
   ~EmbeddedProjectMWidget() { delete renderer; }
 
   ProjectMRenderer* getRenderer() override { return renderer; }
 
-  void draw(NVGcontext* vg) override {
-    int img = nvglCreateImageFromHandleGL2(vg, renderer->getTextureID(), x, y, 0);
-    NVGpaint imgPaint = nvgImagePattern(vg, 0, 0, x, y, 0.0f, img, 1.0f);
+  void draw(const DrawArgs &args) override {
+    const int y = 360;
+    int x = renderer->getWindowWidth();
 
-    nvgBeginPath(vg);
-    nvgRect(vg, 0, 0, x, y);
-    nvgFillPaint(vg, imgPaint);
-    nvgFill(vg);
-    nvgClosePath(vg);
+    nvgDeleteImage(args.vg,img);
+    img = nvgCreateImageRGBA(args.vg,x,y,0,renderer->getBuffer());
+    
+    NVGpaint imgPaint = nvgImagePattern(args.vg, 0, 0, renderer->getWindowWidth(), y, 0.0f, img, 1.0f);
 
-    nvgSave(vg);
-    nvgScissor(vg, 0, 0, x, y);
-    nvgBeginPath(vg);
-    nvgFillColor(vg, nvgRGB(0x06, 0xbd, 0x01));
-    nvgFontSize(vg, 14);
-    nvgFontFaceId(vg, font->handle);
-    nvgTextAlign(vg, NVG_ALIGN_BOTTOM);
-    nvgText(vg, 10, 20, getRenderer()->activePresetName().c_str(), nullptr);
-    nvgFill(vg);
-    nvgClosePath(vg);
-    nvgRestore(vg);
+    nvgSave(args.vg);
+    nvgScale(args.vg, 1, -1); // flip
+    nvgTranslate(args.vg,0, -y);
+    nvgBeginPath(args.vg);
+    nvgRect(args.vg, 0, 0, x, y); 
+    nvgFillPaint(args.vg, imgPaint);
+    nvgFill(args.vg);
+    nvgRestore(args.vg);
+
+    if (displayPresetName) {
+      nvgSave(args.vg);
+      nvgScissor(args.vg, 0, 0, x, y);
+      nvgBeginPath(args.vg);
+      nvgFillColor(args.vg, nvgRGB(0xff, 0xff, 0xff));
+      nvgFontSize(args.vg, 14);
+      nvgFontFaceId(args.vg, font->handle);
+      nvgTextAlign(args.vg, NVG_ALIGN_BOTTOM);
+      nvgText(args.vg, 10, 20, getRenderer()->activePresetName().c_str(), nullptr);
+      nvgFill(args.vg);
+      nvgClosePath(args.vg);
+      nvgRestore(args.vg);
+    }
+    FramebufferWidget::draw(args);
   }
 };
-
 
 struct SetPresetMenuItem : MenuItem {
   BaseProjectMWidget* w;
@@ -224,9 +334,30 @@ struct ToggleAutoplayMenuItem : MenuItem {
   }
 };
 
+struct ToggleDisplayPresetNameMenuItem : MenuItem {
+  BaseProjectMWidget* w;
+
+  void onAction(const ActionEvent& e) override {
+    w->displayPresetName = !w->displayPresetName;
+  }
+
+  void step() override {
+    rightText = (w->displayPresetName ? "yes" : "no");
+    MenuItem::step();
+  }
+
+  static ToggleDisplayPresetNameMenuItem* construct(std::string label, BaseProjectMWidget* w) {
+    ToggleDisplayPresetNameMenuItem* m = new ToggleDisplayPresetNameMenuItem;
+    m->w = w;
+    m->text = label;
+    return m;
+  }
+};
 
 struct BaseMilkrackModuleWidget : ModuleWidget {
-  BaseProjectMWidget* w;
+  BaseProjectMWidget* w = NULL;
+
+ // using ModuleWidget::ModuleWidget;
 
   //void randomizeAction() override {
   //  w->randomize();
@@ -239,6 +370,8 @@ struct BaseMilkrackModuleWidget : ModuleWidget {
     menu->addChild(construct<MenuLabel>());
     menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Options"));
     menu->addChild(ToggleAutoplayMenuItem::construct("Cycle through presets", w));
+    if (m->getModel()->name == "MilkrackEmbedded" )
+      menu->addChild(ToggleDisplayPresetNameMenuItem::construct("Show Preset Title", w));
 
     menu->addChild(construct<MenuLabel>());
     menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Preset"));
@@ -251,40 +384,80 @@ struct BaseMilkrackModuleWidget : ModuleWidget {
 
 struct MilkrackModuleWidget : BaseMilkrackModuleWidget {
   MilkrackModuleWidget(MilkrackModule* module) {
-    APP->window->loadSvg(asset::plugin(pluginInstance, "res/MilkrackSeparateWindow.svg"));
 
-    addInput(createInput<PJ301MPort>(Vec(15, 60), module, MilkrackModule::LEFT_INPUT));
-    addInput(createInput<PJ301MPort>(Vec(15, 90), module, MilkrackModule::RIGHT_INPUT));
+  setModule(module);
+    setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/VisualizerWindow.svg")));
+    addParam(createParam<RPJKnob>(Vec(knobX2,knobY1), module, MilkrackModule::PARAM_TIMER));
+    addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY1), module, MilkrackModule::PARAM_NEXT,MilkrackModule::NEXT_LIGHT));
+		addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY2), module, MilkrackModule::PARAM_PREV,MilkrackModule::PREV_LIGHT));
+    addParam(createLightParamCentered<VCVLightLatch<MediumSimpleLight<WhiteLight>>>(Vec(buttonX1,buttonY0), module, MilkrackModule::PARAM_HARD_CUT, MilkrackModule::HARD_CUT_LIGHT));
 
-    addParam(createParam<TL1105>(Vec(19, 150), module, MilkrackModule::NEXT_PRESET_PARAM));
-    addInput(createInput<PJ301MPort>(Vec(15, 170), module, MilkrackModule::NEXT_PRESET_INPUT));
+		addInput(createInput<PJ301MPort>(Vec(knobX1, knobY2), module, MilkrackModule::LEFT_INPUT));	
+		addInput(createInput<PJ301MPort>(Vec(knobX3, knobY2), module, MilkrackModule::RIGHT_INPUT));	
+
+    addInput(createInput<PJ301MPort>(Vec(30, 240), module, MilkrackModule::NEXT_PRESET_INPUT));
 
     std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
-    w = BaseProjectMWidget::create<WindowedProjectMWidget>(Vec(50, 20), asset::plugin(pluginInstance, "res/presets_projectM/"));
     if (module) {
-        w->module = module;
-        w->font = font;
-        addChild(w);
+      w = BaseProjectMWidget::create<WindowedProjectMWidget>(Vec(85, 20), asset::plugin(pluginInstance, "res/presets_projectM/"));
+      w->module = module;
+      w->font = font;
+      addChild(w); 
     }
   }
 };
 
-
 struct EmbeddedMilkrackModuleWidget : BaseMilkrackModuleWidget {
-  EmbeddedMilkrackModuleWidget(MilkrackModule* module) {
-    APP->window->loadSvg(asset::plugin(pluginInstance, "res/MilkrackModule.svg"));
+    JWModuleResizeHandle *rightHandle;
+    BGPanel *panel;
+    EmbeddedMilkrackModuleWidget(MilkrackModule* module) {
 
-    addInput(createInput<PJ301MPort>(Vec(15, 60), module, MilkrackModule::LEFT_INPUT));
-    addInput(createInput<PJ301MPort>(Vec(15, 90), module, MilkrackModule::RIGHT_INPUT));
+    setModule(module);
 
-    addParam(createParam<TL1105>(Vec(19, 150), module, MilkrackModule::NEXT_PRESET_PARAM));
-    addInput(createInput<PJ301MPort>(Vec(15, 170), module, MilkrackModule::NEXT_PRESET_INPUT));
+    setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/Visualizer.svg")));
+
+    //addInput(createInput<PJ301MPort>(Vec(15, 170), module, MilkrackModule::NEXT_PRESET_INPUT));
+
+		panel = new BGPanel(nvgRGB(0, 0, 0));
+		panel->box.size = box.size;
+		int x = box.size.x;
+		int y = box.size.y;
+		addChild(panel);
 
     std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
-    w = BaseProjectMWidget::create<EmbeddedProjectMWidget>(Vec(50, 10), asset::plugin(pluginInstance, "presets_projectM/"));
-    w->module = module;
-    w->font = font;
-    addChild(w);
+    if (module) {
+      w = BaseProjectMWidget::create<EmbeddedProjectMWidget>(Vec(85, 0), asset::plugin(pluginInstance, "res/presets_projectM/"));
+      w->module = module;
+      w->box.size = Vec(360,360);
+      w->font = font;
+      addChild(w);
+
+      JWModuleResizeHandle *rightHandle = new JWModuleResizeHandle(w->getRenderer()->window);
+		  rightHandle->right = true;
+		  this->rightHandle = rightHandle;
+
+		  addChild(rightHandle);
+    }
+
+        
+    addParam(createParam<RPJKnob>(Vec(knobX2,knobY1), module, MilkrackModule::PARAM_TIMER));
+    addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY1), module, MilkrackModule::PARAM_NEXT,MilkrackModule::NEXT_LIGHT));
+		addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY2), module, MilkrackModule::PARAM_PREV,MilkrackModule::PREV_LIGHT));
+    addParam(createLightParamCentered<VCVLightLatch<MediumSimpleLight<WhiteLight>>>(Vec(buttonX1,buttonY0), module, MilkrackModule::PARAM_HARD_CUT, MilkrackModule::HARD_CUT_LIGHT));
+
+		addInput(createInput<PJ301MPort>(Vec(knobX1, knobY2), module, MilkrackModule::LEFT_INPUT));	
+		addInput(createInput<PJ301MPort>(Vec(knobX3, knobY2), module, MilkrackModule::RIGHT_INPUT));	
+
+    addInput(createInput<PJ301MPort>(Vec(30, 240), module, MilkrackModule::NEXT_PRESET_INPUT));
+  }
+
+  void step() override {
+		panel->box.size = box.size;
+    if (module) {
+		  rightHandle->box.pos.x = box.size.x - rightHandle->box.size.x;
+      w->box.size = rightHandle->box.size;
+    }
+    ModuleWidget::step();
   }
 };
 

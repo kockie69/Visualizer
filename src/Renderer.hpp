@@ -24,11 +24,12 @@ public:
   };
 
 private:
-  GLFWwindow* window;
+
   std::thread renderThread;
   Status status = Status::NOT_INITIALIZED;
   int requestedPresetID = kPresetIDKeep; // Indicates to the render thread that it should switch to the specified preset
   bool requestedToggleAutoplay = false;
+  bool requestedToggleHardcut = false;
 
   mutable std::mutex pm_m;
   mutable std::mutex flags_m;
@@ -39,6 +40,9 @@ protected:
 
 public:
   ProjectMRenderer() {}
+    GLFWwindow* window;
+  std::vector<unsigned char> buffer;
+  int bufferWidth = 360;
 
   // init creates the OpenGL context to render in, in the main thread,
   // then starts the rendering thread. This can't be done in the ctor
@@ -59,11 +63,23 @@ public:
   // Requests that projectM changes the autoplay status
   void requestToggleAutoplay();
 
+    // Requests that projectM changes the Hardcut status
+  void requestToggleHardcut();
+
   // True if projectM is autoplaying presets
   bool isAutoplayEnabled() const;
 
+  // True if projectM wants hard changes of presets
+  bool isHardcutEnabled() const;
+
   // ID of the current preset in projectM's list
   unsigned int activePreset() const;
+
+  // Switches to the previous preset in the current playlist.
+  void selectPreviousPreset(bool hard_cut) const;
+
+  // Switches to the next preset in the current playlist.
+  void selectNextPreset(bool hard_cut) const;
 
   // Name of the preset projectM is currently displaying
   std::string activePresetName() const;
@@ -82,11 +98,13 @@ protected:
 private:
   int getClearRequestedPresetID();
   bool getClearRequestedToggleAutoplay();
+  bool getClearRequestedToggleHardcut();
   Status getStatus() const;
   void setStatus(Status s);
   void renderSetAutoplay(bool enable); // TODO rename this method and other render* methods
   // Switch to the indicated preset. This should be called only from
   // the render thread.
+  void renderSetHardcut(bool);
   void renderLoopSetPreset(unsigned int i);
   void renderLoopNextPreset();
   void renderLoop(projectM::Settings s);
@@ -108,10 +126,13 @@ class TextureRenderer : public ProjectMRenderer {
 public:
   virtual ~TextureRenderer() {}
   int getTextureID() const;
+  unsigned char* getBuffer();
+  int getWindowWidth();
   
 private:
   int texture;
-
+  static void framebufferSizeCallback(GLFWwindow* win, int x, int y);
+  
   GLFWwindow* createWindow() override;
   void extraProjectMInitialization() override;
 };

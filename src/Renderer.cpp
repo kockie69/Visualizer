@@ -40,11 +40,37 @@ void ProjectMRenderer::requestToggleAutoplay() {
   requestedToggleAutoplay = true;
 }
 
+void ProjectMRenderer::requestToggleHardcut() {
+  std::lock_guard<std::mutex> l(flags_m);
+  requestedToggleHardcut = true;
+}
+
 // True if projectM is autoplaying presets
 bool ProjectMRenderer::isAutoplayEnabled() const {
   std::lock_guard<std::mutex> l(pm_m);
   if (!pm) return false;
   return !pm->isPresetLocked();
+}
+
+// True if projectM has Hardcut enabled
+bool ProjectMRenderer::isHardcutEnabled() const {
+  std::lock_guard<std::mutex> l(pm_m);
+  if (!pm) return false;
+  return !pm->getHardCutEnabled();
+}
+
+// Switches to the previous preset in the current playlist.
+void ProjectMRenderer::selectPreviousPreset(bool hard_cut) const {
+  std::lock_guard<std::mutex> l(pm_m);
+  if (!pm) return;
+  pm->selectPrevious(hard_cut); 
+}
+
+// Switches to the next preset in the current playlist.
+void ProjectMRenderer::selectNextPreset(bool hard_cut) const {
+  std::lock_guard<std::mutex> l(pm_m);
+  if (!pm) return;
+  pm->selectNext(hard_cut);
 }
 
 // ID of the current preset in projectM's list
@@ -105,8 +131,15 @@ int ProjectMRenderer::getClearRequestedPresetID() {
 
 bool ProjectMRenderer::getClearRequestedToggleAutoplay() {
   std::lock_guard<std::mutex> l(flags_m);
-  bool r = requestedToggleAutoplay;;
+  bool r = requestedToggleAutoplay;
   requestedToggleAutoplay = false;
+  return r;
+}
+
+bool ProjectMRenderer::getClearRequestedToggleHardcut() {
+  std::lock_guard<std::mutex> l(flags_m);
+  bool r = requestedToggleHardcut;
+  requestedToggleHardcut = false;
   return r;
 }
 
@@ -123,6 +156,11 @@ void ProjectMRenderer::setStatus(Status s) {
 void ProjectMRenderer::renderSetAutoplay(bool enable) {
   std::lock_guard<std::mutex> l(pm_m);
   pm->setPresetLock(!enable);
+}
+
+void ProjectMRenderer::renderSetHardcut(bool enable) {
+  std::lock_guard<std::mutex> l(pm_m);
+  pm->setHardCutEnabled(enable);
 }
 
 // Switch to the next preset. This should be called only from the
@@ -150,6 +188,7 @@ void ProjectMRenderer::renderLoop(projectM::Settings s) {
     setStatus(Status::FAILED);
     return;
   }
+
   glfwMakeContextCurrent(window);
   logContextInfo("Milkrack window", window);
   
@@ -180,6 +219,10 @@ void ProjectMRenderer::renderLoop(projectM::Settings s) {
       }
       
       {
+
+  if (getClearRequestedToggleHardcut()) {
+    renderSetHardcut(!isHardcutEnabled());
+  }
 	// Did the main thread request an autoplay toggle?
 	if (getClearRequestedToggleAutoplay()) {
 	  renderSetAutoplay(!isAutoplayEnabled());
@@ -200,7 +243,20 @@ void ProjectMRenderer::renderLoop(projectM::Settings s) {
 	std::lock_guard<std::mutex> l(pm_m);
 	pm->renderFrame();
       }
+      int width, height;
+      glfwGetFramebufferSize(this->window, &width, &height);
+      GLsizei nrChannels = 4;
+      GLsizei stride = nrChannels * width;
+      stride += (stride % 4) ? (4 - stride % 4) : 0;
+      GLsizei bufferSize = stride * height;
+
+      buffer.reserve(bufferSize);
+
+      glPixelStorei(GL_PACK_ALIGNMENT, 4); 
+      glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer.data());
+      bufferWidth = width;
       glfwSwapBuffers(window);
+
     }
     usleep(1000000/60); // TODO fps
   }
@@ -219,11 +275,13 @@ void ProjectMRenderer::logContextInfo(std::string name, GLFWwindow* w) const {
   int minor = glfwGetWindowAttrib(w, GLFW_CONTEXT_VERSION_MINOR);
   int revision = glfwGetWindowAttrib(w, GLFW_CONTEXT_REVISION);
   int api = glfwGetWindowAttrib(w, GLFW_CLIENT_API);
-  rack::logger::log(rack::DEBUG_LEVEL, "Milkrack/" __FILE__, __LINE__, "%s context using API %d version %d.%d.%d", name.c_str(), api, major, minor, revision);
+  //rack::logger::log(rack::logger::DEBUG_LEVEL, "Milkrack/" __FILE__, __LINE__, "%s context using API %d version %d.%d.%d", name.c_str(), api, major, minor, revision);
+  DEBUG("%s context using API %d version %d.%d.%d", name.c_str(), api, major, minor, revision);
 }
 
 void ProjectMRenderer::logGLFWError(int errcode, const char* errmsg) {
   //rack::logger::log(rack::WARN_LEVEL, "Milkrack/" __FILE__, 0, "GLFW error %s: %s", std::to_string(errcode), errmsg);
+  DEBUG("GLFW error %s: %s", std::to_string(errcode), errmsg);
 }
 
 GLFWwindow* WindowedRenderer::createWindow() {
@@ -237,13 +295,14 @@ GLFWwindow* WindowedRenderer::createWindow() {
   GLFWwindow* c = glfwCreateWindow(360, 360, "", NULL, NULL);  
   if (!c) {
     //rack::logger::log(rack::DEBUG_LEVEL, "Milkrack/" __FILE__, __LINE__, "Milkrack renderLoop could not create a context, bailing.");
+    DEBUG("Milkrack/" __FILE__, __LINE__, "Milkrack renderLoop could not create a context, bailing.");
     return nullptr;
   }
   glfwSetWindowUserPointer(c, reinterpret_cast<void*>(this));
   glfwSetFramebufferSizeCallback(c, framebufferSizeCallback);
   glfwSetWindowCloseCallback(c, [](GLFWwindow* w) { glfwIconifyWindow(w); });
   glfwSetKeyCallback(c, keyCallback);
-  glfwSetWindowTitle(c, u8"Milkrack");
+  glfwSetWindowTitle(c, u8"LowFatMilk");
   return c;
 }
 
@@ -306,10 +365,16 @@ GLFWwindow* TextureRenderer::createWindow() {
     //rack::logger::log(rack::DEBUG_LEVEL, "Milkrack/" __FILE__, __LINE__, "Milkrack renderLoop could not create a context, bailing.");
     return nullptr;
   }
+  glfwSetWindowUserPointer(c, reinterpret_cast<void*>(this));
+  glfwSetFramebufferSizeCallback(c, framebufferSizeCallback);
   logContextInfo("Milkrack context", c);
   return c;
 }
 
+void TextureRenderer::framebufferSizeCallback(GLFWwindow* win, int x, int y) {
+  TextureRenderer* r = reinterpret_cast<TextureRenderer*>(glfwGetWindowUserPointer(win));
+  r->dirtySize = true;
+}
 
 void TextureRenderer::extraProjectMInitialization() {
   texture = pm->initRenderToTexture();
@@ -317,4 +382,12 @@ void TextureRenderer::extraProjectMInitialization() {
 
 int TextureRenderer::getTextureID() const {
   return texture;
+}
+
+unsigned char* TextureRenderer::getBuffer() {
+ return buffer.data();
+}
+
+int TextureRenderer::getWindowWidth() {
+  return bufferWidth;
 }

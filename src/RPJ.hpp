@@ -23,7 +23,7 @@ struct BGPanel : Widget {
 
 	void draw(const DrawArgs &args) override {
 		nvgBeginPath(args.vg);
-		nvgRect(args.vg, 85.0, 0.0, box.size.x, box.size.y);
+		nvgRect(args.vg, 85.0, 0.0, box.size.x+85, box.size.y);
 		nvgFillColor(args.vg, color);
 		nvgFill(args.vg);
 		Widget::draw(args);
