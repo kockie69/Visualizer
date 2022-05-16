@@ -33,16 +33,6 @@ jobs:
               name: Windows
               arch: win
               compiler: gcc
-              install-dependencies: |
-                curl -L -o Glew.zip https://sourceforge.net/projects/glew/files/glew/2.0.0/glew-2.0.0-win32.zip/download
-                unzip Glew.zip
-                mkdir -p /mingw64/include/GL
-                cp ./glew-2.0.0/include/GL/* /mingw64/include/GL
-                cp ./glew-2.0.0/lib/Release/x64/* /mingw64/lib
-                curl -L -o libpsapi.a https://github.com/jonasstrandstedt/MinGW/blob/master/MinGW/lib/libpsapi.a
-                cp ./libpsapi.a /mingw64/lib/libpsapi.a
-                ls /mingw64/lib/
-                ls /mingw64/lib/libpsapi.a
     steps:
       - uses: actions/checkout@v2
         with:
