@@ -60,10 +60,6 @@ jobs:
           CC: ${{ matrix.compiler }}
         run: |
           ${{ matrix.install-dependencies }}
-          export RACK_DIR=$HOME/Rack-SDK
-          pwd
-          ls
-          make dep
           make dist
       - name: Upload artifact
         uses: actions/upload-artifact@v2
