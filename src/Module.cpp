@@ -2,7 +2,7 @@
 #include "RPJ.hpp"
 #include "dsp/digital.hpp"
 #include "nanovg_gl.h"
-#include "deps/projectm/src/libprojectM/projectM.hpp"
+#include "../dep/include/libprojectM/projectM.h"
 #include "Renderer.hpp"
 #include "linmath.h"
 #include "stb_image.h"
@@ -13,25 +13,25 @@
 
 static const unsigned int kSampleWindow = 1;
 
-      		// Then do the knobs
-		const float knobX1 = 11;
-		const float knobX2 = 27;
-		const float knobX3 = 47;
+// Then do the knobs
+const float knobX1 = 11;
+const float knobX2 = 27;
+const float knobX3 = 47;
 
-		const float knobY1 = 44;
-		const float knobY2 = 311;
-		//const float knobY3 = 122;
-		//const float knobY4 = 150;
-		//const float knobY5 = 178;
-		//const float knobY6 = 206;
+const float knobY1 = 44;
+const float knobY2 = 311;
+//const float knobY3 = 122;
+//const float knobY4 = 150;
+//const float knobY5 = 178;
+//const float knobY6 = 206;
 
-		const float buttonX1 = 41;
+const float buttonX1 = 41;
 
-    const float buttonY0 = 100;
-		const float buttonY1 = 185;
-    const float buttonY2 = 215;
-    const float buttonY3 = 245;
-		const float buttonY4 = 275;
+const float buttonY0 = 100;
+const float buttonY1 = 185;
+const float buttonY2 = 215;
+const float buttonY3 = 245;
+const float buttonY4 = 275;
 
 struct MilkrackModule : Module {
   enum ParamIds {
@@ -120,7 +120,7 @@ struct MilkrackModule : Module {
 struct BaseProjectMWidget : FramebufferWidget {
   const int fps = 60;
   const bool debug = true;
-  const projectM::Settings s;
+  projectm_settings s;
   bool displayPresetName = false;
 
   MilkrackModule* module;
@@ -186,26 +186,26 @@ struct BaseProjectMWidget : FramebufferWidget {
   // object.  This is needed because we must initialize this->settings
   // before starting this->renderThread, and that has to be done in
   // ProjectMWidget's ctor init list.
-  projectM::Settings initSettings(std::string presetURL) const {
-    projectM::Settings s;
+  projectm_settings initSettings(std::string presetURL) const {
+    projectm_settings s;
 
     // Window/rendering settings
-    s.presetURL = presetURL;
-    s.windowWidth = 360;
-    s.windowHeight = 360;
+    s.preset_url = (char *)presetURL.c_str();
+    s.window_width = 360;
+    s.window_height = 360;
     s.fps =  60;
-    s.meshX = 220;
-    s.meshY = 125;
-    s.aspectCorrection = true;
+    s.mesh_x = 220;
+    s.mesh_y = 125;
+    s.aspect_correction = true;
 
     // Preset display settings
-    s.presetDuration = 30;
-    s.softCutDuration = 10;
-    s.hardCutEnabled = false;
-    s.hardCutDuration= 20;
-    s.hardCutSensitivity =  1.0;
-    s.beatSensitivity = 1.0;
-    s.shuffleEnabled = false;
+    s.preset_duration = 30;
+    s.soft_cut_duration = 10;
+    s.hard_cut_enabled = false;
+    s.hard_cut_duration= 20;
+    s.hard_cut_sensitivity =  1.0;
+    s.beat_sensitivity = 1.0;
+    s.shuffle_enabled = false;
 
     // Unsupported settings
     //s.softCutRatingsEnabled = false;

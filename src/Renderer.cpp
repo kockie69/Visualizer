@@ -7,7 +7,7 @@
 #include <thread>
 #include <mutex>
 
-void ProjectMRenderer::init(projectM::Settings const& s) {
+void ProjectMRenderer::init(projectm_settings const& s) {
   window = createWindow();
   renderThread = std::thread([this, s](){ this->renderLoop(s); });
 }
@@ -25,7 +25,7 @@ ProjectMRenderer::~ProjectMRenderer() {
 void ProjectMRenderer::addPCMData(float* data, unsigned int nsamples) {
   std::lock_guard<std::mutex> l(pm_m);
   if (!pm) return;
-  pm->pcm()->AddStereo(data, nsamples);
+  projectm_pcm_add_float(pm,data,nsamples,PROJECTM_STEREO);
 }
 
 // Requests that projectM changes the preset at the next opportunity
@@ -49,28 +49,28 @@ void ProjectMRenderer::requestToggleHardcut() {
 bool ProjectMRenderer::isAutoplayEnabled() const {
   std::lock_guard<std::mutex> l(pm_m);
   if (!pm) return false;
-  return !pm->isPresetLocked();
+  return !(projectm_is_preset_locked(pm));
 }
 
 // True if projectM has Hardcut enabled
 bool ProjectMRenderer::isHardcutEnabled() const {
   std::lock_guard<std::mutex> l(pm_m);
   if (!pm) return false;
-  return !pm->getHardCutEnabled();
+  return !(projectm_get_hard_cut_enabled(pm));
 }
 
 // Switches to the previous preset in the current playlist.
 void ProjectMRenderer::selectPreviousPreset(bool hard_cut) const {
   std::lock_guard<std::mutex> l(pm_m);
   if (!pm) return;
-  pm->selectPrevious(hard_cut); 
+  projectm_select_previous_preset(pm,hard_cut); 
 }
 
 // Switches to the next preset in the current playlist.
 void ProjectMRenderer::selectNextPreset(bool hard_cut) const {
   std::lock_guard<std::mutex> l(pm_m);
   if (!pm) return;
-  pm->selectNext(hard_cut);
+  projectm_select_next_preset(pm,hard_cut);
 }
 
 // ID of the current preset in projectM's list
@@ -78,7 +78,7 @@ unsigned int ProjectMRenderer::activePreset() const {
   unsigned int presetIdx;
   std::lock_guard<std::mutex> l(pm_m);
   if (!pm) return 0;
-  pm->selectedPresetIndex(presetIdx);
+  projectm_get_selected_preset_index(pm,&presetIdx);
   return presetIdx;
 }
 
@@ -87,9 +87,9 @@ std::string ProjectMRenderer::activePresetName() const {
   unsigned int presetIdx;
   std::unique_lock<std::mutex> l(pm_m);
   if (!pm) return "";
-  if (pm->selectedPresetIndex(presetIdx)) {
+  if (projectm_get_selected_preset_index(pm,&presetIdx)) {
     l.unlock();
-    return pm->getPresetName(presetIdx);
+    return projectm_get_preset_name(pm,presetIdx);
   }
   return "";
 }
@@ -101,7 +101,7 @@ std::list<std::pair<unsigned int, std::string> > ProjectMRenderer::listPresets()
   {
     std::lock_guard<std::mutex> l(pm_m);
     if (!pm) return presets;
-    n = pm->getPlaylistSize();
+    n = projectm_get_playlist_size(pm);
   }
   if (!n) {
     return presets;
@@ -110,7 +110,7 @@ std::list<std::pair<unsigned int, std::string> > ProjectMRenderer::listPresets()
     std::string s;
     {
       std::lock_guard<std::mutex> l(pm_m);
-      s = pm->getPresetName(i);
+      s = projectm_get_preset_name(pm,i);
     }
     presets.push_back(std::make_pair(i, std::string(s)));
   }
@@ -155,21 +155,21 @@ void ProjectMRenderer::setStatus(Status s) {
 
 void ProjectMRenderer::renderSetAutoplay(bool enable) {
   std::lock_guard<std::mutex> l(pm_m);
-  pm->setPresetLock(!enable);
+  projectm_lock_preset(pm,!enable);
 }
 
 void ProjectMRenderer::renderSetHardcut(bool enable) {
   std::lock_guard<std::mutex> l(pm_m);
-  pm->setHardCutEnabled(enable);
+  projectm_set_hard_cut_enabled(pm,enable);
 }
 
 // Switch to the next preset. This should be called only from the
 // render thread.
 void ProjectMRenderer::renderLoopNextPreset() {
   std::lock_guard<std::mutex> l(pm_m);
-  unsigned int n = pm->getPlaylistSize();
+  unsigned int n = projectm_get_playlist_size(pm);
   if (n) {
-    pm->selectPreset(rand() % n);
+    projectm_select_preset(pm,rand() % n,isHardcutEnabled());
   }
 }
 
@@ -177,13 +177,13 @@ void ProjectMRenderer::renderLoopNextPreset() {
 // the render thread.
 void ProjectMRenderer::renderLoopSetPreset(unsigned int i) {
   std::lock_guard<std::mutex> l(pm_m);
-  unsigned int n = pm->getPlaylistSize();
+  unsigned int n = projectm_get_playlist_size(pm);
   if (n && i < n) {
-    pm->selectPreset(i);
+    projectm_select_preset(pm,i,isHardcutEnabled());
   }
 }
 
-void ProjectMRenderer::renderLoop(projectM::Settings s) {
+void ProjectMRenderer::renderLoop(projectm_settings s) {
   if (!window) {
     setStatus(Status::FAILED);
     return;
@@ -195,7 +195,9 @@ void ProjectMRenderer::renderLoop(projectM::Settings s) {
   // Initialize projectM
   {
     std::lock_guard<std::mutex> l(pm_m);
-    pm = new projectM(s);
+    projectm_settings *sp = &s;
+    pm = projectm_create_settings(sp, PROJECTM_FLAG_NONE);
+    //pm = new projectm(s);
     extraProjectMInitialization();
   }
   
@@ -214,7 +216,7 @@ void ProjectMRenderer::renderLoop(projectM::Settings s) {
       if (dirtySize) {
 	int x, y;
 	glfwGetFramebufferSize(window, &x, &y);
-	pm->projectM_resetGL(x, y);
+	projectm_set_window_size(pm,x, y);
 	dirtySize = false;
       }
       
@@ -241,7 +243,7 @@ void ProjectMRenderer::renderLoop(projectM::Settings s) {
       
       {
 	std::lock_guard<std::mutex> l(pm_m);
-	pm->renderFrame();
+	projectm_render_frame(pm);
       }
       int width, height;
       glfwGetFramebufferSize(this->window, &width, &height);
@@ -258,7 +260,8 @@ void ProjectMRenderer::renderLoop(projectM::Settings s) {
       glfwSwapBuffers(window);
 
     }
-    usleep(1000000/60); // TODO fps
+    std::this_thread::sleep_for(std::chrono::microseconds(1000000/60));
+    //usleep(1000000/60); // TODO fps
   }
 
   {
@@ -377,7 +380,8 @@ void TextureRenderer::framebufferSizeCallback(GLFWwindow* win, int x, int y) {
 }
 
 void TextureRenderer::extraProjectMInitialization() {
-  texture = pm->initRenderToTexture();
+
+  texture = projectm_init_render_to_texture(pm);
 }
 
 int TextureRenderer::getTextureID() const {
