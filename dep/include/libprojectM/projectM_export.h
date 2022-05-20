@@ -22,7 +22,7 @@
 #endif
 
 #ifndef PROJECTM_DEPRECATED
-#  define PROJECTM_DEPRECATED __attribute__ ((__deprecated__))
+#  define PROJECTM_DEPRECATED __declspec(deprecated)
 #endif
 
 #ifndef PROJECTM_DEPRECATED_EXPORT

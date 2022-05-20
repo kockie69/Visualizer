@@ -21,9 +21,9 @@ CXXFLAGS +=
 # Static libraries are fine, but they should be added to this plugin's build system.
 
 ifdef ARCH_WIN
-	# LDFLAGS += ./dep/lib/libprojectM.a /mingw64/lib/libopengl32.a /mingw64/lib/libgomp.a -shared
+	LDFLAGS += /mingw64/lib/libopengl32.a /mingw64/lib/libgomp.a dep/lib/projectM.dll -shared 
 	# LDFLAGS += ./dep/lib/liblibprojectMd.a -lpsapi /mingw64/lib/libopengl32.a /mingw64/lib/libgomp.a -lpthread -mthreads -pthread 
-	LDFLAGS += ./dep/lib/liblibprojectMd.a -lpsapi /mingw64/lib/libopengl32.a /mingw64/lib/libgomp.a -shared -lpthread -mthreads -pthread 
+	# LDFLAGS += ./dep/lib/liblibprojectMd.a -lpsapi /mingw64/lib/libopengl32.a /mingw64/lib/libgomp.a -shared -lpthread -mthreads -pthread 
 endif
 
 # Add .cpp files to the build
@@ -34,24 +34,6 @@ SOURCES += $(wildcard src/*.cpp)
 //DISTRIBUTABLES += $(wildcard res/*.svg)
 DISTRIBUTABLES += $(wildcard LICENSE*) res
 //DISTRIBUTABLES += $(wildcard LICENSE*)
-
-# Define the path of the built static library
-#projectm := dep/lib/liblibprojectMd.a
-# Build the static library into your plugin.dll/dylib/so
-#OBJECTS += $(projectm)
-# Trigger the static library to be built when running `make dep`
-#DEPS += $(projectm)
-
-#$(projectm):
-	# Out-of-source build dir
-	# check /d
-	#ls /d
-	# check /a
-	#ls /d/a/Visualizer
-#	cd src/deps/projectm && mkdir -p build
-#	cd src/deps/projectm/build && $(CMAKE) -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=D:/msys64/home/rober/Visualizer/dep ..
-	# Install to dep/
-#	cd src/deps/projectm/build && $(MAKE) install
 
 # Include the Rack plugin Makefile framework
 include $(RACK_DIR)/plugin.mk
