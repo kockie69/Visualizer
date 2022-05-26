@@ -9,7 +9,8 @@
 
 void ProjectMRenderer::init(projectm_settings const& s) {
   window = createWindow();
-  renderThread = std::thread([this, s](){ this->renderLoop(s); });
+  std::string url = s.preset_url;
+  renderThread = std::thread([this,s,url](){ this->renderLoop(s,url); });
 }
 
 ProjectMRenderer::~ProjectMRenderer() {
@@ -169,7 +170,7 @@ void ProjectMRenderer::renderLoopNextPreset() {
   std::lock_guard<std::mutex> l(pm_m);
   unsigned int n = projectm_get_playlist_size(pm);
   if (n) {
-    projectm_select_preset(pm,rand() % n,isHardcutEnabled());
+    projectm_select_preset(pm,rand() % n,true);
   }
 }
 
@@ -179,11 +180,11 @@ void ProjectMRenderer::renderLoopSetPreset(unsigned int i) {
   std::lock_guard<std::mutex> l(pm_m);
   unsigned int n = projectm_get_playlist_size(pm);
   if (n && i < n) {
-    projectm_select_preset(pm,i,isHardcutEnabled());
+    projectm_select_preset(pm,i,true);
   }
 }
 
-void ProjectMRenderer::renderLoop(projectm_settings s) {
+void ProjectMRenderer::renderLoop(projectm_settings s,std::string url) {
   if (!window) {
     setStatus(Status::FAILED);
     return;
@@ -196,6 +197,10 @@ void ProjectMRenderer::renderLoop(projectm_settings s) {
   {
     std::lock_guard<std::mutex> l(pm_m);
     projectm_settings *sp = &s;
+    for (int x=0;x<url.length() +1;x++)
+      sp->preset_url[x]=url[x];
+    sp->menu_font_url="";
+    sp->title_font_url="";
     pm = projectm_create_settings(sp, PROJECTM_FLAG_NONE);
     //pm = new projectm(s);
     extraProjectMInitialization();
@@ -223,7 +228,7 @@ void ProjectMRenderer::renderLoop(projectm_settings s) {
       {
 
   if (getClearRequestedToggleHardcut()) {
-    renderSetHardcut(!isHardcutEnabled());
+    renderSetHardcut(false);
   }
 	// Did the main thread request an autoplay toggle?
 	if (getClearRequestedToggleAutoplay()) {
