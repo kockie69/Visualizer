@@ -107,7 +107,7 @@ private:
   void renderSetHardcut(bool);
   void renderLoopSetPreset(unsigned int i);
   void renderLoopNextPreset();
-  void renderLoop(projectm_settings s);
+  void renderLoop(projectm_settings s,std::string);
   virtual GLFWwindow* createWindow() = 0;
 };
 

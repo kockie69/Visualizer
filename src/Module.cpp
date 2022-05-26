@@ -190,6 +190,7 @@ struct BaseProjectMWidget : FramebufferWidget {
     projectm_settings s;
 
     // Window/rendering settings
+    //s = projectm_alloc_settings();
     s.preset_url = (char *)presetURL.c_str();
     s.window_width = 360;
     s.window_height = 360;
@@ -452,12 +453,12 @@ struct EmbeddedMilkrackModuleWidget : BaseMilkrackModuleWidget {
   }
 
   void step() override {
-		panel->box.size = box.size;
-    if (module) {
-		  rightHandle->box.pos.x = box.size.x - rightHandle->box.size.x;
-      w->box.size = rightHandle->box.size;
-    }
-    ModuleWidget::step();
+		//panel->box.size = box.size;
+    //if (module) {
+		//  rightHandle->box.pos.x = box.size.x - rightHandle->box.size.x;
+    //  w->box.size = rightHandle->box.size;
+    //}
+    //ModuleWidget::step();
   }
 };
 
