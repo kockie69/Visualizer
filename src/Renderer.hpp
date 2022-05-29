@@ -35,7 +35,7 @@ private:
   mutable std::mutex flags_m;
 
 protected:
-  projectm* pm = nullptr;
+  projectm* pm = NULL;
   bool dirtySize = false;
 
 public:
