@@ -99,8 +99,8 @@ struct MilkrackModule : Module {
 		  changeHardcut=true;
 	  }
     
-    if (nextTrigger.process(params[PARAM_NEXT].getValue()) > 0.f || nextTrigger.process(inputs[NEXT_PRESET_INPUT].getVoltage() > 0.f)) {
-		  nextPreset=true;
+    if (nextTrigger.process(params[PARAM_NEXT].getValue()) > 0.f) {
+      nextPreset=true;
 	  }
 
     if (prevTrigger.process(params[PARAM_PREV].getValue()) > 0.f) {
@@ -120,15 +120,11 @@ struct MilkrackModule : Module {
 struct BaseProjectMWidget : FramebufferWidget {
   const int fps = 60;
   const bool debug = true;
-  projectm_settings s;
   bool displayPresetName = false;
 
   MilkrackModule* module;
 
-  std::shared_ptr<Font> font;
-
   BaseProjectMWidget() {}
-  virtual ~BaseProjectMWidget() {}
 
   void init(std::string presetURL) {
     getRenderer()->init(initSettings(presetURL));
@@ -162,14 +158,16 @@ struct BaseProjectMWidget : FramebufferWidget {
       if (module->nextPreset) {
         module->nextPreset = false;
         if (!getRenderer()->isAutoplayEnabled())
-          getRenderer()->selectNextPreset(getRenderer()->isHardcutEnabled());
+          //getRenderer()->selectNextPreset(getRenderer()->isHardcutEnabled());
+          getRenderer()->selectNextPreset(true);
         else 
           getRenderer()->requestPresetID(kPresetIDRandom);
       }
       if (module->prevPreset) {
         module->prevPreset = false;
         if (!getRenderer()->isAutoplayEnabled())
-          getRenderer()->selectPreviousPreset(getRenderer()->isHardcutEnabled());
+          //getRenderer()->selectPreviousPreset(getRenderer()->isHardcutEnabled());
+          getRenderer()->selectPreviousPreset(true);
         else
           getRenderer()->requestPresetID(kPresetIDRandom);
       }
@@ -221,11 +219,10 @@ struct WindowedProjectMWidget : BaseProjectMWidget {
 
   WindowedProjectMWidget() : renderer(new WindowedRenderer) {}
 
-  ~WindowedProjectMWidget() { delete renderer; }
-
   ProjectMRenderer* getRenderer() override { return renderer; }
 
   void draw(NVGcontext* vg) override {
+    std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
     nvgSave(vg);
     nvgBeginPath(vg);
     nvgFillColor(vg, nvgRGB(0xff, 0xff, 0xff));
@@ -254,8 +251,6 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
   EmbeddedProjectMWidget() : renderer(new TextureRenderer) {
   }
 
-  ~EmbeddedProjectMWidget() { delete renderer; }
-
   ProjectMRenderer* getRenderer() override { return renderer; }
 
   void draw(const DrawArgs &args) override {
@@ -264,7 +259,8 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
 
     nvgDeleteImage(args.vg,img);
     img = nvgCreateImageRGBA(args.vg,x,y,0,renderer->getBuffer());
-    
+    std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
+ 
     NVGpaint imgPaint = nvgImagePattern(args.vg, 0, 0, renderer->getWindowWidth(), y, 0.0f, img, 1.0f);
 
     nvgSave(args.vg);
@@ -356,7 +352,7 @@ struct ToggleDisplayPresetNameMenuItem : MenuItem {
 };
 
 struct BaseMilkrackModuleWidget : ModuleWidget {
-  BaseProjectMWidget* w = NULL;
+ BaseProjectMWidget* w;
 
  // using ModuleWidget::ModuleWidget;
 
@@ -398,11 +394,11 @@ struct MilkrackModuleWidget : BaseMilkrackModuleWidget {
 
     addInput(createInput<PJ301MPort>(Vec(30, 240), module, MilkrackModule::NEXT_PRESET_INPUT));
 
-    std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
+    //std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
     if (module) {
       w = BaseProjectMWidget::create<WindowedProjectMWidget>(Vec(85, 20), asset::plugin(pluginInstance, "res/presets_projectM/"));
       w->module = module;
-      w->font = font;
+      //w->font = font;
       addChild(w); 
     }
   }
@@ -417,20 +413,16 @@ struct EmbeddedMilkrackModuleWidget : BaseMilkrackModuleWidget {
 
     setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/Visualizer.svg")));
 
-    //addInput(createInput<PJ301MPort>(Vec(15, 170), module, MilkrackModule::NEXT_PRESET_INPUT));
-
 		panel = new BGPanel(nvgRGB(0, 0, 0));
 		panel->box.size = box.size;
 		int x = box.size.x;
 		int y = box.size.y;
 		addChild(panel);
 
-    std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
     if (module) {
       w = BaseProjectMWidget::create<EmbeddedProjectMWidget>(Vec(85, 0), asset::plugin(pluginInstance, "res/presets_projectM/"));
       w->module = module;
       w->box.size = Vec(360,360);
-      w->font = font;
       addChild(w);
 
       JWModuleResizeHandle *rightHandle = new JWModuleResizeHandle(w->getRenderer()->window);
@@ -453,12 +445,12 @@ struct EmbeddedMilkrackModuleWidget : BaseMilkrackModuleWidget {
   }
 
   void step() override {
-		//panel->box.size = box.size;
-    //if (module) {
-		//  rightHandle->box.pos.x = box.size.x - rightHandle->box.size.x;
-    //  w->box.size = rightHandle->box.size;
-    //}
-    //ModuleWidget::step();
+		panel->box.size = box.size;
+    if (module) {
+		  rightHandle->box.pos.x = box.size.x - rightHandle->box.size.x;
+      w->box.size = rightHandle->box.size;
+    }
+    ModuleWidget::step();
   }
 };
 

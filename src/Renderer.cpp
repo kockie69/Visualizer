@@ -155,8 +155,10 @@ void ProjectMRenderer::setStatus(Status s) {
 }
 
 void ProjectMRenderer::renderSetAutoplay(bool enable) {
-  std::lock_guard<std::mutex> l(pm_m);
-  projectm_lock_preset(pm,!enable);
+  if (pm) {
+    std::lock_guard<std::mutex> l(pm_m);
+    projectm_lock_preset(pm,!enable);
+  }
 }
 
 void ProjectMRenderer::renderSetHardcut(bool enable) {
@@ -167,10 +169,12 @@ void ProjectMRenderer::renderSetHardcut(bool enable) {
 // Switch to the next preset. This should be called only from the
 // render thread.
 void ProjectMRenderer::renderLoopNextPreset() {
-  std::lock_guard<std::mutex> l(pm_m);
-  unsigned int n = projectm_get_playlist_size(pm);
-  if (n) {
-    projectm_select_preset(pm,rand() % n,true);
+  if (pm) {
+    std::lock_guard<std::mutex> l(pm_m);
+    unsigned int n = projectm_get_playlist_size(pm);
+    if (n) {
+      projectm_select_preset(pm,rand() % n,true);
+    }
   }
 }
 
@@ -194,79 +198,92 @@ void ProjectMRenderer::renderLoop(projectm_settings s,std::string url) {
   logContextInfo("Milkrack window", window);
   
   // Initialize projectM
+  projectm_settings *sp = projectm_alloc_settings();
+    sp->preset_url = (char *)url.c_str();
+    sp->window_width = 360;
+    sp->window_height = 360;
+    sp->fps =  60;
+    sp->mesh_x = 220;
+    sp->mesh_y = 125;
+    sp->aspect_correction = true;
+
+    // Preset display settings
+    sp->preset_duration = 30;
+    sp->soft_cut_duration = 10;
+    sp->hard_cut_enabled = false;
+    sp->hard_cut_duration= 20;
+    sp->hard_cut_sensitivity =  1.0;
+    sp->beat_sensitivity = 1.0;
+    sp->shuffle_enabled = false;
   {
     std::lock_guard<std::mutex> l(pm_m);
-    projectm_settings *sp = &s;
-    for (int x=0;x<url.length() +1;x++)
-      sp->preset_url[x]=url[x];
-    sp->menu_font_url="";
-    sp->title_font_url="";
     pm = projectm_create_settings(sp, PROJECTM_FLAG_NONE);
-    //pm = new projectm(s);
+    
     extraProjectMInitialization();
   }
+  if (pm) {
+    setStatus(Status::RENDERING);
+    renderSetAutoplay(false);
+    renderLoopNextPreset();
   
-  setStatus(Status::RENDERING);
-  renderSetAutoplay(false);
-  renderLoopNextPreset();
-  
-  while (true) {
-    {
-      // Did the main thread request that we exit?
-      if (getStatus() == Status::PLEASE_EXIT) {
-	break;
-      }
-      
-      // Resize?
-      if (dirtySize) {
-	int x, y;
-	glfwGetFramebufferSize(window, &x, &y);
-	projectm_set_window_size(pm,x, y);
-	dirtySize = false;
-      }
-      
+    while (true) {
       {
-
-  if (getClearRequestedToggleHardcut()) {
-    renderSetHardcut(false);
-  }
-	// Did the main thread request an autoplay toggle?
-	if (getClearRequestedToggleAutoplay()) {
-	  renderSetAutoplay(!isAutoplayEnabled());
-	}
-	
-	// Did the main thread request that we change the preset?
-	int rpid = getClearRequestedPresetID();
-	if (rpid != kPresetIDKeep) {
-	  if (rpid == kPresetIDRandom) {
-	    renderLoopNextPreset();
-	  } else {
-	    renderLoopSetPreset(rpid);
-	  }
-	}
-      }
+        // Did the main thread request that we exit?
+        if (getStatus() == Status::PLEASE_EXIT) {
+	  break;
+        }
       
-      {
-	std::lock_guard<std::mutex> l(pm_m);
-	projectm_render_frame(pm);
-      }
-      int width, height;
-      glfwGetFramebufferSize(this->window, &width, &height);
-      GLsizei nrChannels = 4;
-      GLsizei stride = nrChannels * width;
-      stride += (stride % 4) ? (4 - stride % 4) : 0;
-      GLsizei bufferSize = stride * height;
+        // Resize?
+        if (dirtySize) {
+	  int x, y;
+	  glfwGetFramebufferSize(window, &x, &y);
+	  projectm_set_window_size(pm,x, y);
+	  dirtySize = false;
+        }
+      
+        {
 
-      buffer.reserve(bufferSize);
-
-      glPixelStorei(GL_PACK_ALIGNMENT, 4); 
-      glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer.data());
-      bufferWidth = width;
-      glfwSwapBuffers(window);
-
+    if (getClearRequestedToggleHardcut()) {
+      renderSetHardcut(false);
     }
-    std::this_thread::sleep_for(std::chrono::microseconds(1000000/60));
-    //usleep(1000000/60); // TODO fps
+	  // Did the main thread request an autoplay toggle?
+	  if (getClearRequestedToggleAutoplay()) {
+	    renderSetAutoplay(!isAutoplayEnabled());
+	  }
+	
+	  // Did the main thread request that we change the preset?
+	  int rpid = getClearRequestedPresetID();
+	  if (rpid != kPresetIDKeep) {
+	    if (rpid == kPresetIDRandom) {
+	      renderLoopNextPreset();
+	    } else {
+	      renderLoopSetPreset(rpid);
+	    }
+	  }
+        }
+      
+        {
+      	  std::lock_guard<std::mutex> l(pm_m);
+	        projectm_render_frame(pm);
+        }
+        int width, height;
+        glfwGetFramebufferSize(this->window, &width, &height);
+        GLsizei nrChannels = 4;
+        GLsizei stride = nrChannels * width;
+        stride += (stride % 4) ? (4 - stride % 4) : 0;
+        GLsizei bufferSize = stride * height;
+
+        buffer.reserve(bufferSize);
+
+        glPixelStorei(GL_PACK_ALIGNMENT, 4); 
+        glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer.data());
+        bufferWidth = width;
+        glfwSwapBuffers(window);
+
+      }
+      std::this_thread::sleep_for(std::chrono::microseconds(1000000/60));
+      //usleep(1000000/60); // TODO fps
+    }
   }
 
   {
@@ -385,8 +402,8 @@ void TextureRenderer::framebufferSizeCallback(GLFWwindow* win, int x, int y) {
 }
 
 void TextureRenderer::extraProjectMInitialization() {
-
-  texture = projectm_init_render_to_texture(pm);
+  if (pm)
+    texture = projectm_init_render_to_texture(pm);
 }
 
 int TextureRenderer::getTextureID() const {
