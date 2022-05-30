@@ -65,7 +65,7 @@ struct MilkrackModule : Module {
     configParam(PARAM_TIMER, 0.f, 300.f, 30.f, "Time till next preset","Seconds");
     lightDivider.setDivision(16);
   }
-
+  int presetIndex = 0;
   unsigned int i = 0;
   bool full = false;
   bool nextPreset = false;
@@ -89,13 +89,11 @@ struct MilkrackModule : Module {
       full = true;
     }
 
-    hard_cut = params[PARAM_HARD_CUT].getValue() <= 0.f;
-
-    if (hardcutTrigger.process(params[PARAM_HARD_CUT].getValue(), 0.f,1.f)) {
+    if (hardcutTrigger.process(rescale(params[PARAM_HARD_CUT].getValue(), 0.1f, 2.f, 0.f, 1.f))) {
 		  changeHardcut=true;
 	  }
 
-    if (hardcutTrigger.process(params[PARAM_HARD_CUT].getValue(), 1.f,0.f)) {
+    if (hardcutTrigger.process(rescale(params[PARAM_HARD_CUT].getValue(), 2.f, 0.1f, 0.f, 1.f))) {
 		  changeHardcut=true;
 	  }
     
@@ -111,13 +109,28 @@ struct MilkrackModule : Module {
 	  lights[PREV_LIGHT].setBrightness(prevPreset);
 
     if (lightDivider.process()) {
+      hard_cut = params[PARAM_HARD_CUT].getValue();
 		  lights[HARD_CUT_LIGHT].setBrightness(hard_cut);
 	  }
+  }
+
+  json_t *dataToJson() override {
+	  json_t *rootJ=json_object();
+	  json_object_set_new(rootJ, "ActivePreset", json_integer(presetIndex));
+	  return rootJ;
+  }
+
+  void dataFromJson(json_t *rootJ) override {
+	  json_t *nActivePresetJ = json_object_get(rootJ, "ActivePreset");
+	  if (nActivePresetJ) {
+	    presetIndex = json_integer_value(nActivePresetJ);
+    }
   }
 };
 
 
 struct BaseProjectMWidget : FramebufferWidget {
+
   const int fps = 60;
   const bool debug = true;
   bool displayPresetName = false;
@@ -126,15 +139,15 @@ struct BaseProjectMWidget : FramebufferWidget {
 
   BaseProjectMWidget() {}
 
-  void init(std::string presetURL) {
-    getRenderer()->init(initSettings(presetURL));
+  void init(std::string presetURL,int presetIndex) {
+      getRenderer()->init(initSettings(presetURL,presetIndex));
   }
 
   template<typename T>
-  static BaseProjectMWidget* create(Vec pos, std::string presetURL) {
+  static BaseProjectMWidget* create(Vec pos, std::string presetURL,int presetIndex) {
     BaseProjectMWidget* p = new T;
     p->box.pos = pos;
-    p->init(presetURL);
+    p->init(presetURL,presetIndex);
     return p;
   }
 
@@ -184,11 +197,11 @@ struct BaseProjectMWidget : FramebufferWidget {
   // object.  This is needed because we must initialize this->settings
   // before starting this->renderThread, and that has to be done in
   // ProjectMWidget's ctor init list.
-  projectm_settings initSettings(std::string presetURL) const {
-    projectm_settings s;
+  mySettings initSettings(std::string presetURL,int presetIndex) const {
+    mySettings s;
 
     // Window/rendering settings
-    //s = projectm_alloc_settings();
+    s.presetIndex = presetIndex;
     s.preset_url = (char *)presetURL.c_str();
     s.window_width = 360;
     s.window_height = 360;
@@ -380,6 +393,7 @@ struct BaseMilkrackModuleWidget : ModuleWidget {
 };
 
 struct MilkrackModuleWidget : BaseMilkrackModuleWidget {
+
   MilkrackModuleWidget(MilkrackModule* module) {
 
   setModule(module);
@@ -396,10 +410,10 @@ struct MilkrackModuleWidget : BaseMilkrackModuleWidget {
 
     //std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
     if (module) {
-      w = BaseProjectMWidget::create<WindowedProjectMWidget>(Vec(85, 20), asset::plugin(pluginInstance, "res/presets_projectM/"));
+      w = BaseProjectMWidget::create<WindowedProjectMWidget>(Vec(85, 20), asset::plugin(pluginInstance, "res/presets_projectM/"),module->presetIndex);
       w->module = module;
       //w->font = font;
-      addChild(w); 
+      addChild(w);
     }
   }
 };
@@ -420,7 +434,7 @@ struct EmbeddedMilkrackModuleWidget : BaseMilkrackModuleWidget {
 		addChild(panel);
 
     if (module) {
-      w = BaseProjectMWidget::create<EmbeddedProjectMWidget>(Vec(85, 0), asset::plugin(pluginInstance, "res/presets_projectM/"));
+      w = BaseProjectMWidget::create<EmbeddedProjectMWidget>(Vec(85, 0), asset::plugin(pluginInstance, "res/presets_projectM/"),module->presetIndex);
       w->module = module;
       w->box.size = Vec(360,360);
       addChild(w);

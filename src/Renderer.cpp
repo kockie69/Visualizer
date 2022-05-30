@@ -7,7 +7,7 @@
 #include <thread>
 #include <mutex>
 
-void ProjectMRenderer::init(projectm_settings const& s) {
+void ProjectMRenderer::init(mySettings const& s) {
   window = createWindow();
   std::string url = s.preset_url;
   renderThread = std::thread([this,s,url](){ this->renderLoop(s,url); });
@@ -57,7 +57,7 @@ bool ProjectMRenderer::isAutoplayEnabled() const {
 bool ProjectMRenderer::isHardcutEnabled() const {
   std::lock_guard<std::mutex> l(pm_m);
   if (!pm) return false;
-  return !(projectm_get_hard_cut_enabled(pm));
+  return (projectm_get_hard_cut_enabled(pm));
 }
 
 // Switches to the previous preset in the current playlist.
@@ -188,7 +188,7 @@ void ProjectMRenderer::renderLoopSetPreset(unsigned int i) {
   }
 }
 
-void ProjectMRenderer::renderLoop(projectm_settings s,std::string url) {
+void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
   if (!window) {
     setStatus(Status::FAILED);
     return;
@@ -200,32 +200,33 @@ void ProjectMRenderer::renderLoop(projectm_settings s,std::string url) {
   // Initialize projectM
   projectm_settings *sp = projectm_alloc_settings();
     sp->preset_url = (char *)url.c_str();
-    sp->window_width = 360;
-    sp->window_height = 360;
-    sp->fps =  60;
-    sp->mesh_x = 220;
-    sp->mesh_y = 125;
-    sp->aspect_correction = true;
+    sp->window_width = s.window_width;
+    sp->window_height = s.window_height;
+    sp->fps =  s.fps;
+    sp->mesh_x = s.mesh_x;
+    sp->mesh_y = s.mesh_y;
+    sp->aspect_correction = s.aspect_correction;
 
     // Preset display settings
-    sp->preset_duration = 30;
-    sp->soft_cut_duration = 10;
-    sp->hard_cut_enabled = false;
-    sp->hard_cut_duration= 20;
-    sp->hard_cut_sensitivity =  1.0;
-    sp->beat_sensitivity = 1.0;
-    sp->shuffle_enabled = false;
+    sp->preset_duration = s.preset_duration;
+    sp->soft_cut_duration = s.soft_cut_duration;
+    sp->hard_cut_enabled = s.hard_cut_enabled;
+    sp->hard_cut_duration= s.hard_cut_duration;
+    sp->hard_cut_sensitivity =  s.hard_cut_sensitivity;
+    sp->beat_sensitivity = s.beat_sensitivity;
+    sp->shuffle_enabled = s.shuffle_enabled;
   {
     std::lock_guard<std::mutex> l(pm_m);
-    pm = projectm_create_settings(sp, PROJECTM_FLAG_NONE);
-    
+    pm = projectm_create_settings(sp, PROJECTM_FLAG_NONE);    
     extraProjectMInitialization();
   }
   if (pm) {
     setStatus(Status::RENDERING);
     renderSetAutoplay(false);
+    renderSetHardcut(false);
     renderLoopNextPreset();
-  
+    projectm_select_preset(pm,s.presetIndex,true);
+
     while (true) {
       {
         // Did the main thread request that we exit?
@@ -237,7 +238,7 @@ void ProjectMRenderer::renderLoop(projectm_settings s,std::string url) {
         if (dirtySize) {
 	  int x, y;
 	  glfwGetFramebufferSize(window, &x, &y);
-	  projectm_set_window_size(pm,x, y);
+	  projectm_set_window_size(pm,x-80, y);
 	  dirtySize = false;
         }
       
@@ -279,7 +280,6 @@ void ProjectMRenderer::renderLoop(projectm_settings s,std::string url) {
         glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer.data());
         bufferWidth = width;
         glfwSwapBuffers(window);
-
       }
       std::this_thread::sleep_for(std::chrono::microseconds(1000000/60));
       //usleep(1000000/60); // TODO fps
