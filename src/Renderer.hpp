@@ -12,6 +12,10 @@
 static const int kPresetIDRandom = -1; // Switch to a random preset
 static const int kPresetIDKeep = -2; // Keep the current preset
 
+struct mySettings : projectm_settings {
+  int presetIndex;
+};
+
 class ProjectMRenderer {
 public:
   enum Status {
@@ -33,6 +37,7 @@ private:
 
   mutable std::mutex pm_m;
   mutable std::mutex flags_m;
+  mutable std::mutex flags2_m;
 
 protected:
   projectm* pm = NULL;
@@ -47,7 +52,7 @@ public:
   // init creates the OpenGL context to render in, in the main thread,
   // then starts the rendering thread. This can't be done in the ctor
   // because creating the window calls out to virtual methods.
-  void init(projectm_settings const& s);
+  void init(mySettings const& s);
 
   // The dtor signals the rendering thread to terminate, then waits
   // for it to do so. It then deletes the OpenGL context in the main
@@ -107,7 +112,7 @@ private:
   void renderSetHardcut(bool);
   void renderLoopSetPreset(unsigned int i);
   void renderLoopNextPreset();
-  void renderLoop(projectm_settings s,std::string);
+  void renderLoop(mySettings s,std::string);
   virtual GLFWwindow* createWindow() = 0;
 };
 
