@@ -56,7 +56,7 @@ jobs:
           cat <<< `jq --arg VERSION "$pluginversion-$gitrev" '.version=$VERSION' plugin.json` > plugin.json
       - name: Build plugin
         env:
-          RACK_DIR: Rack-SDK
+          RACK_DIR: $HOME/Rack-SDK
           CC: ${{ matrix.compiler }}
         run: |
           ${{ matrix.install-dependencies }}
