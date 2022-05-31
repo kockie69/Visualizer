@@ -56,10 +56,11 @@ jobs:
           cat <<< `jq --arg VERSION "$pluginversion-$gitrev" '.version=$VERSION' plugin.json` > plugin.json
       - name: Build plugin
         env:
-          RACK_DIR: $HOME/Rack-SDK
+          RACK_DIR: Rack-SDK
           CC: ${{ matrix.compiler }}
         run: |
           ${{ matrix.install-dependencies }}
+          export RACK_DIR=$HOME/Rack-SDK
           make dist
       - name: Upload artifact
         uses: actions/upload-artifact@v2
