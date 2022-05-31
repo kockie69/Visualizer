@@ -157,6 +157,8 @@ struct BaseProjectMWidget : FramebufferWidget {
     dirty = true;
     if (module) {
       
+      module->presetIndex = getRenderer()->activePreset();
+
       if (module->full) {
         getRenderer()->addPCMData(module->pcm_data, kSampleWindow);
         module->full = false;
