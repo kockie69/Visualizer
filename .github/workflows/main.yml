@@ -42,14 +42,6 @@ jobs:
           pushd $HOME
           curl -o RackSDK.zip https://vcvrack.com/downloads/Rack-SDK-${{ env.rack-sdk-version }}-${{ matrix.arch }}.zip
           unzip RackSDK.zip
-      - name: Get projectM libraries
-        run: |
-          pushd $HOME
-          curl -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/projectM-Visualizer/projectm/254872160
-          file windows-latest.zip
-          unzip windows-latest.zip
-          ls
-          cp projectM-3.99-win64.zip\projectM-3.99-win64\lib\projectM.dll dep/lib/projectM.dll
       - name: Patch makefiles, use 7zip on Windows
         if: runner.os == 'windows'
         run: |
