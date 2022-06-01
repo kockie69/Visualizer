@@ -26,6 +26,7 @@ endif
 
 ifdef ARCH_LIN
 	LDFLAGS += -lopengl32 dep/lib/libprojectM.so -shared 
+endif
 
 # Add .cpp files to the build
 SOURCES += $(wildcard src/*.cpp) 

@@ -288,7 +288,6 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
 
   {
     std::lock_guard<std::mutex> l(pm_m);
-    delete pm;
     pm = nullptr;
   }
   glFinish(); // Finish any pending OpenGL operations

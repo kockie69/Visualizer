@@ -431,8 +431,7 @@ struct EmbeddedMilkrackModuleWidget : BaseMilkrackModuleWidget {
 
 		panel = new BGPanel(nvgRGB(0, 0, 0));
 		panel->box.size = box.size;
-		int x = box.size.x;
-		int y = box.size.y;
+
 		addChild(panel);
 
     if (module) {
