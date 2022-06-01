@@ -16,13 +16,13 @@ jobs:
       matrix:
         #os: [ubuntu-latest, macos-latest, windows-latest]       
         include:
-            #- os: ubuntu-latest
-            #  name: Linux
-            #  arch: lin
-            #  compiler: cc
-            #  install-dependencies: |
-            #    sudo apt-get update
-            #    sudo apt-get install libglu1-mesa-dev 
+            - os: ubuntu-latest
+              name: Linux
+              arch: lin
+              compiler: cc
+              install-dependencies: |
+                sudo apt-get update
+                sudo apt-get install libglu1-mesa-dev 
             #- os: macos-latest
             #  name: Mac
             #  arch: mac

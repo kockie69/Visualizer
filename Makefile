@@ -22,9 +22,10 @@ CXXFLAGS +=
 
 ifdef ARCH_WIN
 	LDFLAGS += -lopengl32 dep/lib/projectM.dll -shared 
-	# LDFLAGS += ./dep/lib/liblibprojectMd.a -lpsapi /mingw64/lib/libopengl32.a /mingw64/lib/libgomp.a -lpthread -mthreads -pthread 
-	# LDFLAGS += ./dep/lib/liblibprojectMd.a -lpsapi /mingw64/lib/libopengl32.a /mingw64/lib/libgomp.a -shared -lpthread -mthreads -pthread 
 endif
+
+ifdef ARCH_LIN
+	LDFLAGS += -lopengl32 dep/lib/libprojectM.so -shared 
 
 # Add .cpp files to the build
 SOURCES += $(wildcard src/*.cpp) 
