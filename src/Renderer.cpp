@@ -3,7 +3,7 @@
 #include "Renderer.hpp"
 #include "GLFW/glfw3.h"
 #include "../dep/include/libprojectM/projectM.h"
-#include "glfwUtils.hpp"
+#include "GlfwUtils.hpp"
 #include <thread>
 #include <mutex>
 
