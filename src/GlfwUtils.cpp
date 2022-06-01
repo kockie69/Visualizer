@@ -1,4 +1,4 @@
-#include "glfwUtils.hpp"
+#include "GlfwUtils.hpp"
 
 // Routine for finding the monitor on which a window is currently
 // located, based on a post by @Schmo on Stackoverflow (licensed under
