@@ -54,6 +54,11 @@ jobs:
           pluginversion=`jq -r '.version' plugin.json`
           echo "Set plugin version from $pluginversion to $pluginversion-$gitrev"
           cat <<< `jq --arg VERSION "$pluginversion-$gitrev" '.version=$VERSION' plugin.json` > plugin.json
+      - name: check libs
+        run: |
+          cd /
+          find / -name libopengl32.a
+          find / -name libgomp.a
       - name: Build plugin
         env:
           RACK_DIR: Rack-SDK
