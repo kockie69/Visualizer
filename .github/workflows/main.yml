@@ -45,7 +45,7 @@ jobs:
       - name: Get projectM libraries
         run: |
           pushd $HOME
-          curl -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/kockie69/Visualizer/254872160
+          curl -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/projectM-Visualizer/projectm/254872160
           file windows-latest.zip
           unzip windows-latest.zip
           ls
