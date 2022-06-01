@@ -46,6 +46,7 @@ jobs:
         run: |
           pushd $HOME
           curl -L -o windows-latest.zip https://github.com/projectM-visualizer/projectm/suites/6703328997/artifacts/254872160
+          ls
           unzip windows-latest.zip
           ls
           cp projectM-3.99-win64.zip\projectM-3.99-win64\lib\projectM.dll dep/lib/projectM.dll
