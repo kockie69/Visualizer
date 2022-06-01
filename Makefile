@@ -21,7 +21,7 @@ CXXFLAGS +=
 # Static libraries are fine, but they should be added to this plugin's build system.
 
 ifdef ARCH_WIN
-	LDFLAGS += /mingw64/lib/libopengl32.a /mingw64/lib/libgomp.a dep/lib/projectM.dll -shared 
+	LDFLAGS += -lopengl32 dep/lib/projectM.dll -shared 
 	# LDFLAGS += ./dep/lib/liblibprojectMd.a -lpsapi /mingw64/lib/libopengl32.a /mingw64/lib/libgomp.a -lpthread -mthreads -pthread 
 	# LDFLAGS += ./dep/lib/liblibprojectMd.a -lpsapi /mingw64/lib/libopengl32.a /mingw64/lib/libgomp.a -shared -lpthread -mthreads -pthread 
 endif
