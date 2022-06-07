@@ -25,7 +25,7 @@ ifdef ARCH_WIN
 endif
 
 ifdef ARCH_LIN
-	LDFLAGS += -lopengl32 dep/lib/Linux/libprojectM.so.4 -shared 
+	LDFLAGS += ./dep/lib/Linux/libprojectM.so.4 -shared 
 endif
 
 # Add .cpp files to the build
