@@ -3,7 +3,12 @@
 #define RENDERER_HPP
 
 #include "GLFW/glfw3.h"
-#include "../dep/include/libprojectM/projectM.h"
+#ifdef ARCH_WIN
+#include "../dep/include/libprojectM/Windows/projectM.h"
+#endif
+#ifdef ARCH_LIN
+#include "../dep/include/libprojectM/Linux/projectM.h"
+#endif
 #include <list>
 #include <thread>
 #include <mutex>

@@ -2,7 +2,12 @@
 #include "RPJ.hpp"
 #include "dsp/digital.hpp"
 #include "nanovg_gl.h"
-#include "../dep/include/libprojectM/projectM.h"
+#ifdef ARCH_WIN
+#include "../dep/include/libprojectM/Windows/projectM.h"
+#endif
+#ifdef ARCH_LIN
+#include "../dep/include/libprojectM/Linux/projectM.h"
+#endif
 #include "Renderer.hpp"
 #include "linmath.h"
 #include "stb_image.h"
