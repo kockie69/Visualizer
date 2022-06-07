@@ -95,6 +95,12 @@ std::string ProjectMRenderer::activePresetName() const {
   return "";
 }
 
+void ProjectMRenderer::setPresetTime(double time) {
+  std::unique_lock<std::mutex> l(pm_m);
+  if (!pm) return;
+  projectm_set_preset_duration(pm,time);
+}
+
 // Returns a list of all presets currently loaded by projectM
 std::list<std::pair<unsigned int, std::string> > ProjectMRenderer::listPresets() const {
   std::list<std::pair<unsigned int, std::string> > presets;
@@ -162,8 +168,10 @@ void ProjectMRenderer::renderSetAutoplay(bool enable) {
 }
 
 void ProjectMRenderer::renderSetHardcut(bool enable) {
-  std::lock_guard<std::mutex> l(pm_m);
-  projectm_set_hard_cut_enabled(pm,enable);
+  if (pm) {
+    std::lock_guard<std::mutex> l(pm_m);
+    projectm_set_hard_cut_enabled(pm,enable);
+  }
 }
 
 // Switch to the next preset. This should be called only from the
@@ -195,7 +203,7 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
   }
 
   glfwMakeContextCurrent(window);
-  logContextInfo("Milkrack window", window);
+  logContextInfo("LowFatMilk window", window);
   
   // Initialize projectM
   projectm_settings *sp = projectm_alloc_settings();
@@ -222,11 +230,9 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
   }
   if (pm) {
     setStatus(Status::RENDERING);
-    renderSetAutoplay(false);
     renderSetHardcut(false);
     renderLoopNextPreset();
     projectm_select_preset(pm,s.presetIndex,true);
-
     while (true) {
       {
         // Did the main thread request that we exit?
@@ -243,7 +249,7 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
         }
       
         {
-
+    setPresetTime(presetTime);
     if (getClearRequestedToggleHardcut()) {
       renderSetHardcut(false);
     }
