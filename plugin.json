@@ -17,14 +17,14 @@
       "slug": "MilkrackFull",
       "name": "MilkrackFull",
       "description": "Psycho visualizer",
-      "manualUrl": "https://github.com/kockie69/RPJ/blob/v2/docs/visualizer.md",
+      "manualUrl": "https://github.com/kockie69/RPJ/blob/v2/docs/lowfatmilk.md",
       "tags": ["Utilities"]
     },
     {
       "slug": "MilkrackEmbedded",
       "name": "MilkrackEmbedded",
       "description": "Psycho visualizer",
-      "manualUrl": "https://github.com/kockie69/RPJ/blob/v2/docs/visualizer.md",
+      "manualUrl": "https://github.com/kockie69/RPJ/blob/v2/docs/lowfatmilk.md",
       "tags": ["Utilities"]
     }
   ]
