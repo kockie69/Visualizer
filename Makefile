@@ -10,7 +10,7 @@ ifdef ARCH_WIN
 endif
 
 ifdef ARCH_LIN
-	LDFLAGS += ./dep/lib/libprojectM.so
+	LDFLAGS += ./dep/lib/Linux/libprojectM.so
 endif
 
 FLAGS += 
