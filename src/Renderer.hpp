@@ -37,7 +37,6 @@ private:
 
   mutable std::mutex pm_m;
   mutable std::mutex flags_m;
-  mutable std::mutex flags2_m;
 
 protected:
   projectm* pm = NULL;
@@ -48,7 +47,7 @@ public:
     GLFWwindow* window;
   std::vector<unsigned char> buffer;
   int bufferWidth = 360;
-
+  double presetTime = 0;
   // init creates the OpenGL context to render in, in the main thread,
   // then starts the rendering thread. This can't be done in the ctor
   // because creating the window calls out to virtual methods.
@@ -92,6 +91,9 @@ public:
   // Returns a list of all presets currently loaded by projectM
   std::list<std::pair<unsigned int, std::string> > listPresets() const;
 
+  // Set the time a preset should last
+  void setPresetTime(double);
+  
   // True if the renderer is currently able to render projectM images
   bool isRendering() const;
 

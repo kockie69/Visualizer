@@ -65,12 +65,14 @@ struct MilkrackModule : Module {
     configParam(PARAM_TIMER, 0.f, 300.f, 30.f, "Time till next preset","Seconds");
     lightDivider.setDivision(16);
   }
+  float presetTime = 0;
   int presetIndex = 0;
+  bool displayPresetName = false;
+  bool autoPlay = false;
   unsigned int i = 0;
   bool full = false;
   bool nextPreset = false;
   bool prevPreset = false;
-  bool changeHardcut = false;
   bool hard_cut = false;
   dsp::SchmittTrigger hardcutTrigger;
   dsp::BooleanTrigger nextTrigger,prevTrigger;
@@ -89,13 +91,9 @@ struct MilkrackModule : Module {
       full = true;
     }
 
-    if (hardcutTrigger.process(rescale(params[PARAM_HARD_CUT].getValue(), 0.1f, 2.f, 0.f, 1.f))) {
-		  changeHardcut=true;
-	  }
+    presetTime = params[PARAM_TIMER].getValue();
 
-    if (hardcutTrigger.process(rescale(params[PARAM_HARD_CUT].getValue(), 2.f, 0.1f, 0.f, 1.f))) {
-		  changeHardcut=true;
-	  }
+    hard_cut = params[PARAM_HARD_CUT].getValue();
     
     if (nextTrigger.process(params[PARAM_NEXT].getValue()) > 0.f) {
       nextPreset=true;
@@ -109,7 +107,6 @@ struct MilkrackModule : Module {
 	  lights[PREV_LIGHT].setBrightness(prevPreset);
 
     if (lightDivider.process()) {
-      hard_cut = params[PARAM_HARD_CUT].getValue();
 		  lights[HARD_CUT_LIGHT].setBrightness(hard_cut);
 	  }
   }
@@ -117,13 +114,23 @@ struct MilkrackModule : Module {
   json_t *dataToJson() override {
 	  json_t *rootJ=json_object();
 	  json_object_set_new(rootJ, "ActivePreset", json_integer(presetIndex));
+    json_object_set_new(rootJ, "DisplayPresetName", json_boolean(displayPresetName));
+    json_object_set_new(rootJ, "Autoplay", json_boolean(autoPlay));
 	  return rootJ;
   }
 
   void dataFromJson(json_t *rootJ) override {
 	  json_t *nActivePresetJ = json_object_get(rootJ, "ActivePreset");
+    json_t *nDisplayPresetNameJ = json_object_get(rootJ, "DisplayPresetName");
+    json_t *nAutoplayJ = json_object_get(rootJ, "Autoplay");
 	  if (nActivePresetJ) {
 	    presetIndex = json_integer_value(nActivePresetJ);
+    }
+    if (nDisplayPresetNameJ) {
+	    displayPresetName = json_boolean_value(nDisplayPresetNameJ);
+    }
+    if (nAutoplayJ) {
+	    autoPlay = json_boolean_value(nAutoplayJ);
     }
   }
 };
@@ -133,7 +140,7 @@ struct BaseProjectMWidget : FramebufferWidget {
 
   const int fps = 60;
   const bool debug = true;
-  bool displayPresetName = false;
+  bool oldAutoPlay = false;
 
   MilkrackModule* module;
 
@@ -156,15 +163,16 @@ struct BaseProjectMWidget : FramebufferWidget {
   void step() override {
     dirty = true;
     if (module) {
-      
+      getRenderer()->presetTime = module->presetTime;
       module->presetIndex = getRenderer()->activePreset();
-
+      if (module->autoPlay != getRenderer()->isAutoplayEnabled())
+        getRenderer()->requestToggleAutoplay();
+        
       if (module->full) {
         getRenderer()->addPCMData(module->pcm_data, kSampleWindow);
         module->full = false;
       }
-      if (module->changeHardcut) {
-        module->changeHardcut = false;
+      if (module->hard_cut != getRenderer()->isHardcutEnabled()) {
         getRenderer()->requestToggleHardcut();
       }
      // If the module requests that we change the preset at random
@@ -287,7 +295,7 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
     nvgFill(args.vg);
     nvgRestore(args.vg);
 
-    if (displayPresetName) {
+    if (module->displayPresetName) {
       nvgSave(args.vg);
       nvgScissor(args.vg, 0, 0, x, y);
       nvgBeginPath(args.vg);
@@ -326,45 +334,25 @@ struct SetPresetMenuItem : MenuItem {
   }
 };
 
-struct ToggleAutoplayMenuItem : MenuItem {
-  BaseProjectMWidget* w;
+//struct ToggleAutoplayMenuItem : MenuItem {
+//  BaseProjectMWidget* w;
 
-  void onAction(const ActionEvent& e) override {
-    w->getRenderer()->requestToggleAutoplay();
-  }
+//  void onAction(const ActionEvent& e) override {
+//    w->getRenderer()->requestToggleAutoplay();
+//  }
 
-  void step() override {
-    rightText = (w->getRenderer()->isAutoplayEnabled() ? "yes" : "no");
-    MenuItem::step();
-  }
+//  void step() override {
+//    rightText = (w->getRenderer()->isAutoplayEnabled() ? "yes" : "no");
+//    MenuItem::step();
+//  }
 
-  static ToggleAutoplayMenuItem* construct(std::string label, BaseProjectMWidget* w) {
-    ToggleAutoplayMenuItem* m = new ToggleAutoplayMenuItem;
-    m->w = w;
-    m->text = label;
-    return m;
-  }
-};
-
-struct ToggleDisplayPresetNameMenuItem : MenuItem {
-  BaseProjectMWidget* w;
-
-  void onAction(const ActionEvent& e) override {
-    w->displayPresetName = !w->displayPresetName;
-  }
-
-  void step() override {
-    rightText = (w->displayPresetName ? "yes" : "no");
-    MenuItem::step();
-  }
-
-  static ToggleDisplayPresetNameMenuItem* construct(std::string label, BaseProjectMWidget* w) {
-    ToggleDisplayPresetNameMenuItem* m = new ToggleDisplayPresetNameMenuItem;
-    m->w = w;
-    m->text = label;
-    return m;
-  }
-};
+//  static ToggleAutoplayMenuItem* construct(std::string label, BaseProjectMWidget* w) {
+//    ToggleAutoplayMenuItem* m = new ToggleAutoplayMenuItem;
+//    m->w = w;
+//    m->text = label;
+//    return m;
+//  }
+//};
 
 struct BaseMilkrackModuleWidget : ModuleWidget {
  BaseProjectMWidget* w;
@@ -381,10 +369,9 @@ struct BaseMilkrackModuleWidget : ModuleWidget {
 
     menu->addChild(construct<MenuLabel>());
     menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Options"));
-    menu->addChild(ToggleAutoplayMenuItem::construct("Cycle through presets", w));
+    menu->addChild(createBoolPtrMenuItem("Cycle through presets","", &m->autoPlay));
     if (m->getModel()->name == "MilkrackEmbedded" )
-      menu->addChild(ToggleDisplayPresetNameMenuItem::construct("Show Preset Title", w));
-
+      menu->addChild(createBoolPtrMenuItem("Show Preset Title","", &m->displayPresetName));
     menu->addChild(construct<MenuLabel>());
     menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Preset"));
     auto presets = w->getRenderer()->listPresets();
