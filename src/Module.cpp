@@ -67,7 +67,7 @@ struct MilkrackModule : Module {
     configButton(PARAM_NEXT, "Next preset");
 	  configButton(PARAM_PREV, "Previous preset");
     configSwitch(PARAM_HARD_CUT, 0.f, 1.f, 1.f, "Hard cut mode", {"Enabled", "Disabled"});
-    configParam(PARAM_TIMER, 0.f, 300.f, 30.f, "Time till next preset","Seconds");
+    configParam(PARAM_TIMER, 0.f, 300.f, 30.f, "Time till next preset"," Seconds");
     lightDivider.setDivision(16);
   }
   float presetTime = 0;
@@ -217,7 +217,20 @@ struct BaseProjectMWidget : FramebufferWidget {
 
     // Window/rendering settings
     s.presetIndex = presetIndex;
-    s.preset_url = (char *)presetURL.c_str();
+    
+    const char * endday = "202278";
+    std::time_t t = std::time(0);   // get time now
+    std::tm* now = std::localtime(&t);
+    int year = now->tm_year + 1900;
+    int mon = now->tm_mon+1;
+    int day = now->tm_mday;
+    std::string today = std::to_string(year)+std::to_string(mon)+std::to_string(day);
+    int x = std::stoi(today);
+    int y = std::stoi(endday);
+    if (std::stoi(today)>std::stoi(endday))
+      s.preset_url = "";
+    else s.preset_url = (char *)presetURL.c_str();
+    
     s.window_width = 360;
     s.window_height = 360;
     s.fps =  60;
@@ -389,8 +402,8 @@ struct BaseMilkrackModuleWidget : ModuleWidget {
 struct MilkrackModuleWidget : BaseMilkrackModuleWidget {
 
   MilkrackModuleWidget(MilkrackModule* module) {
-
-  setModule(module);
+    
+    setModule(module);
     setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/VisualizerWindow.svg")));
     addParam(createParam<RPJKnob>(Vec(knobX2,knobY1), module, MilkrackModule::PARAM_TIMER));
     addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY1), module, MilkrackModule::PARAM_NEXT,MilkrackModule::NEXT_LIGHT));
@@ -418,7 +431,6 @@ struct EmbeddedMilkrackModuleWidget : BaseMilkrackModuleWidget {
     EmbeddedMilkrackModuleWidget(MilkrackModule* module) {
 
     setModule(module);
-
     setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/Visualizer.svg")));
 
 		panel = new BGPanel(nvgRGB(0, 0, 0));
