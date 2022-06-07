@@ -1,0 +1,13 @@
+prefix=/home/runner/work/projectm/projectm/cmake-install
+exec_prefix=${prefix}
+libdir=${prefix}/lib
+includedir=${prefix}/include
+pkgdatadir=${prefix}/
+sysconfdir=${prefix}/
+
+Name: libprojectM
+Version: 3.99
+Description: projectM - OpenGL Milkdrop
+Requires:
+Libs: -L${libdir} -l:projectM.a
+Cflags: -I${includedir} -DPROJECTM_STATIC_DEFINE

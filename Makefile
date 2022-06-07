@@ -21,11 +21,11 @@ CXXFLAGS +=
 # Static libraries are fine, but they should be added to this plugin's build system.
 
 ifdef ARCH_WIN
-	LDFLAGS += -lopengl32 dep/lib/projectM.dll -shared 
+	LDFLAGS += -lopengl32 dep/lib/Windows/projectM.dll -shared 
 endif
 
 ifdef ARCH_LIN
-	LDFLAGS += -lopengl32 dep/lib/libprojectM.so -shared 
+	LDFLAGS += -lopengl32 dep/lib/libprojectM.so.4 -shared 
 endif
 
 # Add .cpp files to the build
