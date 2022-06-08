@@ -7,4 +7,8 @@ LowFatMilk embeds projectM, an open-source project that reimplements the esteeme
 
 Its purpose in life is to read audio input and to produce mesmerizing visuals, detecting tempo, and rendering advanced equations into a limitless array of user-contributed visualizations.
 
-LowFatMilk comes in two versions, an embedded widget and a full screen version that can be displayed full screen on a seperate monitor.
+LowFatMilk comes in two versions, an embedded widget and a seperate windo version that can be dragged onto a seperate monitor.
+
+
+
+
