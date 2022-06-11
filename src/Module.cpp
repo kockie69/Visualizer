@@ -165,6 +165,11 @@ struct BaseProjectMWidget : FramebufferWidget {
 
   virtual ProjectMRenderer* getRenderer() = 0;
 
+  void onRemove(const RemoveEvent &e) override {
+    delete getRenderer();
+    FramebufferWidget::onRemove(e);
+  }
+
   void step() override {
     dirty = true;
     if (module) {
