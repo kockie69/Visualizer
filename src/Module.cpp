@@ -218,13 +218,19 @@ struct BaseProjectMWidget : FramebufferWidget {
     // Window/rendering settings
     s.presetIndex = presetIndex;
     
-    const char * endday = "202278";
+    const char * endday = "20220711";
     std::time_t t = std::time(0);   // get time now
     std::tm* now = std::localtime(&t);
     int year = now->tm_year + 1900;
     int mon = now->tm_mon+1;
     int day = now->tm_mday;
-    std::string today = std::to_string(year)+std::to_string(mon)+std::to_string(day);
+    std::string monstr = std::to_string(mon);
+    if (mon < 10)
+      monstr = "0"+monstr;
+    std::string daystr = std::to_string(day);
+    if (day < 10)
+      daystr = "0"+daystr; 
+    std::string today = std::to_string(year)+monstr+daystr;
     int x = std::stoi(today);
     int y = std::stoi(endday);
     if (std::stoi(today)>std::stoi(endday))
