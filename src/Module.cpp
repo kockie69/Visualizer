@@ -16,7 +16,7 @@
 
 #include <thread>
 
-static const unsigned int kSampleWindow = 1;
+static const unsigned int kSampleWindow = 128;
 
 // Then do the knobs
 const float knobX1 = 11;
@@ -79,7 +79,7 @@ struct MilkrackModule : Module {
   bool nextPreset = false;
   bool prevPreset = false;
   bool hard_cut = false;
-  dsp::SchmittTrigger hardcutTrigger;
+  dsp::SchmittTrigger hardcutTrigger,nextInputTrigger;
   dsp::BooleanTrigger nextTrigger,prevTrigger;
   dsp::ClockDivider lightDivider;
   float pcm_data[kSampleWindow];
@@ -100,7 +100,7 @@ struct MilkrackModule : Module {
 
     hard_cut = params[PARAM_HARD_CUT].getValue();
     
-    if (nextTrigger.process(params[PARAM_NEXT].getValue()) > 0.f) {
+    if (nextTrigger.process(params[PARAM_NEXT].getValue()) > 0.f || nextInputTrigger.process(rescale(inputs[NEXT_PRESET_INPUT].getVoltage(), 0.1f, 2.f, 0.f, 1.f))) {
       nextPreset=true;
 	  }
 
@@ -236,8 +236,6 @@ struct BaseProjectMWidget : FramebufferWidget {
     if (day < 10)
       daystr = "0"+daystr; 
     std::string today = std::to_string(year)+monstr+daystr;
-    int x = std::stoi(today);
-    int y = std::stoi(endday);
     if (std::stoi(today)>std::stoi(endday))
       s.preset_url = "";
     else s.preset_url = (char *)presetURL.c_str();
@@ -363,26 +361,6 @@ struct SetPresetMenuItem : MenuItem {
   }
 };
 
-//struct ToggleAutoplayMenuItem : MenuItem {
-//  BaseProjectMWidget* w;
-
-//  void onAction(const ActionEvent& e) override {
-//    w->getRenderer()->requestToggleAutoplay();
-//  }
-
-//  void step() override {
-//    rightText = (w->getRenderer()->isAutoplayEnabled() ? "yes" : "no");
-//    MenuItem::step();
-//  }
-
-//  static ToggleAutoplayMenuItem* construct(std::string label, BaseProjectMWidget* w) {
-//    ToggleAutoplayMenuItem* m = new ToggleAutoplayMenuItem;
-//    m->w = w;
-//    m->text = label;
-//    return m;
-//  }
-//};
-
 struct BaseMilkrackModuleWidget : ModuleWidget {
  BaseProjectMWidget* w;
 
@@ -424,7 +402,7 @@ struct MilkrackModuleWidget : BaseMilkrackModuleWidget {
 		addInput(createInput<PJ301MPort>(Vec(knobX1, knobY2), module, MilkrackModule::LEFT_INPUT));	
 		addInput(createInput<PJ301MPort>(Vec(knobX3, knobY2), module, MilkrackModule::RIGHT_INPUT));	
 
-    addInput(createInput<PJ301MPort>(Vec(30, 240), module, MilkrackModule::NEXT_PRESET_INPUT));
+    addInput(createInput<PJ301MPort>(Vec(30, 147), module, MilkrackModule::NEXT_PRESET_INPUT));
 
     //std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
     if (module) {
@@ -471,7 +449,7 @@ struct EmbeddedMilkrackModuleWidget : BaseMilkrackModuleWidget {
 		addInput(createInput<PJ301MPort>(Vec(knobX1, knobY2), module, MilkrackModule::LEFT_INPUT));	
 		addInput(createInput<PJ301MPort>(Vec(knobX3, knobY2), module, MilkrackModule::RIGHT_INPUT));	
 
-    addInput(createInput<PJ301MPort>(Vec(30, 240), module, MilkrackModule::NEXT_PRESET_INPUT));
+    addInput(createInput<PJ301MPort>(Vec(30, 147), module, MilkrackModule::NEXT_PRESET_INPUT));
   }
 
   void step() override {
