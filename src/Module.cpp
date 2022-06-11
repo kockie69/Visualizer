@@ -16,7 +16,7 @@
 
 #include <thread>
 
-static const unsigned int kSampleWindow = 128;
+static const unsigned int kSampleWindow = 1;
 
 // Then do the knobs
 const float knobX1 = 11;
