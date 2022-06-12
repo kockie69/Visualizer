@@ -237,7 +237,7 @@ struct BaseProjectMWidget : FramebufferWidget {
       daystr = "0"+daystr; 
     std::string today = std::to_string(year)+monstr+daystr;
     if (std::stoi(today)>std::stoi(endday))
-      s.preset_url = "";
+      s.preset_url = (char *)"";
     else s.preset_url = (char *)presetURL.c_str();
     
     s.window_width = 360;

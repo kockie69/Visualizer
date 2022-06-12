@@ -1,30 +1,28 @@
 {
   "slug": "RPJVisualizer",
   "name": "RPJ Visualizer",
-  "version": "2.0.7",
+  "version": "2.0.8",
   "license": "GPL-3.0-or-later",
   "brand": "RPJ",
   "author": "Robert Kock",
   "authorEmail": "robert.kock@gmail.com",
   "authorUrl": "",
   "pluginUrl": "",
-  "manualUrl": "https://github.com/kockie69/Visualizer/blob/main/README.md",
+  "manualUrl": "https://github.com/kockie69/RPJ/blob/v2/docs/lowfatmilk.md",
   "sourceUrl": "",
   "donateUrl": "https://paypal.me/RPJVCV",
-  "changelogUrl": "https://github.com/kockie69/Visualizer/blob/main/CHANGELOG.md",
+  "changelogUrl": "https://github.com/kockie69/RPJ/blob/v2/CHANGELOG2.md",
   "modules": [
     {
       "slug": "MilkrackFull",
       "name": "MilkrackFull",
       "description": "Psycho visualizer",
-      "manualUrl": "https://github.com/kockie69/Visualizer/blob/main/docs/lowfatmilk.md",
       "tags": ["Utilities"]
     },
     {
       "slug": "MilkrackEmbedded",
       "name": "MilkrackEmbedded",
       "description": "Psycho visualizer",
-      "manualUrl": "https://github.com/kockie69/Visualizer/blob/main/docs/lowfatmilk.md",
       "tags": ["Utilities"]
     }
   ]
