@@ -187,6 +187,8 @@ void ProjectMRenderer::renderLoopNextPreset() {
     unsigned int n = projectm_get_playlist_size(pm);
     if (n) {
       projectm_select_preset(pm,rand() % n,true);
+      while (projectm_get_error_loading_current_preset(pm))
+        projectm_select_preset(pm,rand() % n,true);
     }
   }
 }
@@ -198,6 +200,8 @@ void ProjectMRenderer::renderLoopSetPreset(unsigned int i) {
   unsigned int n = projectm_get_playlist_size(pm);
   if (n && i < n) {
     projectm_select_preset(pm,i,true);
+    while (projectm_get_error_loading_current_preset(pm))
+      projectm_select_preset(pm,i,true);
   }
 }
 
@@ -316,7 +320,7 @@ void ProjectMRenderer::logContextInfo(std::string name, GLFWwindow* w) const {
 
 void ProjectMRenderer::logGLFWError(int errcode, const char* errmsg) {
   //rack::logger::log(rack::WARN_LEVEL, "Milkrack/" __FILE__, 0, "GLFW error %s: %s", std::to_string(errcode), errmsg);
-  DEBUG("GLFW error %s: %s", std::to_string(errcode), errmsg);
+  DEBUG("GLFW error %s: %s", std::to_string(errcode).c_str(), errmsg);
 }
 
 GLFWwindow* WindowedRenderer::createWindow() {
@@ -330,7 +334,7 @@ GLFWwindow* WindowedRenderer::createWindow() {
   GLFWwindow* c = glfwCreateWindow(360, 360, "", NULL, NULL);  
   if (!c) {
     //rack::logger::log(rack::DEBUG_LEVEL, "Milkrack/" __FILE__, __LINE__, "Milkrack renderLoop could not create a context, bailing.");
-    DEBUG("Milkrack/" __FILE__, __LINE__, "Milkrack renderLoop could not create a context, bailing.");
+    //DEBUG("Milkrack/" __FILE__, __LINE__, "Milkrack renderLoop could not create a context, bailing.");
     return nullptr;
   }
   glfwSetWindowUserPointer(c, reinterpret_cast<void*>(this));
