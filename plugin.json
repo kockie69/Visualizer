@@ -14,14 +14,14 @@
   "changelogUrl": "https://github.com/kockie69/RPJ/blob/v2/CHANGELOG2.md",
   "modules": [
     {
-      "slug": "MilkrackFull",
-      "name": "MilkrackFull",
+      "slug": "LFMFull",
+      "name": "LFMFull",
       "description": "Psycho visualizer",
       "tags": ["Utilities"]
     },
     {
-      "slug": "MilkrackEmbedded",
-      "name": "MilkrackEmbedded",
+      "slug": "LFMEmbedded",
+      "name": "LFMEmbedded",
       "description": "Psycho visualizer",
       "tags": ["Utilities"]
     }
