@@ -314,12 +314,12 @@ void ProjectMRenderer::logContextInfo(std::string name, GLFWwindow* w) const {
   int minor = glfwGetWindowAttrib(w, GLFW_CONTEXT_VERSION_MINOR);
   int revision = glfwGetWindowAttrib(w, GLFW_CONTEXT_REVISION);
   int api = glfwGetWindowAttrib(w, GLFW_CLIENT_API);
-  //rack::logger::log(rack::logger::DEBUG_LEVEL, "Milkrack/" __FILE__, __LINE__, "%s context using API %d version %d.%d.%d", name.c_str(), api, major, minor, revision);
+  //rack::logger::log(rack::logger::DEBUG_LEVEL, "LFM/" __FILE__, __LINE__, "%s context using API %d version %d.%d.%d", name.c_str(), api, major, minor, revision);
   DEBUG("%s context using API %d version %d.%d.%d", name.c_str(), api, major, minor, revision);
 }
 
 void ProjectMRenderer::logGLFWError(int errcode, const char* errmsg) {
-  //rack::logger::log(rack::WARN_LEVEL, "Milkrack/" __FILE__, 0, "GLFW error %s: %s", std::to_string(errcode), errmsg);
+  //rack::logger::log(rack::WARN_LEVEL, "LFM/" __FILE__, 0, "GLFW error %s: %s", std::to_string(errcode), errmsg);
   DEBUG("GLFW error %s: %s", std::to_string(errcode).c_str(), errmsg);
 }
 
@@ -333,8 +333,8 @@ GLFWwindow* WindowedRenderer::createWindow() {
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
   GLFWwindow* c = glfwCreateWindow(360, 360, "", NULL, NULL);  
   if (!c) {
-    //rack::logger::log(rack::DEBUG_LEVEL, "Milkrack/" __FILE__, __LINE__, "Milkrack renderLoop could not create a context, bailing.");
-    //DEBUG("Milkrack/" __FILE__, __LINE__, "Milkrack renderLoop could not create a context, bailing.");
+    //rack::logger::log(rack::DEBUG_LEVEL, "LFM/" __FILE__, __LINE__, "LFM renderLoop could not create a context, bailing.");
+    //DEBUG("LFM/" __FILE__, __LINE__, "LFM renderLoop could not create a context, bailing.");
     return nullptr;
   }
   glfwSetWindowUserPointer(c, reinterpret_cast<void*>(this));
@@ -401,12 +401,12 @@ GLFWwindow* TextureRenderer::createWindow() {
   glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
   GLFWwindow* c = glfwCreateWindow(360, 360, "", NULL, APP->window->win);
   if (!c) {
-    //rack::logger::log(rack::DEBUG_LEVEL, "Milkrack/" __FILE__, __LINE__, "Milkrack renderLoop could not create a context, bailing.");
+    //rack::logger::log(rack::DEBUG_LEVEL, "LFM/" __FILE__, __LINE__, "LFM renderLoop could not create a context, bailing.");
     return nullptr;
   }
   glfwSetWindowUserPointer(c, reinterpret_cast<void*>(this));
   glfwSetFramebufferSizeCallback(c, framebufferSizeCallback);
-  logContextInfo("Milkrack context", c);
+  logContextInfo("LFM context", c);
   return c;
 }
 
