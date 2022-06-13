@@ -9,9 +9,9 @@ ifdef ARCH_WIN
 	FLAGS += -D_USE_MATH_DEFINES -DprojectM_main_EXPORTS 
 endif
 
-ifdef ARCH_LIN
-	LDFLAGS += ./dep/lib/Linux/libprojectM.so
-endif
+#ifdef ARCH_LIN
+#	LDFLAGS += ./dep/lib/Linux/libprojectM.so
+#endif
 
 FLAGS += 
 CFLAGS += /mingw64/include/
@@ -28,6 +28,10 @@ ifdef ARCH_LIN
 	LDFLAGS += ./dep/lib/Linux/libprojectM.so.4 -shared 
 endif
 
+ifdef ARCH_MAC
+	LDFLAGS += ./dep/lib/Mac/libprojectM.4.dylib -shared 
+endif
+
 # Add .cpp files to the build
 SOURCES += $(wildcard src/*.cpp) 
 
@@ -39,6 +43,10 @@ endif
 
 ifdef ARCH_LIN
 	DISTRIBUTABLES += $(wildcard LICENSE*) res ./dep/lib/Linux/libprojectM.so.4
+endif
+
+ifdef ARCH_LIN
+	DISTRIBUTABLES += $(wildcard LICENSE*) res ./dep/lib/Mac/libprojectM.4.dylib
 endif
 
 # Include the Rack plugin Makefile framework

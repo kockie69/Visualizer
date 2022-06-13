@@ -2,6 +2,6 @@
 Plugin *pluginInstance;
 void init(Plugin *p) {
     pluginInstance = p;
-	p->addModel(modelWindowedMilkrackModule);
-	p->addModel(modelEmbeddedMilkrackModule);
+	p->addModel(modelWindowedLFMModule);
+	p->addModel(modelEmbeddedLFMModule);
 }

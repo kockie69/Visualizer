@@ -38,7 +38,7 @@ const float buttonY2 = 215;
 const float buttonY3 = 245;
 const float buttonY4 = 275;
 
-struct MilkrackModule : Module {
+struct LFMModule : Module {
   enum ParamIds {
     PARAM_NEXT,
 		PARAM_PREV,
@@ -62,7 +62,7 @@ struct MilkrackModule : Module {
     NUM_LIGHTS
   };
 
-  MilkrackModule() {
+  LFMModule() {
     config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
     configButton(PARAM_NEXT, "Next preset");
 	  configButton(PARAM_PREV, "Previous preset");
@@ -147,7 +147,7 @@ struct BaseProjectMWidget : FramebufferWidget {
   const bool debug = true;
   bool oldAutoPlay = false;
 
-  MilkrackModule* module;
+  LFMModule* module;
 
   BaseProjectMWidget() {}
 
@@ -361,7 +361,7 @@ struct SetPresetMenuItem : MenuItem {
   }
 };
 
-struct BaseMilkrackModuleWidget : ModuleWidget {
+struct BaseLFMModuleWidget : ModuleWidget {
  BaseProjectMWidget* w;
 
  // using ModuleWidget::ModuleWidget;
@@ -371,13 +371,13 @@ struct BaseMilkrackModuleWidget : ModuleWidget {
   //}
 
   void appendContextMenu(Menu* menu) override {
-    MilkrackModule* m = dynamic_cast<MilkrackModule*>(module);
+    LFMModule* m = dynamic_cast<LFMModule*>(module);
     assert(m);
 
     menu->addChild(construct<MenuLabel>());
     menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Options"));
     menu->addChild(createBoolPtrMenuItem("Cycle through presets","", &m->autoPlay));
-    if (m->getModel()->name == "MilkrackEmbedded" )
+    if (m->getModel()->name == "LFMEmbedded" )
       menu->addChild(createBoolPtrMenuItem("Show Preset Title","", &m->displayPresetName));
     menu->addChild(construct<MenuLabel>());
     menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Preset"));
@@ -388,21 +388,21 @@ struct BaseMilkrackModuleWidget : ModuleWidget {
   }
 };
 
-struct MilkrackModuleWidget : BaseMilkrackModuleWidget {
+struct LFMModuleWidget : BaseLFMModuleWidget {
 
-  MilkrackModuleWidget(MilkrackModule* module) {
+  LFMModuleWidget(LFMModule* module) {
     
     setModule(module);
     setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/VisualizerWindow.svg")));
-    addParam(createParam<RPJKnob>(Vec(knobX2,knobY1), module, MilkrackModule::PARAM_TIMER));
-    addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY1), module, MilkrackModule::PARAM_NEXT,MilkrackModule::NEXT_LIGHT));
-		addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY2), module, MilkrackModule::PARAM_PREV,MilkrackModule::PREV_LIGHT));
-    addParam(createLightParamCentered<VCVLightLatch<MediumSimpleLight<WhiteLight>>>(Vec(buttonX1,buttonY0), module, MilkrackModule::PARAM_HARD_CUT, MilkrackModule::HARD_CUT_LIGHT));
+    addParam(createParam<RPJKnob>(Vec(knobX2,knobY1), module, LFMModule::PARAM_TIMER));
+    addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY1), module, LFMModule::PARAM_NEXT,LFMModule::NEXT_LIGHT));
+		addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY2), module, LFMModule::PARAM_PREV,LFMModule::PREV_LIGHT));
+    addParam(createLightParamCentered<VCVLightLatch<MediumSimpleLight<WhiteLight>>>(Vec(buttonX1,buttonY0), module, LFMModule::PARAM_HARD_CUT, LFMModule::HARD_CUT_LIGHT));
 
-		addInput(createInput<PJ301MPort>(Vec(knobX1, knobY2), module, MilkrackModule::LEFT_INPUT));	
-		addInput(createInput<PJ301MPort>(Vec(knobX3, knobY2), module, MilkrackModule::RIGHT_INPUT));	
+		addInput(createInput<PJ301MPort>(Vec(knobX1, knobY2), module, LFMModule::LEFT_INPUT));	
+		addInput(createInput<PJ301MPort>(Vec(knobX3, knobY2), module, LFMModule::RIGHT_INPUT));	
 
-    addInput(createInput<PJ301MPort>(Vec(30, 147), module, MilkrackModule::NEXT_PRESET_INPUT));
+    addInput(createInput<PJ301MPort>(Vec(30, 147), module, LFMModule::NEXT_PRESET_INPUT));
 
     //std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
     if (module) {
@@ -414,10 +414,10 @@ struct MilkrackModuleWidget : BaseMilkrackModuleWidget {
   }
 };
 
-struct EmbeddedMilkrackModuleWidget : BaseMilkrackModuleWidget {
+struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
     JWModuleResizeHandle *rightHandle;
     BGPanel *panel;
-    EmbeddedMilkrackModuleWidget(MilkrackModule* module) {
+    EmbeddedLFMModuleWidget(LFMModule* module) {
 
     setModule(module);
     setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/Visualizer.svg")));
@@ -441,15 +441,15 @@ struct EmbeddedMilkrackModuleWidget : BaseMilkrackModuleWidget {
     }
 
         
-    addParam(createParam<RPJKnob>(Vec(knobX2,knobY1), module, MilkrackModule::PARAM_TIMER));
-    addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY1), module, MilkrackModule::PARAM_NEXT,MilkrackModule::NEXT_LIGHT));
-		addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY2), module, MilkrackModule::PARAM_PREV,MilkrackModule::PREV_LIGHT));
-    addParam(createLightParamCentered<VCVLightLatch<MediumSimpleLight<WhiteLight>>>(Vec(buttonX1,buttonY0), module, MilkrackModule::PARAM_HARD_CUT, MilkrackModule::HARD_CUT_LIGHT));
+    addParam(createParam<RPJKnob>(Vec(knobX2,knobY1), module, LFMModule::PARAM_TIMER));
+    addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY1), module, LFMModule::PARAM_NEXT,LFMModule::NEXT_LIGHT));
+		addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY2), module, LFMModule::PARAM_PREV,LFMModule::PREV_LIGHT));
+    addParam(createLightParamCentered<VCVLightLatch<MediumSimpleLight<WhiteLight>>>(Vec(buttonX1,buttonY0), module, LFMModule::PARAM_HARD_CUT, LFMModule::HARD_CUT_LIGHT));
 
-		addInput(createInput<PJ301MPort>(Vec(knobX1, knobY2), module, MilkrackModule::LEFT_INPUT));	
-		addInput(createInput<PJ301MPort>(Vec(knobX3, knobY2), module, MilkrackModule::RIGHT_INPUT));	
+		addInput(createInput<PJ301MPort>(Vec(knobX1, knobY2), module, LFMModule::LEFT_INPUT));	
+		addInput(createInput<PJ301MPort>(Vec(knobX3, knobY2), module, LFMModule::RIGHT_INPUT));	
 
-    addInput(createInput<PJ301MPort>(Vec(30, 147), module, MilkrackModule::NEXT_PRESET_INPUT));
+    addInput(createInput<PJ301MPort>(Vec(30, 147), module, LFMModule::NEXT_PRESET_INPUT));
   }
 
   void step() override {
@@ -462,5 +462,5 @@ struct EmbeddedMilkrackModuleWidget : BaseMilkrackModuleWidget {
   }
 };
 
-Model *modelWindowedMilkrackModule = createModel<MilkrackModule, MilkrackModuleWidget>("MilkrackFull");
-Model *modelEmbeddedMilkrackModule = createModel<MilkrackModule, EmbeddedMilkrackModuleWidget>("MilkrackEmbedded");
+Model *modelWindowedLFMModule = createModel<LFMModule, LFMModuleWidget>("LFMFull");
+Model *modelEmbeddedLFMModule = createModel<LFMModule, EmbeddedLFMModuleWidget>("LFMEmbedded");
