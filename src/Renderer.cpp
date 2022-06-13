@@ -8,6 +8,9 @@
 #ifdef ARCH_LIN
 #include "../dep/include/libprojectM/Linux/projectM.h"
 #endif
+#ifdef ARCH_MAC
+#include "../dep/include/libprojectM/Mac/projectM.h"
+#endif
 #include "GlfwUtils.hpp"
 #include <thread>
 #include <mutex>
