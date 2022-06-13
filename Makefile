@@ -45,7 +45,7 @@ ifdef ARCH_LIN
 	DISTRIBUTABLES += $(wildcard LICENSE*) res ./dep/lib/Linux/libprojectM.so.4
 endif
 
-ifdef ARCH_LIN
+ifdef ARCH_MAC
 	DISTRIBUTABLES += $(wildcard LICENSE*) res ./dep/lib/Mac/libprojectM.4.dylib
 endif
 
