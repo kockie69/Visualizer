@@ -226,7 +226,7 @@ struct BaseProjectMWidget : FramebufferWidget {
     // Window/rendering settings
     s.presetIndex = presetIndex;
     
-    const char * endday = "20220711";
+    const char * endday = "20220811";
     std::time_t t = std::time(0);   // get time now
     std::tm* now = std::localtime(&t);
     int year = now->tm_year + 1900;
@@ -243,8 +243,8 @@ struct BaseProjectMWidget : FramebufferWidget {
       s.preset_url = (char *)"";
     else s.preset_url = (char *)presetURL.c_str();
     
-    s.window_width = 360;
-    s.window_height = 360;
+    s.window_width = RENDER_WINDOW_WIDTH;
+    s.window_height = RENDER_WINDOW_HEIGHT;
     s.fps =  60;
     s.mesh_x = 220;
     s.mesh_y = 125;
@@ -307,7 +307,7 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
   ProjectMRenderer* getRenderer() override { return renderer; }
 
   void draw(const DrawArgs &args) override {
-    const int y = 360;
+    const int y = 380;
     int x = renderer->getWindowWidth();
 
     nvgDeleteImage(args.vg,img);
@@ -418,29 +418,29 @@ struct LFMModuleWidget : BaseLFMModuleWidget {
 };
 
 struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
-    JWModuleResizeHandle *rightHandle;
-    BGPanel *panel;
+    //JWModuleResizeHandle *rightHandle;
+    //BGPanel *panel;
     EmbeddedLFMModuleWidget(LFMModule* module) {
 
     setModule(module);
     setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/Visualizer.svg")));
 
-		panel = new BGPanel(nvgRGB(0, 0, 0));
-		panel->box.size = box.size;
+		//panel = new BGPanel(nvgRGB(0, 0, 0));
+		//panel->box.size = box.size;
 
-		addChild(panel);
+		//addChild(panel);
 
     if (module) {
       w = BaseProjectMWidget::create<EmbeddedProjectMWidget>(Vec(85, 0), asset::plugin(pluginInstance, "res/presets_projectM/"),module->presetIndex);
       w->module = module;
-      w->box.size = Vec(360,360);
+      w->box.size = Vec(RENDER_WINDOW_WIDTH,RENDER_WINDOW_HEIGHT);
       addChild(w);
 
-      JWModuleResizeHandle *rightHandle = new JWModuleResizeHandle(w->getRenderer()->window);
-		  rightHandle->right = true;
-		  this->rightHandle = rightHandle;
+      //JWModuleResizeHandle *rightHandle = new JWModuleResizeHandle(w->getRenderer()->window);
+		  //rightHandle->right = true;
+		  //this->rightHandle = rightHandle;
 
-		  addChild(rightHandle);
+		  //addChild(rightHandle);
     }
 
         
@@ -456,10 +456,10 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
   }
 
   void step() override {
-		panel->box.size = box.size;
+		//panel->box.size = box.size;
     if (module) {
-		  rightHandle->box.pos.x = box.size.x - rightHandle->box.size.x;
-      w->box.size = rightHandle->box.size;
+		  //rightHandle->box.pos.x = box.size.x - rightHandle->box.size.x;
+      //w->box.size = rightHandle->box.size;
     }
     ModuleWidget::step();
   }

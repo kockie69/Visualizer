@@ -20,6 +20,9 @@
 static const int kPresetIDRandom = -1; // Switch to a random preset
 static const int kPresetIDKeep = -2; // Keep the current preset
 
+static const int RENDER_WINDOW_WIDTH = 383;
+static const int RENDER_WINDOW_HEIGHT = 380;
+
 struct mySettings : projectm_settings {
   int presetIndex;
 };
@@ -54,7 +57,7 @@ public:
   ProjectMRenderer() {}
     GLFWwindow* window;
   std::vector<unsigned char> buffer;
-  int bufferWidth = 360;
+  int bufferWidth = RENDER_WINDOW_WIDTH;
   double presetTime = 0;
   // init creates the OpenGL context to render in, in the main thread,
   // then starts the rendering thread. This can't be done in the ctor

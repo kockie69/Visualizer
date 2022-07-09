@@ -401,8 +401,8 @@ GLFWwindow* TextureRenderer::createWindow() {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-  glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-  GLFWwindow* c = glfwCreateWindow(360, 360, "", NULL, APP->window->win);
+  glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
+  GLFWwindow* c = glfwCreateWindow(370, 400, "", NULL, APP->window->win);
   if (!c) {
     //rack::logger::log(rack::DEBUG_LEVEL, "LFM/" __FILE__, __LINE__, "LFM renderLoop could not create a context, bailing.");
     return nullptr;
