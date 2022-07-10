@@ -334,7 +334,7 @@ GLFWwindow* WindowedRenderer::createWindow() {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-  GLFWwindow* c = glfwCreateWindow(360, 360, "", NULL, NULL);  
+  GLFWwindow* c = glfwCreateWindow(RENDER_WINDOW_WIDTH, RENDER_WINDOW_HEIGHT, "", NULL, NULL);  
   if (!c) {
     //rack::logger::log(rack::DEBUG_LEVEL, "LFM/" __FILE__, __LINE__, "LFM renderLoop could not create a context, bailing.");
     //DEBUG("LFM/" __FILE__, __LINE__, "LFM renderLoop could not create a context, bailing.");
@@ -402,7 +402,7 @@ GLFWwindow* TextureRenderer::createWindow() {
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
   glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-  GLFWwindow* c = glfwCreateWindow(370, 400, "", NULL, APP->window->win);
+  GLFWwindow* c = glfwCreateWindow(RENDER_WINDOW_WIDTH, RENDER_WINDOW_HEIGHT, "", NULL, APP->window->win);
   if (!c) {
     //rack::logger::log(rack::DEBUG_LEVEL, "LFM/" __FILE__, __LINE__, "LFM renderLoop could not create a context, bailing.");
     return nullptr;

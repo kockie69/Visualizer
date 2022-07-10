@@ -20,8 +20,8 @@
 static const int kPresetIDRandom = -1; // Switch to a random preset
 static const int kPresetIDKeep = -2; // Keep the current preset
 
-static const int RENDER_WINDOW_WIDTH = 383;
-static const int RENDER_WINDOW_HEIGHT = 380;
+static const int RENDER_WINDOW_WIDTH = 390;
+static const int RENDER_WINDOW_HEIGHT = 400;
 
 struct mySettings : projectm_settings {
   int presetIndex;

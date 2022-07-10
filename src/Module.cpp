@@ -457,10 +457,10 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
 
   void step() override {
 		//panel->box.size = box.size;
-    if (module) {
-		  //rightHandle->box.pos.x = box.size.x - rightHandle->box.size.x;
-      //w->box.size = rightHandle->box.size;
-    }
+    //if (module) {
+		//  rightHandle->box.pos.x = box.size.x - rightHandle->box.size.x;
+    //  w->box.size = rightHandle->box.size;
+    //}
     ModuleWidget::step();
   }
 };
