@@ -118,6 +118,7 @@ std::list<std::pair<unsigned int, std::string> > ProjectMRenderer::listPresets()
     if (!pm) return presets;
     n = projectm_get_playlist_size(pm);
   }
+  DEBUG("The number of presets found is %d", n);
   if (!n) {
     return presets;
   }
@@ -237,6 +238,7 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
     sp->shuffle_enabled = s.shuffle_enabled;
   {
     std::lock_guard<std::mutex> l(pm_m);
+    DEBUG("The preset path is %s", sp->preset_url);
     pm = projectm_create_settings(sp, PROJECTM_FLAG_NONE);    
     extraProjectMInitialization();
   }

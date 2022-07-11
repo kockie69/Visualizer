@@ -54,12 +54,13 @@ jobs:
           ${{ matrix.install-dependencies }}
           export RACK_DIR=$HOME/Rack-SDK
           make dist
-          pluginversion=`jq -r '.version' plugin.json`
       - name: Upload artifact
+        env:
+          pluginversion: `jq -r '.version' plugin.json`
         uses: actions/upload-artifact@v2
         with:
           path: dist
-          name: ${{ matrix.name }}-${{ pluginversion }}
+          name: ${{ matrix.name }}-${{ env.pluginversion }}
           
   publish:
     name: Publish plugin
