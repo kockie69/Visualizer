@@ -307,14 +307,14 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
   ProjectMRenderer* getRenderer() override { return renderer; }
 
   void draw(const DrawArgs &args) override {
-    const int y = 380;
+    const int y = RACK_GRID_HEIGHT;
     int x = renderer->getWindowWidth();
 
     nvgDeleteImage(args.vg,img);
     img = nvgCreateImageRGBA(args.vg,x,y,0,renderer->getBuffer());
     std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
  
-    NVGpaint imgPaint = nvgImagePattern(args.vg, 0, 0, renderer->getWindowWidth(), y, 0.0f, img, 1.0f);
+    NVGpaint imgPaint = nvgImagePattern(args.vg, 0, 0, renderer->getWindowWidth()+15, y+31, 0.0f, img, 1.0f);
 
     nvgSave(args.vg);
     nvgScale(args.vg, 1, -1); // flip
@@ -338,7 +338,7 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
       nvgClosePath(args.vg);
       nvgRestore(args.vg);
     }
-    FramebufferWidget::draw(args);
+    //FramebufferWidget::draw(args);
   }
 };
 
@@ -418,29 +418,29 @@ struct LFMModuleWidget : BaseLFMModuleWidget {
 };
 
 struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
-    //JWModuleResizeHandle *rightHandle;
-    //BGPanel *panel;
+    JWModuleResizeHandle *rightHandle;
+    BGPanel *panel;
     EmbeddedLFMModuleWidget(LFMModule* module) {
 
     setModule(module);
     setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/Visualizer.svg")));
 
-		//panel = new BGPanel(nvgRGB(0, 0, 0));
-		//panel->box.size = box.size;
+		panel = new BGPanel(nvgRGB(0, 0, 0));
+		panel->box.size = box.size;
 
-		//addChild(panel);
+		addChild(panel);
 
     if (module) {
       w = BaseProjectMWidget::create<EmbeddedProjectMWidget>(Vec(85, 0), asset::plugin(pluginInstance, "res/presets_projectM/"),module->presetIndex);
       w->module = module;
-      w->box.size = Vec(RENDER_WINDOW_WIDTH,RENDER_WINDOW_HEIGHT);
+      w->box.size = Vec(RENDER_WINDOW_WIDTH-80,RENDER_WINDOW_HEIGHT);
       addChild(w);
 
-      //JWModuleResizeHandle *rightHandle = new JWModuleResizeHandle(w->getRenderer()->window);
-		  //rightHandle->right = true;
-		  //this->rightHandle = rightHandle;
+      JWModuleResizeHandle *rightHandle = new JWModuleResizeHandle(w->getRenderer()->window);
+		  rightHandle->right = true;
+		  this->rightHandle = rightHandle;
 
-		  //addChild(rightHandle);
+		  addChild(rightHandle);
     }
 
         
@@ -456,11 +456,11 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
   }
 
   void step() override {
-		//panel->box.size = box.size;
-    //if (module) {
-		//  rightHandle->box.pos.x = box.size.x - rightHandle->box.size.x;
-    //  w->box.size = rightHandle->box.size;
-    //}
+		panel->box.size = box.size;
+    if (module) {
+		  rightHandle->box.pos.x = box.size.x - rightHandle->box.size.x;
+      w->box.size = rightHandle->box.size;
+    }
     ModuleWidget::step();
   }
 };
