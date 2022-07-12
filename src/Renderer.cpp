@@ -210,6 +210,22 @@ void ProjectMRenderer::renderLoopSetPreset(unsigned int i) {
   }
 }
 
+void ProjectMRenderer::CheckViewportSize(GLFWwindow* win)
+{
+    int renderWidth;
+    int renderHeight;
+    glfwGetWindowSize(win, &renderWidth, &renderHeight);
+
+    if (renderWidth != _renderWidth || renderHeight != _renderHeight)
+    {
+        projectm_set_window_size(pm, renderWidth, renderHeight);
+        _renderWidth = renderWidth;
+        _renderHeight = renderHeight;
+
+        DEBUG("Resized rendering canvas to %d %d.", renderWidth, renderHeight);
+    }
+}
+
 void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
   if (!window) {
     setStatus(Status::FAILED);
@@ -255,13 +271,7 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
 	  break;
         }
       
-        // Resize?
-        if (dirtySize) {
-	  int x, y;
-	  glfwGetFramebufferSize(window, &x, &y);
-	  projectm_set_window_size(pm,x-80, y);
-	  dirtySize = false;
-        }
+    CheckViewportSize(window);
       
         {
     setPresetTime(presetTime);
@@ -344,7 +354,7 @@ GLFWwindow* WindowedRenderer::createWindow() {
     return nullptr;
   }
   glfwSetWindowUserPointer(c, reinterpret_cast<void*>(this));
-  glfwSetFramebufferSizeCallback(c, framebufferSizeCallback);
+  //glfwSetFramebufferSizeCallback(c, framebufferSizeCallback);
   glfwSetWindowCloseCallback(c, [](GLFWwindow* w) { glfwIconifyWindow(w); });
   glfwSetKeyCallback(c, keyCallback);
   glfwSetWindowTitle(c, u8"LowFatMilk");
@@ -413,7 +423,7 @@ GLFWwindow* TextureRenderer::createWindow() {
     return nullptr;
   }
   glfwSetWindowUserPointer(c, reinterpret_cast<void*>(this));
-  glfwSetFramebufferSizeCallback(c, framebufferSizeCallback);
+  //glfwSetFramebufferSizeCallback(c, framebufferSizeCallback);
   logContextInfo("LFM context", c);
   return c;
 }

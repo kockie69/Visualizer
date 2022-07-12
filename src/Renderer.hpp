@@ -126,7 +126,10 @@ private:
   void renderLoopSetPreset(unsigned int i);
   void renderLoopNextPreset();
   void renderLoop(mySettings s,std::string);
+  void CheckViewportSize(GLFWwindow*);
   virtual GLFWwindow* createWindow() = 0;
+  int _renderWidth{ 0 };
+  int _renderHeight{ 0 };
 };
 
 class WindowedRenderer : public ProjectMRenderer {
