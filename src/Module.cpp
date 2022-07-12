@@ -380,11 +380,18 @@ struct BaseLFMModuleWidget : ModuleWidget {
     menu->addChild(construct<MenuLabel>());
     menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Options"));
     menu->addChild(createBoolPtrMenuItem("Cycle through presets","", &m->autoPlay));
-    if (m->getModel()->name == "LFMEmbedded" )
+    if (m->getModel()->name == "LFMEmbedded" ) {
+      DEBUG("Ok, embedded so we will add option to select a preset title");
       menu->addChild(createBoolPtrMenuItem("Show Preset Title","", &m->displayPresetName));
+      DEBUG("Ok, we have added the option to select a preset title");
+    }
     menu->addChild(construct<MenuLabel>());
+    DEBUG("Ok, we now add the preset menu title");
     menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Preset"));
+    DEBUG("Ok, added menu title");
+    DEBUG("Ok, we will now get the list of presets");
     auto presets = w->getRenderer()->listPresets();
+    DEBUG("Ok, we have the list of presets");
     for (auto p : presets) {
       menu->addChild(SetPresetMenuItem::construct(p.second, p.first, w));
     }
