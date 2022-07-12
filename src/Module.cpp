@@ -440,7 +440,7 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
     if (module) {
       w = BaseProjectMWidget::create<EmbeddedProjectMWidget>(Vec(85, 0), asset::plugin(pluginInstance, "res/presets_projectM/"),module->presetIndex);
       w->module = module;
-      w->box.size = Vec(RENDER_WINDOW_WIDTH-80,RENDER_WINDOW_HEIGHT);
+      w->box.size = Vec(RACK_GRID_HEIGHT,RACK_GRID_HEIGHT);
       addChild(w);
 
       JWModuleResizeHandle *rightHandle = new JWModuleResizeHandle(w->getRenderer()->window);

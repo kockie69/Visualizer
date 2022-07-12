@@ -51,6 +51,6 @@ struct JWModuleResizeHandle : OpaqueWidget {
 		if (!APP->scene->rack->requestModulePos(mw, newBox.pos)) {
 			mw->box = oldBox;
 		}	
-		glfwSetWindowSize(window,mw->box.size.x,mw->box.size.y);
+		glfwSetWindowSize(window,mw->box.size.x-80,mw->box.size.y);
 	}
 };
