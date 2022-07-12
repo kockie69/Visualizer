@@ -12,8 +12,6 @@
 #include "../dep/include/libprojectM/Mac/projectM.h"
 #endif
 #include "Renderer.hpp"
-#include "linmath.h"
-#include "stb_image.h"
 #include "ctrl/RPJKnobs.hpp"
 #include "JWResizableHandle.hpp"
 
@@ -28,10 +26,6 @@ const float knobX3 = 47;
 
 const float knobY1 = 44;
 const float knobY2 = 311;
-//const float knobY3 = 122;
-//const float knobY4 = 150;
-//const float knobY5 = 178;
-//const float knobY6 = 206;
 
 const float buttonX1 = 41;
 
@@ -243,8 +237,8 @@ struct BaseProjectMWidget : FramebufferWidget {
       s.preset_url = (char *)"";
     else s.preset_url = (char *)presetURL.c_str();
     
-    s.window_width = RENDER_WINDOW_WIDTH;
-    s.window_height = RENDER_WINDOW_HEIGHT;
+    s.window_width = RACK_GRID_HEIGHT;
+    s.window_height = RACK_GRID_HEIGHT;
     s.fps =  60;
     s.mesh_x = 220;
     s.mesh_y = 125;
@@ -338,7 +332,6 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
       nvgClosePath(args.vg);
       nvgRestore(args.vg);
     }
-    //FramebufferWidget::draw(args);
   }
 };
 
