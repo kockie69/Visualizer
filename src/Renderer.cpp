@@ -313,7 +313,6 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
         glfwSwapBuffers(window);
       }
       std::this_thread::sleep_for(std::chrono::microseconds(1000000/60));
-      //usleep(1000000/60); // TODO fps
     }
   }
 
@@ -330,12 +329,10 @@ void ProjectMRenderer::logContextInfo(std::string name, GLFWwindow* w) const {
   int minor = glfwGetWindowAttrib(w, GLFW_CONTEXT_VERSION_MINOR);
   int revision = glfwGetWindowAttrib(w, GLFW_CONTEXT_REVISION);
   int api = glfwGetWindowAttrib(w, GLFW_CLIENT_API);
-  //rack::logger::log(rack::logger::DEBUG_LEVEL, "LFM/" __FILE__, __LINE__, "%s context using API %d version %d.%d.%d", name.c_str(), api, major, minor, revision);
   DEBUG("%s context using API %d version %d.%d.%d", name.c_str(), api, major, minor, revision);
 }
 
 void ProjectMRenderer::logGLFWError(int errcode, const char* errmsg) {
-  //rack::logger::log(rack::WARN_LEVEL, "LFM/" __FILE__, 0, "GLFW error %s: %s", std::to_string(errcode), errmsg);
   DEBUG("GLFW error %s: %s", std::to_string(errcode).c_str(), errmsg);
 }
 
@@ -347,14 +344,11 @@ GLFWwindow* WindowedRenderer::createWindow() {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-  GLFWwindow* c = glfwCreateWindow(RENDER_WINDOW_WIDTH, RENDER_WINDOW_HEIGHT, "", NULL, NULL);  
+  GLFWwindow* c = glfwCreateWindow(RACK_GRID_HEIGHT, RACK_GRID_HEIGHT, "", NULL, NULL);  
   if (!c) {
-    //rack::logger::log(rack::DEBUG_LEVEL, "LFM/" __FILE__, __LINE__, "LFM renderLoop could not create a context, bailing.");
-    //DEBUG("LFM/" __FILE__, __LINE__, "LFM renderLoop could not create a context, bailing.");
     return nullptr;
   }
   glfwSetWindowUserPointer(c, reinterpret_cast<void*>(this));
-  //glfwSetFramebufferSizeCallback(c, framebufferSizeCallback);
   glfwSetWindowCloseCallback(c, [](GLFWwindow* w) { glfwIconifyWindow(w); });
   glfwSetKeyCallback(c, keyCallback);
   glfwSetWindowTitle(c, u8"LowFatMilk");
@@ -415,15 +409,12 @@ GLFWwindow* TextureRenderer::createWindow() {
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
   glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-  //GLFWwindow* c = glfwCreateWindow(RENDER_WINDOW_WIDTH, RENDER_WINDOW_HEIGHT, "", NULL, APP->window->win);
-  GLFWwindow* c = glfwCreateWindow(RENDER_WINDOW_WIDTH, RENDER_WINDOW_HEIGHT, "", NULL, NULL);
+  GLFWwindow* c = glfwCreateWindow(RACK_GRID_HEIGHT, RACK_GRID_HEIGHT, "", NULL, NULL);
 
   if (!c) {
-    //rack::logger::log(rack::DEBUG_LEVEL, "LFM/" __FILE__, __LINE__, "LFM renderLoop could not create a context, bailing.");
     return nullptr;
   }
   glfwSetWindowUserPointer(c, reinterpret_cast<void*>(this));
-  //glfwSetFramebufferSizeCallback(c, framebufferSizeCallback);
   logContextInfo("LFM context", c);
   return c;
 }

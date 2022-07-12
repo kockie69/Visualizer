@@ -10,7 +10,7 @@ struct JWModuleResizeHandle : OpaqueWidget {
 	GLFWwindow *window;
 
 	JWModuleResizeHandle(GLFWwindow *w) {
-		box.size = Vec(RACK_GRID_WIDTH * 1, RENDER_WINDOW_HEIGHT);
+		box.size = Vec(RACK_GRID_WIDTH * 1, RACK_GRID_HEIGHT);
 		window = w;
 	}
 
