@@ -112,12 +112,13 @@ void ProjectMRenderer::setPresetTime(double time) {
 // Returns a list of all presets currently loaded by projectM
 std::list<std::pair<unsigned int, std::string> > ProjectMRenderer::listPresets() const {
   std::list<std::pair<unsigned int, std::string> > presets;
+  
   DEBUG("Ok, lets check the number of presets found");
   unsigned int n;
   {
     std::lock_guard<std::mutex> l(pm_m);
     if (!pm) return presets;
-    n = projectm_get_playlist_size(pm);
+      n = projectm_get_playlist_size(pm);
   }
   DEBUG("The number of presets found is %d", n);
   if (!n) {
