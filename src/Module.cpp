@@ -69,6 +69,7 @@ struct LFMModule : Module {
   int presetIndex = 0;
   bool displayPresetName = false;
   bool autoPlay = false;
+  bool caseSensitive = false;
   unsigned int i = 0;
   bool full = false;
   bool nextPreset = false;
@@ -116,6 +117,7 @@ struct LFMModule : Module {
 	  json_object_set_new(rootJ, "ActivePreset", json_integer(presetIndex));
     json_object_set_new(rootJ, "DisplayPresetName", json_boolean(displayPresetName));
     json_object_set_new(rootJ, "Autoplay", json_boolean(autoPlay));
+    json_object_set_new(rootJ, "CaseSensitiveSearch", json_boolean(caseSensitive));
 	  return rootJ;
   }
 
@@ -123,6 +125,7 @@ struct LFMModule : Module {
 	  json_t *nActivePresetJ = json_object_get(rootJ, "ActivePreset");
     json_t *nDisplayPresetNameJ = json_object_get(rootJ, "DisplayPresetName");
     json_t *nAutoplayJ = json_object_get(rootJ, "Autoplay");
+    json_t *nCSSJ = json_object_get(rootJ, "CaseSensitiveSearch");
 	  if (nActivePresetJ) {
 	    presetIndex = json_integer_value(nActivePresetJ);
     }
@@ -131,6 +134,9 @@ struct LFMModule : Module {
     }
     if (nAutoplayJ) {
 	    autoPlay = json_boolean_value(nAutoplayJ);
+    }
+    if (nCSSJ) {
+	    caseSensitive = json_boolean_value(nCSSJ);
     }
   }
 };
@@ -348,10 +354,24 @@ struct SetPresetMenuItem : MenuItem {
   }
 
   void step() override {
-    if (text.find(textfield->getText()) != std::string::npos)
-      visible=true;
-    else
-      visible=false;
+    if (w->module->caseSensitive) {
+      if (text.find(textfield->getText()) != std::string::npos)
+        visible=true;
+      else
+        visible=false;
+    }
+    else {
+      std::string _text;
+      std::string _textfield;
+      _text = text;
+      _textfield = textfield->getText();
+      std::transform(_text.begin(), _text.end(), _text.begin(), [](unsigned char c){ return std::tolower(c); });
+      std::transform(_textfield.begin(), _textfield.end(), _textfield.begin(), [](unsigned char c){ return std::tolower(c); });
+      if (_text.find(_textfield) != std::string::npos)
+        visible=true;
+      else
+        visible=false;
+    }
     rightText = (w->getRenderer()->activePreset() == presetId) ? "<<" : "";
     MenuItem::step();
   }
@@ -389,6 +409,7 @@ struct BaseLFMModuleWidget : ModuleWidget {
       menu->addChild(createBoolPtrMenuItem("Show Preset Title","", &m->displayPresetName));
       DEBUG("Ok, we have added the option to select a preset title");
     }
+    menu->addChild(createBoolPtrMenuItem("Case sensitive Visual Preset Search","", &m->caseSensitive));
     menu->addChild(construct<MenuLabel>());
     DEBUG("Ok, we now add the preset menu title");
     menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Visual Presets"));
@@ -398,16 +419,14 @@ struct BaseLFMModuleWidget : ModuleWidget {
     auto holder = new rack::Widget;
     holder->box.size.x = 200;
     holder->box.size.y = 20;
-    //auto lab = new rack::Label;
-    //lab->text = "Search presets : ";
-    //lab->box.size.x = 60;
-    //holder->addChild(lab);
+
     auto textfield = new rack::TextField;
     textfield->box.pos.x = 0;
     textfield->box.size.x = 200;
     textfield->placeholder = "Search presets";
     holder->addChild(textfield);
     menu->addChild(holder);
+
     menu->addChild(construct<MenuLabel>());
     //auto presets = w->getRenderer()->listPresets();
     DEBUG("Ok, we have the list of presets");
