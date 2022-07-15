@@ -258,7 +258,7 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
     std::lock_guard<std::mutex> l(pm_m);
     DEBUG("The preset path is %s", sp->preset_url);
     pm = projectm_create_settings(sp, PROJECTM_FLAG_NONE);    
-    extraProjectMInitialization();
+    //extraProjectMInitialization();
   }
   if (pm) {
     setStatus(Status::RENDERING);
@@ -277,7 +277,7 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
         {
     setPresetTime(presetTime);
     if (getClearRequestedToggleHardcut()) {
-      renderSetHardcut(false);
+      renderSetHardcut(true);
     }
 	  // Did the main thread request an autoplay toggle?
 	  if (getClearRequestedToggleAutoplay()) {
@@ -310,7 +310,9 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
 
         glPixelStorei(GL_PACK_ALIGNMENT, 4); 
         glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer.data());
+
         bufferWidth = width;
+
         glfwSwapBuffers(window);
       }
       std::this_thread::sleep_for(std::chrono::microseconds(1000000/60));
