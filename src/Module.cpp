@@ -1,6 +1,5 @@
 #define NANOVG_GL2
 #include "RPJ.hpp"
-#include "dsp/digital.hpp"
 #include "nanovg_gl.h"
 #ifdef ARCH_WIN
 #include "../dep/include/libprojectM/Windows/projectM.h"
@@ -14,7 +13,6 @@
 #include "Renderer.hpp"
 #include "ctrl/RPJKnobs.hpp"
 #include "JWResizableHandle.hpp"
-
 #include <thread>
 
 static const unsigned int kSampleWindow = 1;
@@ -268,24 +266,26 @@ struct WindowedProjectMWidget : BaseProjectMWidget {
 
   ProjectMRenderer* getRenderer() override { return renderer; }
 
-  void draw(NVGcontext* vg) override {
-    std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
-    nvgSave(vg);
-    nvgBeginPath(vg);
-    nvgFillColor(vg, nvgRGB(0xff, 0xff, 0xff));
-    nvgFontSize(vg, 14);
-    nvgFontFaceId(vg, font->handle);
-    nvgTextAlign(vg, NVG_ALIGN_BOTTOM);
-    nvgScissor(vg, 5, 5, 20, 330);
-    nvgRotate(vg, M_PI/2);
-    if (!getRenderer()->isRendering()) {
-      nvgText(vg, 5, -5, "Unable to initialize rendering. See log for details.", nullptr);
-    } else {
-      nvgText(vg, 5, -5, getRenderer()->activePresetName().c_str(), nullptr);
+  void drawLayer(const DrawArgs& args, int layer) override {
+    if (layer == 1) {
+      std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
+      nvgSave(args.vg);
+      nvgBeginPath(args.vg);
+      nvgFillColor(args.vg, nvgRGB(0xff, 0xff, 0xff));
+      nvgFontSize(args.vg, 14);
+      nvgFontFaceId(args.vg, font->handle);
+      nvgTextAlign(args.vg, NVG_ALIGN_BOTTOM);
+      nvgScissor(args.vg, 5, 5, 20, 330);
+      nvgRotate(args.vg, M_PI/2);
+      if (!getRenderer()->isRendering()) {
+        nvgText(args.vg, 5, -5, "Unable to initialize rendering. See log for details.", nullptr);
+      } else {
+        nvgText(args.vg, 5, -5, getRenderer()->activePresetName().c_str(), nullptr);
+      }
+      nvgFill(args.vg);
+      nvgClosePath(args.vg);
+      nvgRestore(args.vg);
     }
-    nvgFill(vg);
-    nvgClosePath(vg);
-    nvgRestore(vg);
   }
 };
 
@@ -300,37 +300,40 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
 
   ProjectMRenderer* getRenderer() override { return renderer; }
 
-  void draw(const DrawArgs &args) override {
-    const int y = RACK_GRID_HEIGHT;
-    int x = renderer->getWindowWidth();
 
-    nvgDeleteImage(args.vg,img);
-    img = nvgCreateImageRGBA(args.vg,x,y,0,renderer->getBuffer());
-    std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
- 
-    NVGpaint imgPaint = nvgImagePattern(args.vg, 0, 0, renderer->getWindowWidth()+15, y+31, 0.0f, img, 1.0f);
+    void drawLayer(const DrawArgs& args, int layer) override {
+    if (layer == 1) {
+      const int y = RACK_GRID_HEIGHT;
+      int x = renderer->getWindowWidth();
 
-    nvgSave(args.vg);
-    nvgScale(args.vg, 1, -1); // flip
-    nvgTranslate(args.vg,0, -y);
-    nvgBeginPath(args.vg);
-    nvgRect(args.vg, 0, 0, x, y); 
-    nvgFillPaint(args.vg, imgPaint);
-    nvgFill(args.vg);
-    nvgRestore(args.vg);
+      nvgDeleteImage(args.vg,img);
+      img = nvgCreateImageRGBA(args.vg,x,y,0,renderer->getBuffer());
+      std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
+  
+      NVGpaint imgPaint = nvgImagePattern(args.vg, 0, 0, renderer->getWindowWidth()+15, y+31, 0.0f, img, 1.0f);
 
-    if (module->displayPresetName) {
       nvgSave(args.vg);
-      nvgScissor(args.vg, 0, 0, x, y);
+      nvgScale(args.vg, 1, -1); // flip
+      nvgTranslate(args.vg,0, -y);
       nvgBeginPath(args.vg);
-      nvgFillColor(args.vg, nvgRGB(0xff, 0xff, 0xff));
-      nvgFontSize(args.vg, 14);
-      nvgFontFaceId(args.vg, font->handle);
-      nvgTextAlign(args.vg, NVG_ALIGN_BOTTOM);
-      nvgText(args.vg, 10, 20, getRenderer()->activePresetName().c_str(), nullptr);
+      nvgRect(args.vg, 0, 0, x, y); 
+      nvgFillPaint(args.vg, imgPaint);
       nvgFill(args.vg);
-      nvgClosePath(args.vg);
       nvgRestore(args.vg);
+
+      if (module->displayPresetName) {
+        nvgSave(args.vg);
+        nvgScissor(args.vg, 0, 0, x, y);
+        nvgBeginPath(args.vg);
+        nvgFillColor(args.vg, nvgRGB(0xff, 0xff, 0xff));
+        nvgFontSize(args.vg, 14);
+        nvgFontFaceId(args.vg, font->handle);
+        nvgTextAlign(args.vg, NVG_ALIGN_BOTTOM);
+        nvgText(args.vg, 10, 20, getRenderer()->activePresetName().c_str(), nullptr);
+        nvgFill(args.vg);
+        nvgClosePath(args.vg);
+        nvgRestore(args.vg);
+      }
     }
   }
 };
@@ -338,21 +341,29 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
 struct SetPresetMenuItem : MenuItem {
   BaseProjectMWidget* w;
   unsigned int presetId;
+  TextField* textfield;
 
   void onAction(const ActionEvent& e) override {
     w->getRenderer()->requestPresetID(presetId);
   }
 
   void step() override {
+    if (text.find(textfield->getText()) != std::string::npos)
+      visible=true;
+    else
+      visible=false;
     rightText = (w->getRenderer()->activePreset() == presetId) ? "<<" : "";
     MenuItem::step();
   }
 
-  static SetPresetMenuItem* construct(std::string label, unsigned int i, BaseProjectMWidget* w) {
+  static SetPresetMenuItem* construct(std::string label, unsigned int i, BaseProjectMWidget* w,TextField* t) {
     SetPresetMenuItem* m = new SetPresetMenuItem;
+
     m->w = w;
     m->presetId = i;
     m->text = label;
+    m->textfield = t;
+
     return m;
   }
 };
@@ -380,14 +391,29 @@ struct BaseLFMModuleWidget : ModuleWidget {
     }
     menu->addChild(construct<MenuLabel>());
     DEBUG("Ok, we now add the preset menu title");
-    menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Preset"));
+    menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Visual Presets"));
     DEBUG("Ok, added menu title");
+    
     DEBUG("Ok, we will now get the list of presets");
-    auto presets = w->getRenderer()->listPresets();
+    auto holder = new rack::Widget;
+    holder->box.size.x = 200;
+    holder->box.size.y = 20;
+    //auto lab = new rack::Label;
+    //lab->text = "Search presets : ";
+    //lab->box.size.x = 60;
+    //holder->addChild(lab);
+    auto textfield = new rack::TextField;
+    textfield->box.pos.x = 0;
+    textfield->box.size.x = 200;
+    textfield->placeholder = "Search presets";
+    holder->addChild(textfield);
+    menu->addChild(holder);
+    menu->addChild(construct<MenuLabel>());
+    //auto presets = w->getRenderer()->listPresets();
     DEBUG("Ok, we have the list of presets");
-    for (auto p : presets) {
-      menu->addChild(SetPresetMenuItem::construct(p.second, p.first, w));
-    }
+    auto presets = w->getRenderer()->listPresets();
+    for (auto p : presets) 
+      menu->addChild(SetPresetMenuItem::construct(p.second, p.first, w,textfield));
   }
 };
 
