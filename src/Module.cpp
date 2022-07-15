@@ -61,7 +61,7 @@ struct LFMModule : Module {
     config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
     configButton(PARAM_NEXT, "Next preset");
 	  configButton(PARAM_PREV, "Previous preset");
-    configSwitch(PARAM_HARD_CUT, 0.f, 1.f, 1.f, "Hard cut mode", {"Enabled", "Disabled"});
+    configSwitch(PARAM_HARD_CUT, 1.f, 1.f, 1.f, "Hard cut mode", {"Disabled", "Enabled"});
     configParam(PARAM_TIMER, 0.f, 300.f, 30.f, "Time till next preset"," Seconds");
     lightDivider.setDivision(16);
   }
@@ -192,16 +192,16 @@ struct BaseProjectMWidget : FramebufferWidget {
       if (module->nextPreset) {
         module->nextPreset = false;
         if (!getRenderer()->isAutoplayEnabled())
-          //getRenderer()->selectNextPreset(getRenderer()->isHardcutEnabled());
           getRenderer()->selectNextPreset(true);
+          //getRenderer()->selectNextPreset(true);
         else 
           getRenderer()->requestPresetID(kPresetIDRandom);
       }
       if (module->prevPreset) {
         module->prevPreset = false;
         if (!getRenderer()->isAutoplayEnabled())
-          //getRenderer()->selectPreviousPreset(getRenderer()->isHardcutEnabled());
           getRenderer()->selectPreviousPreset(true);
+          //getRenderer()->selectPreviousPreset(hard_);
         else
           getRenderer()->requestPresetID(kPresetIDRandom);
       }
@@ -307,8 +307,9 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
   ProjectMRenderer* getRenderer() override { return renderer; }
 
 
-    void drawLayer(const DrawArgs& args, int layer) override {
-    if (layer == 1) {
+    //void drawLayer(const DrawArgs& args, int layer) override {
+    void draw(const DrawArgs& args) override {
+    //if (layer == 1) {
       const int y = RACK_GRID_HEIGHT;
       int x = renderer->getWindowWidth();
 
@@ -340,7 +341,7 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
         nvgClosePath(args.vg);
         nvgRestore(args.vg);
       }
-    }
+    //}
   }
 };
 
@@ -445,8 +446,7 @@ struct LFMModuleWidget : BaseLFMModuleWidget {
     addParam(createParam<RPJKnob>(Vec(knobX2,knobY1), module, LFMModule::PARAM_TIMER));
     addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY1), module, LFMModule::PARAM_NEXT,LFMModule::NEXT_LIGHT));
 		addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY2), module, LFMModule::PARAM_PREV,LFMModule::PREV_LIGHT));
-    addParam(createLightParamCentered<VCVLightLatch<MediumSimpleLight<WhiteLight>>>(Vec(buttonX1,buttonY0), module, LFMModule::PARAM_HARD_CUT, LFMModule::HARD_CUT_LIGHT));
-
+    
 		addInput(createInput<PJ301MPort>(Vec(knobX1, knobY2), module, LFMModule::LEFT_INPUT));	
 		addInput(createInput<PJ301MPort>(Vec(knobX3, knobY2), module, LFMModule::RIGHT_INPUT));	
 
@@ -492,8 +492,7 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
     addParam(createParam<RPJKnob>(Vec(knobX2,knobY1), module, LFMModule::PARAM_TIMER));
     addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY1), module, LFMModule::PARAM_NEXT,LFMModule::NEXT_LIGHT));
 		addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY2), module, LFMModule::PARAM_PREV,LFMModule::PREV_LIGHT));
-    addParam(createLightParamCentered<VCVLightLatch<MediumSimpleLight<WhiteLight>>>(Vec(buttonX1,buttonY0), module, LFMModule::PARAM_HARD_CUT, LFMModule::HARD_CUT_LIGHT));
-
+    
 		addInput(createInput<PJ301MPort>(Vec(knobX1, knobY2), module, LFMModule::LEFT_INPUT));	
 		addInput(createInput<PJ301MPort>(Vec(knobX3, knobY2), module, LFMModule::RIGHT_INPUT));	
 
