@@ -37,7 +37,6 @@ struct LFMModule : Module {
   enum ParamIds {
     PARAM_NEXT,
 		PARAM_PREV,
-    PARAM_HARD_CUT,
     PARAM_TIMER,
     NUM_PARAMS
   };
@@ -53,7 +52,6 @@ struct LFMModule : Module {
   enum LightIds {
     NEXT_LIGHT,
 		PREV_LIGHT,
-    HARD_CUT_LIGHT,
     NUM_LIGHTS
   };
 
@@ -61,9 +59,7 @@ struct LFMModule : Module {
     config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
     configButton(PARAM_NEXT, "Next preset");
 	  configButton(PARAM_PREV, "Previous preset");
-    configSwitch(PARAM_HARD_CUT, 1.f, 1.f, 1.f, "Hard cut mode", {"Disabled", "Enabled"});
     configParam(PARAM_TIMER, 0.f, 300.f, 30.f, "Time till next preset"," Seconds");
-    lightDivider.setDivision(16);
   }
   float presetTime = 0;
   int presetIndex = 0;
@@ -74,10 +70,8 @@ struct LFMModule : Module {
   bool full = false;
   bool nextPreset = false;
   bool prevPreset = false;
-  bool hard_cut = false;
-  dsp::SchmittTrigger hardcutTrigger,nextInputTrigger;
+  dsp::SchmittTrigger nextInputTrigger;
   dsp::BooleanTrigger nextTrigger,prevTrigger;
-  dsp::ClockDivider lightDivider;
   float pcm_data[kSampleWindow];
 
   void step() override {
@@ -93,8 +87,6 @@ struct LFMModule : Module {
     }
 
     presetTime = params[PARAM_TIMER].getValue();
-
-    hard_cut = params[PARAM_HARD_CUT].getValue();
     
     if (nextTrigger.process(params[PARAM_NEXT].getValue()) > 0.f || nextInputTrigger.process(rescale(inputs[NEXT_PRESET_INPUT].getVoltage(), 0.1f, 2.f, 0.f, 1.f))) {
       nextPreset=true;
@@ -107,9 +99,6 @@ struct LFMModule : Module {
     lights[NEXT_LIGHT].setBrightness(nextPreset);
 	  lights[PREV_LIGHT].setBrightness(prevPreset);
 
-    if (lightDivider.process()) {
-		  lights[HARD_CUT_LIGHT].setBrightness(hard_cut);
-	  }
   }
 
   json_t *dataToJson() override {
@@ -183,9 +172,7 @@ struct BaseProjectMWidget : FramebufferWidget {
         getRenderer()->addPCMData(module->pcm_data, kSampleWindow);
         module->full = false;
       }
-      if (module->hard_cut != getRenderer()->isHardcutEnabled()) {
-        getRenderer()->requestToggleHardcut();
-      }
+
      // If the module requests that we change the preset at random
      // (i.e. the random button was clicked), tell the render thread to
      // do so on the next pass.
@@ -201,7 +188,6 @@ struct BaseProjectMWidget : FramebufferWidget {
         module->prevPreset = false;
         if (!getRenderer()->isAutoplayEnabled())
           getRenderer()->selectPreviousPreset(true);
-          //getRenderer()->selectPreviousPreset(hard_);
         else
           getRenderer()->requestPresetID(kPresetIDRandom);
       }
@@ -251,7 +237,7 @@ struct BaseProjectMWidget : FramebufferWidget {
     // Preset display settings
     s.preset_duration = 30;
     s.soft_cut_duration = 10;
-    s.hard_cut_enabled = false;
+    s.hard_cut_enabled = true;
     s.hard_cut_duration= 20;
     s.hard_cut_sensitivity =  1.0;
     s.beat_sensitivity = 1.0;

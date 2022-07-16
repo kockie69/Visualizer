@@ -49,23 +49,11 @@ void ProjectMRenderer::requestToggleAutoplay() {
   requestedToggleAutoplay = true;
 }
 
-void ProjectMRenderer::requestToggleHardcut() {
-  std::lock_guard<std::mutex> l(flags_m);
-  requestedToggleHardcut = true;
-}
-
 // True if projectM is autoplaying presets
 bool ProjectMRenderer::isAutoplayEnabled() const {
   std::lock_guard<std::mutex> l(pm_m);
   if (!pm) return false;
   return !(projectm_is_preset_locked(pm));
-}
-
-// True if projectM has Hardcut enabled
-bool ProjectMRenderer::isHardcutEnabled() const {
-  std::lock_guard<std::mutex> l(pm_m);
-  if (!pm) return false;
-  return (projectm_get_hard_cut_enabled(pm));
 }
 
 // Switches to the previous preset in the current playlist.
@@ -154,13 +142,6 @@ bool ProjectMRenderer::getClearRequestedToggleAutoplay() {
   return r;
 }
 
-bool ProjectMRenderer::getClearRequestedToggleHardcut() {
-  std::lock_guard<std::mutex> l(flags_m);
-  bool r = requestedToggleHardcut;
-  requestedToggleHardcut = false;
-  return r;
-}
-
 ProjectMRenderer::Status ProjectMRenderer::getStatus() const {
   std::lock_guard<std::mutex> l(flags_m);
   return status;
@@ -175,13 +156,6 @@ void ProjectMRenderer::renderSetAutoplay(bool enable) {
   if (pm) {
     std::lock_guard<std::mutex> l(pm_m);
     projectm_lock_preset(pm,!enable);
-  }
-}
-
-void ProjectMRenderer::renderSetHardcut(bool enable) {
-  if (pm) {
-    std::lock_guard<std::mutex> l(pm_m);
-    projectm_set_hard_cut_enabled(pm,enable);
   }
 }
 
@@ -262,7 +236,6 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
   }
   if (pm) {
     setStatus(Status::RENDERING);
-    renderSetHardcut(false);
     renderLoopNextPreset();
     projectm_select_preset(pm,s.presetIndex,true);
     while (true) {
@@ -276,9 +249,7 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
       
         {
     setPresetTime(presetTime);
-    if (getClearRequestedToggleHardcut()) {
-      renderSetHardcut(true);
-    }
+
 	  // Did the main thread request an autoplay toggle?
 	  if (getClearRequestedToggleAutoplay()) {
 	    renderSetAutoplay(!isAutoplayEnabled());
