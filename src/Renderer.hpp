@@ -41,7 +41,6 @@ private:
   Status status = Status::NOT_INITIALIZED;
   int requestedPresetID = kPresetIDKeep; // Indicates to the render thread that it should switch to the specified preset
   bool requestedToggleAutoplay = false;
-  bool requestedToggleHardcut = false;
 
   mutable std::mutex pm_m;
   mutable std::mutex flags_m;
@@ -75,14 +74,8 @@ public:
   // Requests that projectM changes the autoplay status
   void requestToggleAutoplay();
 
-    // Requests that projectM changes the Hardcut status
-  void requestToggleHardcut();
-
   // True if projectM is autoplaying presets
   bool isAutoplayEnabled() const;
-
-  // True if projectM wants hard changes of presets
-  bool isHardcutEnabled() const;
 
   // ID of the current preset in projectM's list
   unsigned int activePreset() const;
@@ -113,13 +106,11 @@ protected:
 private:
   int getClearRequestedPresetID();
   bool getClearRequestedToggleAutoplay();
-  bool getClearRequestedToggleHardcut();
   Status getStatus() const;
   void setStatus(Status s);
   void renderSetAutoplay(bool enable); // TODO rename this method and other render* methods
   // Switch to the indicated preset. This should be called only from
   // the render thread.
-  void renderSetHardcut(bool);
   void renderLoopSetPreset(unsigned int i);
   void renderLoopNextPreset();
   void renderLoop(mySettings s,std::string);

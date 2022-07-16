@@ -33,11 +33,12 @@ struct JWModuleResizeHandle : OpaqueWidget {
 
 		Rect newBox = originalBox;
 		Rect oldBox = mw->box;
-		const float minWidth = 3 * RACK_GRID_WIDTH;
+		//const float minWidth = 3 * RACK_GRID_WIDTH;
+		const float minWidth = 80;
 		if (right) {
 			newBox.size.x += deltaX;
 			newBox.size.x = std::fmax(newBox.size.x, minWidth);
-			newBox.size.x = std::round(newBox.size.x / RACK_GRID_WIDTH) * RACK_GRID_WIDTH;
+			//newBox.size.x = std::round(newBox.size.x / RACK_GRID_WIDTH) * RACK_GRID_WIDTH;
 		}
 		else {
 			newBox.size.x -= deltaX;
