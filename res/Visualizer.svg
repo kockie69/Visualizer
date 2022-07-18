@@ -2,9 +2,9 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   width="152.39999mm"
+   width="157.48mm"
    height="128.5mm"
-   viewBox="0 0 152.4 128.5"
+   viewBox="0 0 157.48 128.5"
    version="1.1"
    id="svg849"
    inkscape:version="1.1.1 (3bf5ae0d25, 2021-09-20)"
@@ -32,7 +32,7 @@
      inkscape:window-x="3191"
      inkscape:window-y="-9"
      inkscape:window-maximized="1"
-     inkscape:current-layer="g2210"
+     inkscape:current-layer="layer1"
      width="157.48mm" />
   <defs
      id="defs846">
@@ -308,13 +308,13 @@
      inkscape:groupmode="layer"
      id="layer1">
     <rect
-       width="153.11342"
+       width="157.91356"
        height="129.48532"
        fill="#353535"
        id="rect838"
        x="0.20839465"
        y="-0.022759965"
-       style="fill:#272724;fill-opacity:1;stroke-width:0.466252" />
+       style="fill:#272724;fill-opacity:1;stroke-width:0.473504" />
     <g
        id="g2210"
        transform="translate(3.392071e-5,-5.5961914e-5)">

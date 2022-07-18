@@ -33,25 +33,18 @@ struct JWModuleResizeHandle : OpaqueWidget {
 
 		Rect newBox = originalBox;
 		Rect oldBox = mw->box;
-		//const float minWidth = 3 * RACK_GRID_WIDTH;
-		const float minWidth = 80;
-		if (right) {
-			newBox.size.x += deltaX;
-			newBox.size.x = std::fmax(newBox.size.x, minWidth);
-			//newBox.size.x = std::round(newBox.size.x / RACK_GRID_WIDTH) * RACK_GRID_WIDTH;
-		}
-		else {
-			newBox.size.x -= deltaX;
-			newBox.size.x = std::fmax(newBox.size.x, minWidth);
-			newBox.size.x = std::round(newBox.size.x / RACK_GRID_WIDTH) * RACK_GRID_WIDTH;
-			newBox.pos.x = originalBox.pos.x + originalBox.size.x - newBox.size.x;
-		}
+		const float minWidth = RACK_GRID_WIDTH * 16;
+		//const float minWidth = 80;
+
+		newBox.size.x += deltaX;
+		newBox.size.x = std::fmax(newBox.size.x, minWidth);
+		//newBox.size.x = std::round(newBox.size.x / RACK_GRID_WIDTH) * RACK_GRID_WIDTH
 
 		// Set box and test whether it's valid
 		mw->box = newBox;
 		if (!APP->scene->rack->requestModulePos(mw, newBox.pos)) {
 			mw->box = oldBox;
-		}	
-		glfwSetWindowSize(window,mw->box.size.x-80,mw->box.size.y);
+		}
+		glfwSetWindowSize(window,mw->box.size.x-85,mw->box.size.y);
 	}
 };
