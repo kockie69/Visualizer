@@ -70,6 +70,8 @@ struct LFMModule : Module {
   bool full = false;
   bool nextPreset = false;
   bool prevPreset = false;
+  // If hardCut enabled the rendereing will srew up after a while. Not clear what is causing this
+  bool hardCut = true;
   dsp::SchmittTrigger nextInputTrigger;
   dsp::BooleanTrigger nextTrigger,prevTrigger;
   float pcm_data[kSampleWindow];
@@ -179,15 +181,14 @@ struct BaseProjectMWidget : FramebufferWidget {
       if (module->nextPreset) {
         module->nextPreset = false;
         if (!getRenderer()->isAutoplayEnabled())
-          getRenderer()->selectNextPreset(true);
-          //getRenderer()->selectNextPreset(true);
+          getRenderer()->selectNextPreset(module->hardCut);
         else 
           getRenderer()->requestPresetID(kPresetIDRandom);
       }
       if (module->prevPreset) {
         module->prevPreset = false;
         if (!getRenderer()->isAutoplayEnabled())
-          getRenderer()->selectPreviousPreset(true);
+          getRenderer()->selectPreviousPreset(module->hardCut);
         else
           getRenderer()->requestPresetID(kPresetIDRandom);
       }
@@ -386,6 +387,21 @@ struct BaseLFMModuleWidget : ModuleWidget {
   //  w->randomize();
   //}
 
+template <typename T>
+ui::MenuItem* createHiddenBoolPtrMenuItem(std::string text, std::string rightText, T* ptr) {
+	return createBoolMenuItem(text, rightText,
+		[=]() {
+			return ptr ? *ptr : false;
+		},
+		[=](T val) {
+			if (ptr)
+				*ptr = val;
+		},
+    true,
+    false
+	);
+}
+
   void appendContextMenu(Menu* menu) override {
     LFMModule* m = dynamic_cast<LFMModule*>(module);
     assert(m);
@@ -398,6 +414,8 @@ struct BaseLFMModuleWidget : ModuleWidget {
       menu->addChild(createBoolPtrMenuItem("Show Preset Title","", &m->displayPresetName));
       DEBUG("Ok, we have added the option to select a preset title");
     }
+    menu->addChild(createHiddenBoolPtrMenuItem("Hardcut enabled","", &m->hardCut));
+
     menu->addChild(createBoolPtrMenuItem("Case sensitive Visual Preset Search","", &m->caseSensitive));
     menu->addChild(construct<MenuLabel>());
     DEBUG("Ok, we now add the preset menu title");
