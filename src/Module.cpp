@@ -210,7 +210,7 @@ struct BaseProjectMWidget : FramebufferWidget {
     // Window/rendering settings
     s.presetIndex = presetIndex;
     
-    const char * endday = "20220811";
+    const char * endday = "20220818";
     std::time_t t = std::time(0);   // get time now
     std::tm* now = std::localtime(&t);
     int year = now->tm_year + 1900;
@@ -293,9 +293,9 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
   ProjectMRenderer* getRenderer() override { return renderer; }
 
 
-    //void drawLayer(const DrawArgs& args, int layer) override {
-    void draw(const DrawArgs& args) override {
-    //if (layer == 1) {
+    void drawLayer(const DrawArgs& args, int layer) override {
+    //void draw(const DrawArgs& args) override {
+    if (layer == 1) {
       const int y = RACK_GRID_HEIGHT;
       int x = renderer->getWindowWidth();
 
@@ -303,13 +303,15 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
       img = nvgCreateImageRGBA(args.vg,x,y,0,renderer->getBuffer());
       std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
   
-      NVGpaint imgPaint = nvgImagePattern(args.vg, 0, 0, renderer->getWindowWidth()+15, y+31, 0.0f, img, 1.0f);
+      NVGpaint imgPaint = nvgImagePattern(args.vg, 0, 0, x, y, 0.0f, img, 1.0f);
 
       nvgSave(args.vg);
       nvgScale(args.vg, 1, -1); // flip
       nvgTranslate(args.vg,0, -y);
       nvgBeginPath(args.vg);
-      nvgRect(args.vg, 0, 0, x, y); 
+      // Box is positioned a bit to the left as we otherwise have a small black box on the left
+      // nvgRect(args.vg, -10, 0, x+20, y); 
+      nvgRect(args.vg, -10, 0, x, y);
       nvgFillPaint(args.vg, imgPaint);
       nvgFill(args.vg);
       nvgRestore(args.vg);
@@ -327,7 +329,7 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
         nvgClosePath(args.vg);
         nvgRestore(args.vg);
       }
-    //}
+    }
   }
 };
 
@@ -459,10 +461,10 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
 		panel = new BGPanel(nvgRGB(0, 0, 0));
 		panel->box.size = box.size;
 
-		addChild(panel);
+
 
     if (module) {
-      w = BaseProjectMWidget::create<EmbeddedProjectMWidget>(Vec(85, 0), asset::plugin(pluginInstance, "res/presets_projectM/"),module->presetIndex);
+      w = BaseProjectMWidget::create<EmbeddedProjectMWidget>(Vec(95, 0), asset::plugin(pluginInstance, "res/presets_projectM/"),module->presetIndex);
       w->module = module;
       w->box.size = Vec(RACK_GRID_HEIGHT,RACK_GRID_HEIGHT);
       addChild(w);
@@ -474,6 +476,7 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
 		  addChild(rightHandle);
     }
 
+		addChild(panel);
         
     addParam(createParam<RPJKnob>(Vec(knobX2,knobY1), module, LFMModule::PARAM_TIMER));
     addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY1), module, LFMModule::PARAM_NEXT,LFMModule::NEXT_LIGHT));
