@@ -250,7 +250,7 @@ struct BaseProjectMWidget : FramebufferWidget {
       s.preset_url = (char *)"";
     else s.preset_url = (char *)presetURL.c_str();
     
-    s.window_width = RACK_GRID_WIDTH * 40;
+    s.window_width = RENDER_WIDTH;
     s.window_height = RACK_GRID_HEIGHT;
     s.fps =  60;
     s.mesh_x = 220;
@@ -508,7 +508,7 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
     if (module) {
       w = BaseProjectMWidget::create<EmbeddedProjectMWidget>(Vec(95, 0), asset::plugin(pluginInstance, "res/presets_projectM/"),module->presetIndex);
       w->module = module;
-      w->box.size = Vec(RACK_GRID_WIDTH * 40,RACK_GRID_HEIGHT);
+      w->box.size = Vec(RENDER_WIDTH,RACK_GRID_HEIGHT);
       addChild(w);
 
       JWModuleResizeHandle *rightHandle = new JWModuleResizeHandle(w->getRenderer()->window);

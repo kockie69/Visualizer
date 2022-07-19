@@ -347,7 +347,7 @@ GLFWwindow* WindowedRenderer::createWindow() {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-  GLFWwindow* c = glfwCreateWindow(RACK_GRID_WIDTH * 40, RACK_GRID_HEIGHT, "", NULL, NULL);  
+  GLFWwindow* c = glfwCreateWindow(RENDER_WIDTH, RACK_GRID_HEIGHT, "", NULL, NULL);  
   if (!c) {
     return nullptr;
   }
@@ -412,7 +412,7 @@ GLFWwindow* TextureRenderer::createWindow() {
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
   glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-  GLFWwindow* c = glfwCreateWindow(RACK_GRID_WIDTH * 40, RACK_GRID_HEIGHT, "", NULL, NULL);
+  GLFWwindow* c = glfwCreateWindow(RENDER_WIDTH, RACK_GRID_HEIGHT, "", NULL, NULL);
 
   if (!c) {
     return nullptr;
