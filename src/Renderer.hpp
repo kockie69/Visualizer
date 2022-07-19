@@ -44,6 +44,7 @@ private:
 
   mutable std::mutex pm_m;
   mutable std::mutex flags_m;
+  double _sensitivity = 0;
 
 protected:
   projectm* pm = NULL;
@@ -53,7 +54,7 @@ public:
   ProjectMRenderer() {}
     GLFWwindow* window;
   std::vector<unsigned char> buffer;
-  int bufferWidth = RACK_GRID_HEIGHT;
+  int bufferWidth = RACK_GRID_WIDTH * 40;
   double presetTime = 0;
   bool aspectCorrection = true;
   double beatSensitivity = 1;

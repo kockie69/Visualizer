@@ -250,7 +250,7 @@ struct BaseProjectMWidget : FramebufferWidget {
       s.preset_url = (char *)"";
     else s.preset_url = (char *)presetURL.c_str();
     
-    s.window_width = RACK_GRID_HEIGHT;
+    s.window_width = RACK_GRID_WIDTH * 40;
     s.window_height = RACK_GRID_HEIGHT;
     s.fps =  60;
     s.mesh_x = 220;
@@ -262,7 +262,7 @@ struct BaseProjectMWidget : FramebufferWidget {
     s.soft_cut_duration = 10;
     s.hard_cut_enabled = true;
     s.hard_cut_duration= 20;
-    s.hard_cut_sensitivity =  1.0;
+    s.hard_cut_sensitivity =  0.0;
     s.beat_sensitivity = 1.0;
     s.shuffle_enabled = false;
 
@@ -471,14 +471,16 @@ struct LFMModuleWidget : BaseLFMModuleWidget {
     
     setModule(module);
     setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/VisualizerWindow.svg")));
-    //addParam(createParam<RPJKnob>(Vec(knobX2,knobY1), module, LFMModule::PARAM_TIMER));
+    addParam(createParam<RPJKnob>(Vec(knobX1,knobY1), module, LFMModule::PARAM_TIMER));
+    addParam(createParam<RPJKnob>(Vec(knobX1,knobY2), module, LFMModule::PARAM_BEAT_SENS));
+
     addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY1), module, LFMModule::PARAM_NEXT,LFMModule::NEXT_LIGHT));
 		addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY2), module, LFMModule::PARAM_PREV,LFMModule::PREV_LIGHT));
     
-		addInput(createInput<PJ301MPort>(Vec(knobX1, knobY2), module, LFMModule::LEFT_INPUT));	
-		//addInput(createInput<PJ301MPort>(Vec(knobX3, knobY2), module, LFMModule::RIGHT_INPUT));	
+		addInput(createInput<PJ301MPort>(Vec(jackX1, jackY2), module, LFMModule::LEFT_INPUT));	
+		addInput(createInput<PJ301MPort>(Vec(jackX3, jackY2), module, LFMModule::RIGHT_INPUT));	
 
-    addInput(createInput<PJ301MPort>(Vec(30, 147), module, LFMModule::NEXT_PRESET_INPUT));
+    addInput(createInput<PJ301MPort>(Vec(30, jackY1), module, LFMModule::NEXT_PRESET_INPUT));
 
     //std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
     if (module) {
@@ -506,7 +508,7 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
     if (module) {
       w = BaseProjectMWidget::create<EmbeddedProjectMWidget>(Vec(95, 0), asset::plugin(pluginInstance, "res/presets_projectM/"),module->presetIndex);
       w->module = module;
-      w->box.size = Vec(RACK_GRID_HEIGHT,RACK_GRID_HEIGHT);
+      w->box.size = Vec(RACK_GRID_WIDTH * 40,RACK_GRID_HEIGHT);
       addChild(w);
 
       JWModuleResizeHandle *rightHandle = new JWModuleResizeHandle(w->getRenderer()->window);
