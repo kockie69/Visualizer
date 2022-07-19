@@ -55,6 +55,7 @@ public:
   std::vector<unsigned char> buffer;
   int bufferWidth = RACK_GRID_HEIGHT;
   double presetTime = 0;
+  double beatSensitivity = 1;
   // init creates the OpenGL context to render in, in the main thread,
   // then starts the rendering thread. This can't be done in the ctor
   // because creating the window calls out to virtual methods.
@@ -95,6 +96,9 @@ public:
   // Set the time a preset should last
   void setPresetTime(double);
   
+  // Set the sensitivity 
+  void setBeatSensitivity(double);
+
   // True if the renderer is currently able to render projectM images
   bool isRendering() const;
 

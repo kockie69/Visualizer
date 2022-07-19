@@ -97,6 +97,12 @@ void ProjectMRenderer::setPresetTime(double time) {
   projectm_set_preset_duration(pm,time);
 }
 
+void ProjectMRenderer::setBeatSensitivity(double sensitivity) {
+  std::unique_lock<std::mutex> l(pm_m);
+  if (!pm) return;
+  projectm_set_hard_cut_sensitivity(pm, sensitivity);
+}
+
 // Returns a list of all presets currently loaded by projectM
 std::list<std::pair<unsigned int, std::string> > ProjectMRenderer::listPresets() const {
   std::list<std::pair<unsigned int, std::string> > presets;
@@ -249,6 +255,7 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
       
         {
     setPresetTime(presetTime);
+    setBeatSensitivity(beatSensitivity);
 
 	  // Did the main thread request an autoplay toggle?
 	  if (getClearRequestedToggleAutoplay()) {
