@@ -104,10 +104,23 @@ void ProjectMRenderer::setAspectCorrection(bool correction) {
 }
 
 void ProjectMRenderer::setBeatSensitivity(double sensitivity) {
-  std::unique_lock<std::mutex> l(pm_m);
   if (!pm) return;
-  projectm_set_hard_cut_sensitivity(pm, sensitivity);
+  if (_sensitivity != sensitivity) {
+    std::unique_lock<std::mutex> l(pm_m);
+    if (_sensitivity < sensitivity ) {
+      int x = (sensitivity-_sensitivity)*100;
+      for (int i=0; i<=x;i++) 
+        projectm_key_handler(pm, PROJECTM_KEYDOWN, PROJECTM_K_UP, PROJECTM_KMOD_NONE);
+    }
+    else {
+      int x = (_sensitivity - sensitivity) *100;
+      for (int i=0; i<=x;i++) 
+        projectm_key_handler(pm, PROJECTM_KEYDOWN, PROJECTM_K_DOWN, PROJECTM_KMOD_NONE);
+    }
+    _sensitivity = sensitivity;
+  }
 }
+
 
 // Returns a list of all presets currently loaded by projectM
 std::list<std::pair<unsigned int, std::string> > ProjectMRenderer::listPresets() const {
@@ -334,7 +347,7 @@ GLFWwindow* WindowedRenderer::createWindow() {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-  GLFWwindow* c = glfwCreateWindow(RACK_GRID_HEIGHT, RACK_GRID_HEIGHT, "", NULL, NULL);  
+  GLFWwindow* c = glfwCreateWindow(RACK_GRID_WIDTH * 40, RACK_GRID_HEIGHT, "", NULL, NULL);  
   if (!c) {
     return nullptr;
   }
@@ -399,7 +412,7 @@ GLFWwindow* TextureRenderer::createWindow() {
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
   glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-  GLFWwindow* c = glfwCreateWindow(RACK_GRID_HEIGHT, RACK_GRID_HEIGHT, "", NULL, NULL);
+  GLFWwindow* c = glfwCreateWindow(RACK_GRID_WIDTH * 40, RACK_GRID_HEIGHT, "", NULL, NULL);
 
   if (!c) {
     return nullptr;
