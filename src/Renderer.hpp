@@ -16,6 +16,7 @@
 #include <thread>
 #include <mutex>
 
+static const it RENDER_WIDTH = RENDER_WIDTH;
 // Special values for preset requests
 static const int kPresetIDRandom = -1; // Switch to a random preset
 static const int kPresetIDKeep = -2; // Keep the current preset
@@ -54,7 +55,7 @@ public:
   ProjectMRenderer() {}
     GLFWwindow* window;
   std::vector<unsigned char> buffer;
-  int bufferWidth = RACK_GRID_WIDTH * 40;
+  int bufferWidth = RENDER_WIDTH;
   double presetTime = 0;
   bool aspectCorrection = true;
   double beatSensitivity = 1;
