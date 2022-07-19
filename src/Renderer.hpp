@@ -16,7 +16,7 @@
 #include <thread>
 #include <mutex>
 
-static const it RENDER_WIDTH = RENDER_WIDTH;
+static const int RENDER_WIDTH = RENDER_WIDTH;
 // Special values for preset requests
 static const int kPresetIDRandom = -1; // Switch to a random preset
 static const int kPresetIDKeep = -2; // Keep the current preset
