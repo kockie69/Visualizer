@@ -55,6 +55,7 @@ public:
   std::vector<unsigned char> buffer;
   int bufferWidth = RACK_GRID_HEIGHT;
   double presetTime = 0;
+  bool aspectCorrection = true;
   double beatSensitivity = 1;
   // init creates the OpenGL context to render in, in the main thread,
   // then starts the rendering thread. This can't be done in the ctor
@@ -96,6 +97,9 @@ public:
   // Set the time a preset should last
   void setPresetTime(double);
   
+  // Set the aspect correction that is supported by some presets
+  void setAspectCorrection(bool);
+
   // Set the sensitivity 
   void setBeatSensitivity(double);
 

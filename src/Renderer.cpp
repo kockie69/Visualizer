@@ -97,6 +97,12 @@ void ProjectMRenderer::setPresetTime(double time) {
   projectm_set_preset_duration(pm,time);
 }
 
+void ProjectMRenderer::setAspectCorrection(bool correction) {
+    std::unique_lock<std::mutex> l(pm_m);
+    if (!pm) return;
+    projectm_set_aspect_correction(pm, correction);
+}
+
 void ProjectMRenderer::setBeatSensitivity(double sensitivity) {
   std::unique_lock<std::mutex> l(pm_m);
   if (!pm) return;
@@ -254,7 +260,10 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
     CheckViewportSize(window);
       
         {
+
     setPresetTime(presetTime);
+    setAspectCorrection(aspectCorrection);
+
     setBeatSensitivity(beatSensitivity);
 
 	  // Did the main thread request an autoplay toggle?

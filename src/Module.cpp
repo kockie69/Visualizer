@@ -69,7 +69,9 @@ struct LFMModule : Module {
     configParam(PARAM_TIMER, 0.f, 300.f, 30.f, "Time till next preset"," Seconds");
     configParam(PARAM_BEAT_SENS, 0.f, 5.f, 1.f, "Beat sensitivity","");
   }
+
   float presetTime = 0;
+  bool aspectCorrection = true;
   float beatSensitivity = 1.f;
   int presetIndex = 0;
   bool displayPresetName = false;
@@ -79,8 +81,10 @@ struct LFMModule : Module {
   bool full = false;
   bool nextPreset = false;
   bool prevPreset = false;
-  // If hardCut enabled the rendereing will srew up after a while. Not clear what is causing this
+
+  // If hardCut is not enabled the rendering will screw up after a while. Not clear yet what is causing this
   bool hardCut = true;
+  
   dsp::SchmittTrigger nextInputTrigger;
   dsp::BooleanTrigger nextTrigger,prevTrigger;
   float pcm_data[kSampleWindow];
@@ -120,6 +124,7 @@ struct LFMModule : Module {
     json_object_set_new(rootJ, "DisplayPresetName", json_boolean(displayPresetName));
     json_object_set_new(rootJ, "Autoplay", json_boolean(autoPlay));
     json_object_set_new(rootJ, "CaseSensitiveSearch", json_boolean(caseSensitive));
+    json_object_set_new(rootJ, "Aspectcorrection", json_boolean(aspectCorrection));    
 	  return rootJ;
   }
 
@@ -128,6 +133,7 @@ struct LFMModule : Module {
     json_t *nDisplayPresetNameJ = json_object_get(rootJ, "DisplayPresetName");
     json_t *nAutoplayJ = json_object_get(rootJ, "Autoplay");
     json_t *nCSSJ = json_object_get(rootJ, "CaseSensitiveSearch");
+    json_t *nAspectCorrectionJ = json_object_get(rootJ, "Aspectcorrection");
 	  if (nActivePresetJ) {
 	    presetIndex = json_integer_value(nActivePresetJ);
     }
@@ -139,6 +145,9 @@ struct LFMModule : Module {
     }
     if (nCSSJ) {
 	    caseSensitive = json_boolean_value(nCSSJ);
+    }
+    if (nAspectCorrectionJ) {
+	    aspectCorrection = json_boolean_value(nAspectCorrectionJ);
     }
   }
 };
@@ -177,6 +186,7 @@ struct BaseProjectMWidget : FramebufferWidget {
     dirty = true;
     if (module) {
       getRenderer()->presetTime = module->presetTime;
+      getRenderer()->aspectCorrection = module->aspectCorrection;
       getRenderer()->beatSensitivity = module->beatSensitivity;
       module->presetIndex = getRenderer()->activePreset();
       if (module->autoPlay != getRenderer()->isAutoplayEnabled())
@@ -427,7 +437,7 @@ ui::MenuItem* createHiddenBoolPtrMenuItem(std::string text, std::string rightTex
       DEBUG("Ok, we have added the option to select a preset title");
     }
     menu->addChild(createHiddenBoolPtrMenuItem("Hardcut enabled","", &m->hardCut));
-
+    menu->addChild(createBoolPtrMenuItem("Aspectcorrection enabled","", &m->aspectCorrection));
     menu->addChild(createBoolPtrMenuItem("Case sensitive Visual Preset Search","", &m->caseSensitive));
     menu->addChild(construct<MenuLabel>());
     DEBUG("Ok, we now add the preset menu title");
