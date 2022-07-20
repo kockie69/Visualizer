@@ -60,6 +60,8 @@ public:
   bool aspectCorrection = true;
   bool beatSensitivity_up = false;
   bool beatSensitivity_down = false;
+  bool nextPreset = false;
+  bool prevPreset = false;
   // init creates the OpenGL context to render in, in the main thread,
   // then starts the rendering thread. This can't be done in the ctor
   // because creating the window calls out to virtual methods.
