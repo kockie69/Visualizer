@@ -191,6 +191,7 @@ struct BaseProjectMWidget : FramebufferWidget {
   void step() override {
     dirty = true;
     if (module) {
+      // Calling getRenderer memberfunctions from here causes crashes. For better performance, maybe calling with pointers will work but needs to be tested 
       getRenderer()->presetTime = module->presetTime;
       getRenderer()->aspectCorrection = module->aspectCorrection;
       getRenderer()->beatSensitivity_up = module->beatSensitivity_up;
@@ -200,6 +201,7 @@ struct BaseProjectMWidget : FramebufferWidget {
         getRenderer()->requestToggleAutoplay();
         
       if (module->full) {
+        // Calling this memberfunction doesn't seem to cause crashes
         getRenderer()->addPCMData(module->pcm_data, kSampleWindow);
         module->full = false;
       }
@@ -210,14 +212,16 @@ struct BaseProjectMWidget : FramebufferWidget {
       if (module->nextPreset) {
         module->nextPreset = false;
         if (!getRenderer()->isAutoplayEnabled())
-          getRenderer()->selectNextPreset(module->hardCut);
+          //getRenderer()->selectNextPreset(module->hardCut);
+          getRenderer()->nextPreset=true;
         else 
           getRenderer()->requestPresetID(kPresetIDRandom);
       }
       if (module->prevPreset) {
         module->prevPreset = false;
         if (!getRenderer()->isAutoplayEnabled())
-          getRenderer()->selectPreviousPreset(module->hardCut);
+          //getRenderer()->selectPreviousPreset(module->hardCut);
+          getRenderer()->prevPreset=true;
         else
           getRenderer()->requestPresetID(kPresetIDRandom);
       }
