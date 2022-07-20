@@ -16,7 +16,7 @@
 #include <thread>
 #include <mutex>
 
-static const int RENDER_WIDTH = RENDER_WIDTH;
+static const int RENDER_WIDTH = RACK_GRID_WIDTH * 35;
 // Special values for preset requests
 static const int kPresetIDRandom = -1; // Switch to a random preset
 static const int kPresetIDKeep = -2; // Keep the current preset
@@ -58,7 +58,8 @@ public:
   int bufferWidth = RENDER_WIDTH;
   double presetTime = 0;
   bool aspectCorrection = true;
-  double beatSensitivity = 1;
+  bool beatSensitivity_up = false;
+  bool beatSensitivity_down = false;
   // init creates the OpenGL context to render in, in the main thread,
   // then starts the rendering thread. This can't be done in the ctor
   // because creating the window calls out to virtual methods.
@@ -103,7 +104,7 @@ public:
   void setAspectCorrection(bool);
 
   // Set the sensitivity 
-  void setBeatSensitivity(double);
+  void setBeatSensitivity(bool,bool);
 
   // True if the renderer is currently able to render projectM images
   bool isRendering() const;

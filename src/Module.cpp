@@ -12,6 +12,7 @@
 #endif
 #include "Renderer.hpp"
 #include "ctrl/RPJKnobs.hpp"
+#include "ctrl/RPJButtons.hpp"
 #include "JWResizableHandle.hpp"
 #include <thread>
 
@@ -21,15 +22,15 @@ static const unsigned int kSampleWindow = 1;
 const float knobX1 = 27;
 
 const float knobY1 = 44;
-const float knobY2 = 90;
+//const float knobY2 = 90;
 
-const float buttonX1 = 41;
+const float buttonX1 = 7;
+const float buttonX2 = 41;
+const float buttonX3 = 60;
 
-const float buttonY0 = 100;
-const float buttonY1 = 185;
-const float buttonY2 = 215;
-const float buttonY3 = 245;
-const float buttonY4 = 275;
+const float buttonY1 = 96;
+const float buttonY2 = 185;
+const float buttonY3 = 215;
 
 const float jackX1 = 11;
 const float jackX2 = 27;
@@ -38,13 +39,14 @@ const float jackX3 = 47;
 const float jackY1 = 147;
 const float jackY2 = 311;
 
-
 struct LFMModule : Module {
   enum ParamIds {
     PARAM_NEXT,
 		PARAM_PREV,
     PARAM_TIMER,
     PARAM_BEAT_SENS,
+    PARAM_BEAT_SENSE_DOWN,
+    PARAM_BEAT_SENSE_UP,
     NUM_PARAMS
   };
   enum InputIds {
@@ -68,11 +70,14 @@ struct LFMModule : Module {
 	  configButton(PARAM_PREV, "Previous preset");
     configParam(PARAM_TIMER, 0.f, 300.f, 30.f, "Time till next preset"," Seconds");
     configParam(PARAM_BEAT_SENS, 0.f, 5.f, 1.f, "Beat sensitivity","");
+    configButton(PARAM_BEAT_SENSE_DOWN, "Decrease beat sensitivity");
+    configButton(PARAM_BEAT_SENSE_UP,"Increase beat sensitivity");
   }
 
   float presetTime = 0;
   bool aspectCorrection = true;
-  float beatSensitivity = 1.f;
+  bool beatSensitivity_up = false;
+  bool beatSensitivity_down = false;
   int presetIndex = 0;
   bool displayPresetName = false;
   bool autoPlay = false;
@@ -103,7 +108,8 @@ struct LFMModule : Module {
 
     presetTime = params[PARAM_TIMER].getValue();
     
-    beatSensitivity = params[PARAM_BEAT_SENS].getValue();
+    beatSensitivity_up = params[PARAM_BEAT_SENSE_UP].getValue();
+    beatSensitivity_down = params[PARAM_BEAT_SENSE_DOWN].getValue();
 
     if (nextTrigger.process(params[PARAM_NEXT].getValue()) > 0.f || nextInputTrigger.process(rescale(inputs[NEXT_PRESET_INPUT].getVoltage(), 0.1f, 2.f, 0.f, 1.f))) {
       nextPreset=true;
@@ -124,7 +130,7 @@ struct LFMModule : Module {
     json_object_set_new(rootJ, "DisplayPresetName", json_boolean(displayPresetName));
     json_object_set_new(rootJ, "Autoplay", json_boolean(autoPlay));
     json_object_set_new(rootJ, "CaseSensitiveSearch", json_boolean(caseSensitive));
-    json_object_set_new(rootJ, "Aspectcorrection", json_boolean(aspectCorrection));    
+    json_object_set_new(rootJ, "Aspectcorrection", json_boolean(aspectCorrection)); 
 	  return rootJ;
   }
 
@@ -187,7 +193,8 @@ struct BaseProjectMWidget : FramebufferWidget {
     if (module) {
       getRenderer()->presetTime = module->presetTime;
       getRenderer()->aspectCorrection = module->aspectCorrection;
-      getRenderer()->beatSensitivity = module->beatSensitivity;
+      getRenderer()->beatSensitivity_up = module->beatSensitivity_up;
+      getRenderer()->beatSensitivity_down = module->beatSensitivity_down;
       module->presetIndex = getRenderer()->activePreset();
       if (module->autoPlay != getRenderer()->isAutoplayEnabled())
         getRenderer()->requestToggleAutoplay();
@@ -472,10 +479,12 @@ struct LFMModuleWidget : BaseLFMModuleWidget {
     setModule(module);
     setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/VisualizerWindow.svg")));
     addParam(createParam<RPJKnob>(Vec(knobX1,knobY1), module, LFMModule::PARAM_TIMER));
-    addParam(createParam<RPJKnob>(Vec(knobX1,knobY2), module, LFMModule::PARAM_BEAT_SENS));
+    //addParam(createParam<RPJKnob>(Vec(knobX1,knobY2), module, LFMModule::PARAM_BEAT_SENS));
+    addParam(createParam<ButtonMinBig>(Vec(buttonX1,buttonY1),module, LFMModule::PARAM_BEAT_SENSE_DOWN));
+    addParam(createParam<ButtonPlusBig>(Vec(buttonX3,buttonY1),module, LFMModule::PARAM_BEAT_SENSE_UP));
 
-    addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY1), module, LFMModule::PARAM_NEXT,LFMModule::NEXT_LIGHT));
-		addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY2), module, LFMModule::PARAM_PREV,LFMModule::PREV_LIGHT));
+    addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX2,buttonY2), module, LFMModule::PARAM_NEXT,LFMModule::NEXT_LIGHT));
+		addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX2,buttonY3), module, LFMModule::PARAM_PREV,LFMModule::PREV_LIGHT));
     
 		addInput(createInput<PJ301MPort>(Vec(jackX1, jackY2), module, LFMModule::LEFT_INPUT));	
 		addInput(createInput<PJ301MPort>(Vec(jackX3, jackY2), module, LFMModule::RIGHT_INPUT));	
@@ -521,10 +530,13 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
 		addChild(panel);
         
     addParam(createParam<RPJKnob>(Vec(knobX1,knobY1), module, LFMModule::PARAM_TIMER));
-    addParam(createParam<RPJKnob>(Vec(knobX1,knobY2), module, LFMModule::PARAM_BEAT_SENS));
-
-    addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY1), module, LFMModule::PARAM_NEXT,LFMModule::NEXT_LIGHT));
-		addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY2), module, LFMModule::PARAM_PREV,LFMModule::PREV_LIGHT));
+    //addParam(createParam<RPJKnob>(Vec(knobX1,knobY2), module, LFMModule::PARAM_BEAT_SENS));
+    // The little buttons to control the beat sensitivity
+    addParam(createParam<ButtonMinBig>(Vec(buttonX1,buttonY1),module, LFMModule::PARAM_BEAT_SENSE_DOWN));
+    addParam(createParam<ButtonPlusBig>(Vec(buttonX3,buttonY1),module, LFMModule::PARAM_BEAT_SENSE_UP));
+    
+    addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX2,buttonY2), module, LFMModule::PARAM_NEXT,LFMModule::NEXT_LIGHT));
+		addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX2,buttonY3), module, LFMModule::PARAM_PREV,LFMModule::PREV_LIGHT));
     
 		addInput(createInput<PJ301MPort>(Vec(jackX1, jackY2), module, LFMModule::LEFT_INPUT));	
 		addInput(createInput<PJ301MPort>(Vec(jackX3, jackY2), module, LFMModule::RIGHT_INPUT));	
