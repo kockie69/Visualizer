@@ -92,33 +92,24 @@ std::string ProjectMRenderer::activePresetName() const {
 }
 
 void ProjectMRenderer::setPresetTime(double time) {
-  std::unique_lock<std::mutex> l(pm_m);
+  std::lock_guard<std::mutex> l(pm_m);
   if (!pm) return;
   projectm_set_preset_duration(pm,time);
 }
 
 void ProjectMRenderer::setAspectCorrection(bool correction) {
-    std::unique_lock<std::mutex> l(pm_m);
+    std::lock_guard<std::mutex> l(pm_m);
     if (!pm) return;
     projectm_set_aspect_correction(pm, correction);
 }
 
-void ProjectMRenderer::setBeatSensitivity(double sensitivity) {
+void ProjectMRenderer::setBeatSensitivity(bool up,bool down) {
   if (!pm) return;
-  if (_sensitivity != sensitivity) {
-    std::unique_lock<std::mutex> l(pm_m);
-    if (_sensitivity < sensitivity ) {
-      int x = (sensitivity-_sensitivity)*100;
-      for (int i=0; i<=x;i++) 
-        projectm_key_handler(pm, PROJECTM_KEYDOWN, PROJECTM_K_UP, PROJECTM_KMOD_NONE);
-    }
-    else {
-      int x = (_sensitivity - sensitivity) *100;
-      for (int i=0; i<=x;i++) 
-        projectm_key_handler(pm, PROJECTM_KEYDOWN, PROJECTM_K_DOWN, PROJECTM_KMOD_NONE);
-    }
-    _sensitivity = sensitivity;
-  }
+  std::lock_guard<std::mutex> l(pm_m);
+  if (up)
+    projectm_key_handler(pm, PROJECTM_KEYDOWN, PROJECTM_K_UP, PROJECTM_KMOD_NONE);
+  if (down)
+    projectm_key_handler(pm, PROJECTM_KEYDOWN, PROJECTM_K_DOWN, PROJECTM_KMOD_NONE);
 }
 
 
@@ -218,6 +209,7 @@ void ProjectMRenderer::CheckViewportSize(GLFWwindow* win)
 
     if (renderWidth != _renderWidth || renderHeight != _renderHeight)
     {
+        std::lock_guard<std::mutex> l(pm_m);
         projectm_set_window_size(pm, renderWidth, renderHeight);
         _renderWidth = renderWidth;
         _renderHeight = renderHeight;
@@ -276,8 +268,7 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
 
     setPresetTime(presetTime);
     setAspectCorrection(aspectCorrection);
-
-    setBeatSensitivity(beatSensitivity);
+    setBeatSensitivity(beatSensitivity_up,beatSensitivity_down);
 
 	  // Did the main thread request an autoplay toggle?
 	  if (getClearRequestedToggleAutoplay()) {

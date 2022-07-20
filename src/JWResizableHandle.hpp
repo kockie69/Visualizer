@@ -33,7 +33,7 @@ struct JWModuleResizeHandle : OpaqueWidget {
 
 		Rect newBox = originalBox;
 		Rect oldBox = mw->box;
-		const float minWidth = RENDER_WIDTH;
+		const float minWidth = RENDER_WIDTH + 3*RACK_GRID_WIDTH;
 		//const float minWidth = 80;
 
 		newBox.size.x += deltaX;
