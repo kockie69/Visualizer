@@ -92,13 +92,13 @@ std::string ProjectMRenderer::activePresetName() const {
 }
 
 void ProjectMRenderer::setPresetTime(double time) {
-  std::lock_guard<std::mutex> l(pm_m);
+  std::unique_lock<std::mutex> l(pm_m);
   if (!pm) return;
   projectm_set_preset_duration(pm,time);
 }
 
 void ProjectMRenderer::setAspectCorrection(bool correction) {
-    std::lock_guard<std::mutex> l(pm_m);
+    std::unique_lock<std::mutex> l(pm_m);
     if (!pm) return;
     projectm_set_aspect_correction(pm, correction);
 }
@@ -111,7 +111,6 @@ void ProjectMRenderer::setBeatSensitivity(bool up,bool down) {
   if (down)
     projectm_key_handler(pm, PROJECTM_KEYDOWN, PROJECTM_K_DOWN, PROJECTM_KMOD_NONE);
 }
-
 
 // Returns a list of all presets currently loaded by projectM
 std::list<std::pair<unsigned int, std::string> > ProjectMRenderer::listPresets() const {
@@ -209,7 +208,6 @@ void ProjectMRenderer::CheckViewportSize(GLFWwindow* win)
 
     if (renderWidth != _renderWidth || renderHeight != _renderHeight)
     {
-        std::lock_guard<std::mutex> l(pm_m);
         projectm_set_window_size(pm, renderWidth, renderHeight);
         _renderWidth = renderWidth;
         _renderHeight = renderHeight;
@@ -254,7 +252,6 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
   if (pm) {
     setStatus(Status::RENDERING);
     renderLoopNextPreset();
-    
     projectm_select_preset(pm,s.presetIndex,true);
     while (true) {
       {
@@ -266,9 +263,10 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
     CheckViewportSize(window);
       
         {
-    
+
     setPresetTime(presetTime);
     setAspectCorrection(aspectCorrection);
+
     setBeatSensitivity(beatSensitivity_up,beatSensitivity_down);
     {
       std::lock_guard<std::mutex> l(pm_m);
@@ -280,11 +278,11 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
       selectNextPreset(projectm_get_hard_cut_enabled(pm));
       nextPreset=false;
     }
-
     if (prevPreset) {
       selectPreviousPreset(projectm_get_hard_cut_enabled(pm));
       prevPreset=false;
     }
+    
 	  // Did the main thread request an autoplay toggle?
 	  if (getClearRequestedToggleAutoplay()) {
 	    renderSetAutoplay(!isAutoplayEnabled());
