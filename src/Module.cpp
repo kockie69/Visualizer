@@ -22,15 +22,15 @@ static const unsigned int kSampleWindow = 1;
 const float knobX1 = 27;
 
 const float knobY1 = 44;
-//const float knobY2 = 90;
+const float knobY2 = 90;
 
-const float buttonX1 = 7;
-const float buttonX2 = 41;
-const float buttonX3 = 60;
+const float buttonX1 = 41;
 
-const float buttonY1 = 96;
-const float buttonY2 = 185;
-const float buttonY3 = 215;
+const float buttonY0 = 100;
+const float buttonY1 = 185;
+const float buttonY2 = 215;
+const float buttonY3 = 245;
+const float buttonY4 = 275;
 
 const float jackX1 = 11;
 const float jackX2 = 27;
@@ -38,6 +38,7 @@ const float jackX3 = 47;
 
 const float jackY1 = 147;
 const float jackY2 = 311;
+
 
 struct LFMModule : Module {
   enum ParamIds {
@@ -76,6 +77,7 @@ struct LFMModule : Module {
 
   float presetTime = 0;
   bool aspectCorrection = true;
+  float beatSensitivity = 1.f;
   bool beatSensitivity_up = false;
   bool beatSensitivity_down = false;
   int presetIndex = 0;
@@ -107,7 +109,7 @@ struct LFMModule : Module {
     }
 
     presetTime = params[PARAM_TIMER].getValue();
-    
+
     beatSensitivity_up = params[PARAM_BEAT_SENSE_UP].getValue();
     beatSensitivity_down = params[PARAM_BEAT_SENSE_DOWN].getValue();
 
@@ -196,7 +198,6 @@ struct BaseProjectMWidget : FramebufferWidget {
   void step() override {
     dirty = true;
     if (module) {
-      // Calling getRenderer memberfunctions from here causes crashes. For better performance, maybe calling with pointers will work but needs to be tested 
       getRenderer()->presetTime = module->presetTime;
       getRenderer()->aspectCorrection = module->aspectCorrection;
       getRenderer()->beatSensitivity_up = module->beatSensitivity_up;
@@ -207,7 +208,6 @@ struct BaseProjectMWidget : FramebufferWidget {
         getRenderer()->requestToggleAutoplay();
         
       if (module->full) {
-        // Calling this memberfunction doesn't seem to cause crashes
         getRenderer()->addPCMData(module->pcm_data, kSampleWindow);
         module->full = false;
       }
@@ -490,11 +490,11 @@ struct LFMModuleWidget : BaseLFMModuleWidget {
     setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/VisualizerWindow.svg")));
     addParam(createParam<RPJKnob>(Vec(knobX1,knobY1), module, LFMModule::PARAM_TIMER));
     //addParam(createParam<RPJKnob>(Vec(knobX1,knobY2), module, LFMModule::PARAM_BEAT_SENS));
-    addParam(createParam<ButtonMinBig>(Vec(buttonX1,buttonY1),module, LFMModule::PARAM_BEAT_SENSE_DOWN));
-    addParam(createParam<ButtonPlusBig>(Vec(buttonX3,buttonY1),module, LFMModule::PARAM_BEAT_SENSE_UP));
+    addParam(createParam<ButtonMinBig>(Vec(7,96),module, LFMModule::PARAM_BEAT_SENSE_DOWN));
+    addParam(createParam<ButtonPlusBig>(Vec(60,96),module, LFMModule::PARAM_BEAT_SENSE_UP));
 
-    addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX2,buttonY2), module, LFMModule::PARAM_NEXT,LFMModule::NEXT_LIGHT));
-		addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX2,buttonY3), module, LFMModule::PARAM_PREV,LFMModule::PREV_LIGHT));
+    addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY1), module, LFMModule::PARAM_NEXT,LFMModule::NEXT_LIGHT));
+		addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY2), module, LFMModule::PARAM_PREV,LFMModule::PREV_LIGHT));
     
 		addInput(createInput<PJ301MPort>(Vec(jackX1, jackY2), module, LFMModule::LEFT_INPUT));	
 		addInput(createInput<PJ301MPort>(Vec(jackX3, jackY2), module, LFMModule::RIGHT_INPUT));	
@@ -541,12 +541,12 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
         
     addParam(createParam<RPJKnob>(Vec(knobX1,knobY1), module, LFMModule::PARAM_TIMER));
     //addParam(createParam<RPJKnob>(Vec(knobX1,knobY2), module, LFMModule::PARAM_BEAT_SENS));
-    // The little buttons to control the beat sensitivity
-    addParam(createParam<ButtonMinBig>(Vec(buttonX1,buttonY1),module, LFMModule::PARAM_BEAT_SENSE_DOWN));
-    addParam(createParam<ButtonPlusBig>(Vec(buttonX3,buttonY1),module, LFMModule::PARAM_BEAT_SENSE_UP));
-    
-    addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX2,buttonY2), module, LFMModule::PARAM_NEXT,LFMModule::NEXT_LIGHT));
-		addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX2,buttonY3), module, LFMModule::PARAM_PREV,LFMModule::PREV_LIGHT));
+
+    addParam(createParam<ButtonMinBig>(Vec(7,96),module, LFMModule::PARAM_BEAT_SENSE_DOWN));
+    addParam(createParam<ButtonPlusBig>(Vec(60,96),module, LFMModule::PARAM_BEAT_SENSE_UP));
+
+    addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY1), module, LFMModule::PARAM_NEXT,LFMModule::NEXT_LIGHT));
+		addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY2), module, LFMModule::PARAM_PREV,LFMModule::PREV_LIGHT));
     
 		addInput(createInput<PJ301MPort>(Vec(jackX1, jackY2), module, LFMModule::LEFT_INPUT));	
 		addInput(createInput<PJ301MPort>(Vec(jackX3, jackY2), module, LFMModule::RIGHT_INPUT));	
