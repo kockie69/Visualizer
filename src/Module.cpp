@@ -131,6 +131,7 @@ struct LFMModule : Module {
     json_object_set_new(rootJ, "Autoplay", json_boolean(autoPlay));
     json_object_set_new(rootJ, "CaseSensitiveSearch", json_boolean(caseSensitive));
     json_object_set_new(rootJ, "Aspectcorrection", json_boolean(aspectCorrection)); 
+    json_object_set_new(rootJ, "Hardcut", json_boolean(hardCut)); 
 	  return rootJ;
   }
 
@@ -140,6 +141,7 @@ struct LFMModule : Module {
     json_t *nAutoplayJ = json_object_get(rootJ, "Autoplay");
     json_t *nCSSJ = json_object_get(rootJ, "CaseSensitiveSearch");
     json_t *nAspectCorrectionJ = json_object_get(rootJ, "Aspectcorrection");
+    json_t *nHardcutJ = json_object_get(rootJ, "Hardcut");
 	  if (nActivePresetJ) {
 	    presetIndex = json_integer_value(nActivePresetJ);
     }
@@ -154,6 +156,9 @@ struct LFMModule : Module {
     }
     if (nAspectCorrectionJ) {
 	    aspectCorrection = json_boolean_value(nAspectCorrectionJ);
+    }
+    if (nHardcutJ) {
+	    hardCut = json_boolean_value(nHardcutJ);
     }
   }
 };
@@ -196,6 +201,7 @@ struct BaseProjectMWidget : FramebufferWidget {
       getRenderer()->aspectCorrection = module->aspectCorrection;
       getRenderer()->beatSensitivity_up = module->beatSensitivity_up;
       getRenderer()->beatSensitivity_down = module->beatSensitivity_down;
+      getRenderer()->hardCut = module->hardCut;
       module->presetIndex = getRenderer()->activePreset();
       if (module->autoPlay != getRenderer()->isAutoplayEnabled())
         getRenderer()->requestToggleAutoplay();
@@ -447,7 +453,7 @@ ui::MenuItem* createHiddenBoolPtrMenuItem(std::string text, std::string rightTex
       menu->addChild(createBoolPtrMenuItem("Show Preset Title","", &m->displayPresetName));
       DEBUG("Ok, we have added the option to select a preset title");
     }
-    menu->addChild(createHiddenBoolPtrMenuItem("Hardcut enabled","", &m->hardCut));
+    menu->addChild(createBoolPtrMenuItem("Hardcut enabled","", &m->hardCut));
     menu->addChild(createBoolPtrMenuItem("Aspectcorrection enabled","", &m->aspectCorrection));
     menu->addChild(createBoolPtrMenuItem("Case sensitive Visual Preset Search","", &m->caseSensitive));
     menu->addChild(construct<MenuLabel>());
