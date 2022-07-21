@@ -254,8 +254,8 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
   if (pm) {
     setStatus(Status::RENDERING);
     renderLoopNextPreset();
-
-    //projectm_select_preset(pm,s.presetIndex,true);
+    
+    projectm_select_preset(pm,s.presetIndex,true);
     while (true) {
       {
         // Did the main thread request that we exit?
@@ -266,14 +266,21 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
     CheckViewportSize(window);
       
         {
-
+    
     setPresetTime(presetTime);
     setAspectCorrection(aspectCorrection);
     setBeatSensitivity(beatSensitivity_up,beatSensitivity_down);
+    {
+      std::lock_guard<std::mutex> l(pm_m);
+      bool _hardCut = projectm_get_hard_cut_enabled(pm);
+      if (hardCut!=_hardCut)
+        projectm_set_hard_cut_enabled(pm,hardCut);
+    }
     if (nextPreset) {
       selectNextPreset(projectm_get_hard_cut_enabled(pm));
       nextPreset=false;
     }
+
     if (prevPreset) {
       selectPreviousPreset(projectm_get_hard_cut_enabled(pm));
       prevPreset=false;
