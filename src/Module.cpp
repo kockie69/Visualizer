@@ -505,6 +505,7 @@ struct LFMModuleWidget : BaseLFMModuleWidget {
     if (module) {
       w = BaseProjectMWidget::create<WindowedProjectMWidget>(Vec(85, 20), asset::plugin(pluginInstance, "res/presets_projectM/"),module->presetIndex);
       w->module = module;
+      w->box.size = Vec(RENDER_WIDTH,RACK_GRID_HEIGHT);
       //w->font = font;
       addChild(w);
     }
