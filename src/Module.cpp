@@ -418,28 +418,7 @@ struct SetPresetMenuItem : MenuItem {
 };
 
 struct BaseLFMModuleWidget : ModuleWidget {
- BaseProjectMWidget* w;
-
- // using ModuleWidget::ModuleWidget;
-
-  //void randomizeAction() override {
-  //  w->randomize();
-  //}
-
-template <typename T>
-ui::MenuItem* createHiddenBoolPtrMenuItem(std::string text, std::string rightText, T* ptr) {
-	return createBoolMenuItem(text, rightText,
-		[=]() {
-			return ptr ? *ptr : false;
-		},
-		[=](T val) {
-			if (ptr)
-				*ptr = val;
-		},
-    true,
-    false
-	);
-}
+  BaseProjectMWidget* w;
 
   void appendContextMenu(Menu* menu) override {
     LFMModule* m = dynamic_cast<LFMModule*>(module);
