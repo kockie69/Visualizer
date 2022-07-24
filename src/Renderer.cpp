@@ -112,6 +112,14 @@ void ProjectMRenderer::setBeatSensitivity(bool up,bool down) {
     projectm_key_handler(pm, PROJECTM_KEYDOWN, PROJECTM_K_DOWN, PROJECTM_KMOD_NONE);
 }
 
+void ProjectMRenderer::setHardcut(bool hardCut) {
+  if (!pm) return;
+  std::lock_guard<std::mutex> l(pm_m);
+  bool _hardCut = projectm_get_hard_cut_enabled(pm);
+  if (hardCut!=_hardCut)
+    projectm_set_hard_cut_enabled(pm,hardCut);
+}
+
 // Returns a list of all presets currently loaded by projectM
 std::list<std::pair<unsigned int, std::string> > ProjectMRenderer::listPresets() const {
   std::list<std::pair<unsigned int, std::string> > presets;
@@ -268,12 +276,7 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
     setAspectCorrection(aspectCorrection);
 
     setBeatSensitivity(beatSensitivity_up,beatSensitivity_down);
-    {
-      std::lock_guard<std::mutex> l(pm_m);
-      bool _hardCut = projectm_get_hard_cut_enabled(pm);
-      if (hardCut!=_hardCut)
-        projectm_set_hard_cut_enabled(pm,hardCut);
-    }
+    setHardcut(hardCut);
     if (nextPreset) {
       selectNextPreset(projectm_get_hard_cut_enabled(pm));
       nextPreset=false;
