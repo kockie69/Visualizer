@@ -109,6 +109,9 @@ public:
   // Set the sensitivity 
   void setBeatSensitivity(bool,bool);
 
+  // Set the Hardcut
+  void setHardcut(bool);
+
   // True if the renderer is currently able to render projectM images
   bool isRendering() const;
 
