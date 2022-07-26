@@ -348,21 +348,18 @@ void ProjectMRenderer::logGLFWError(int errcode, const char* errmsg) {
 
 GLFWwindow* WindowedRenderer::createWindow() {
   glfwSetErrorCallback(logGLFWError);
-  glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
-  glfwWindowHint(GLFW_MAXIMIZED, GLFW_FALSE);
+  logContextInfo("gWindow", APP->window->win);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-
-  #ifndef ARCH_MAC
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-  #endif
-  
+  glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
+
   #if defined ARCH_MAC
 	glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_TRUE);
   #endif
-
-  GLFWwindow* c = glfwCreateWindow(RENDER_WIDTH, RACK_GRID_HEIGHT, "", NULL, NULL);  
+  
+  GLFWwindow* c = glfwCreateWindow(RENDER_WIDTH, RACK_GRID_HEIGHT, "", NULL, NULL);
   
   if (!c) {
     return nullptr;

@@ -77,6 +77,8 @@ struct LFMModule : Module {
 
   float presetTime = 0;
   bool aspectCorrection = true;
+
+  // If we remove the variable for Windows and Linux it will crash VCV
   #ifndef ARCH_MAC
   float beatSensitivity = 1.f;
   #endif
