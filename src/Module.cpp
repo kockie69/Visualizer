@@ -77,7 +77,9 @@ struct LFMModule : Module {
 
   float presetTime = 0;
   bool aspectCorrection = true;
+  #ifndef ARCH_MAC
   float beatSensitivity = 1.f;
+  #endif
   bool beatSensitivity_up = false;
   bool beatSensitivity_down = false;
   int presetIndex = 0;
