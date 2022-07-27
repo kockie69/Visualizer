@@ -16,7 +16,7 @@
 #include "JWResizableHandle.hpp"
 #include <thread>
 
-static const unsigned int kSampleWindow = 1;
+static const unsigned int kSampleWindow = 2;
 
 // Then do the knobs
 const float knobX1 = 27;
@@ -77,11 +77,6 @@ struct LFMModule : Module {
 
   float presetTime = 0;
   bool aspectCorrection = true;
-
-  // If we remove the variable for Windows and Linux it will crash VCV
-  #ifndef ARCH_MAC
-  float beatSensitivity = 1.f;
-  #endif
   bool beatSensitivity_up = false;
   bool beatSensitivity_down = false;
   int presetIndex = 0;
