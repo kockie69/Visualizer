@@ -21,15 +21,15 @@ CXXFLAGS +=
 # Static libraries are fine, but they should be added to this plugin's build system.
 
 ifdef ARCH_WIN
-	LDFLAGS += -lopengl32 dep/lib/projectM.dll fopenmp -shared 
+	LDFLAGS += -lopengl32 ~/Visualizer/dep/lib/projectM.dll fopenmp -shared 
 endif
 
 ifdef ARCH_LIN
-	LDFLAGS += ./dep/lib/libprojectM.so.4 -fopenmp -shared 
+	LDFLAGS += ~/Visualizer/dep/lib/libprojectM.so.4 -fopenmp -shared 
 endif
 
 ifdef ARCH_MAC
-	LDFLAGS += ./dep/lib/libprojectM.4.dylib fopenmp -shared 
+	LDFLAGS += ~/Visualizer/dep/lib/libprojectM.4.dylib fopenmp -shared 
 endif
 
 # Add .cpp files to the build
@@ -38,19 +38,19 @@ SOURCES += $(wildcard src/*.cpp)
 # Add files to the ZIP package when running `make dist`
 # The compiled plugin and "plugin.json" are automatically added.
 ifdef ARCH_WIN
-	DISTRIBUTABLES += $(wildcard LICENSE*) res ./dep/lib/projectM.dll
+	DISTRIBUTABLES += $(wildcard LICENSE*) res ~/Visualizer/dep/lib/projectM.dll
 endif
 
 ifdef ARCH_LIN
-	DISTRIBUTABLES += $(wildcard LICENSE*) res ./dep/lib/libprojectM.so.4 ./dep/lib/libprojectM.so.4.0.0
+	DISTRIBUTABLES += $(wildcard LICENSE*) res ~/Visualizer/dep/lib/libprojectM.so.4 ~/Visualizer/dep/lib/libprojectM.so.4.0.0
 endif
 
 ifdef ARCH_MAC
-	DISTRIBUTABLES += $(wildcard LICENSE*) res ./dep/lib/libprojectM.4.dylib
+	DISTRIBUTABLES += $(wildcard LICENSE*) res ~/Visualizer/dep/lib/libprojectM.4.dylib
 endif
 
 # Define the path of the built static library
-projectm := ./dep/lib/libprojectM.a
+projectm := ~/Visualizer/dep/lib/libprojectM.a
 # Build the static library into your plugin.dll/dylib/so
 OBJECTS += $(projectm)
 # Trigger the static library to be built when running `make dep`
