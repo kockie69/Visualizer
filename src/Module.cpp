@@ -1,15 +1,7 @@
 #define NANOVG_GL2
 #include "RPJ.hpp"
 #include "nanovg_gl.h"
-#ifdef ARCH_WIN
-#include "../dep/include/libprojectM/Windows/projectM.h"
-#endif
-#ifdef ARCH_LIN
-#include "../dep/include/libprojectM/Linux/projectM.h"
-#endif
-#ifdef ARCH_MAC
-#include "../dep/include/libprojectM/Mac/projectM.h"
-#endif
+#include "../dep/include/libprojectM/projectM.h"
 #include "Renderer.hpp"
 #include "ctrl/RPJKnobs.hpp"
 #include "ctrl/RPJButtons.hpp"

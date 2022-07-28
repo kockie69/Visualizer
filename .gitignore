@@ -33,4 +33,5 @@
 
 /dist
 .vscode/
+/dep
 
