@@ -33,6 +33,9 @@ jobs:
               name: Windows
               arch: win
               compiler: gcc
+              install-dependencies: |
+                git clone https://github.com/nigels-com/glew.git glew
+                make install
     steps:
       - uses: actions/checkout@v2
         with:
