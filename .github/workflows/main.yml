@@ -36,6 +36,7 @@ jobs:
               install-dependencies: |
                 git clone https://github.com/nigels-com/glew.git glew
                 cd glew
+                GLEW_DEST=/usr/local/include/GL
                 make install
     steps:
       - uses: actions/checkout@v2
