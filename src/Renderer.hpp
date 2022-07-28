@@ -3,15 +3,8 @@
 #define RENDERER_HPP
 
 #include "GLFW/glfw3.h"
-#ifdef ARCH_WIN
-#include "../dep/include/libprojectM/Windows/projectM.h"
-#endif
-#ifdef ARCH_LIN
-#include "../dep/include/libprojectM/Linux/projectM.h"
-#endif
-#ifdef ARCH_MAC
-#include "../dep/include/libprojectM/Mac/projectM.h"
-#endif
+#include "../dep/include/libprojectM/projectM.h"
+
 #include <list>
 #include <thread>
 #include <mutex>
