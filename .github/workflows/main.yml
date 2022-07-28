@@ -36,8 +36,8 @@ jobs:
               install-dependencies: |
                 git clone https://github.com/nigels-com/glew.git glew
                 cd glew
-                ls /usr
-                ls /mingw64
+                ls /usr/share
+                ls /mingw64/share
                 export GLEW_DEST=/usr
                 make install
     steps:
