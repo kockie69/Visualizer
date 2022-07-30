@@ -55,7 +55,7 @@ $(projectm):
 	cd src/dep/projectm && git fetch --all --tags
 	cd src/dep/projectm && mkdir -p build
 	cd src/dep/projectm/build && cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_SDL=OFF -DCMAKE_INSTALL_PREFIX=../../../../dep/ ..
-	sed -i 's/CMAKE_CXX_STANDARD_LIBRARIES:STRING=/CMAKE_CXX_STANDARD_LIBRARIES:STRING=-lpsapi /g' ~/projectm/build/CMakeCache.txt
+	sed -i 's/CMAKE_CXX_STANDARD_LIBRARIES:STRING=/CMAKE_CXX_STANDARD_LIBRARIES:STRING=-lpsapi /g' src/dep/projectm/build/CMakeCache.txt
 	cd src/dep/projectm/build && cmake --build .
 	cd src/dep/projectm/build && cmake --build . --target install
 
