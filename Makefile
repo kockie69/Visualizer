@@ -29,7 +29,7 @@ ifdef ARCH_LIN
 endif
 
 ifdef ARCH_MAC
-	LDFLAGS += ~/Visualizer/dep/lib/libprojectM.4.dylib fopenmp -shared 
+	LDFLAGS += ~/Visualizer/dep/lib/libprojectM.4.dylib -fopenmp -shared 
 endif
 
 # Add .cpp files to the build
@@ -62,7 +62,7 @@ $(projectm):
 	cd .. && git clone https://github.com/projectM-visualizer/projectm.git 
 	cd ../projectm && git fetch --all --tags
 	cd ../projectm && mkdir -p build
-	cd ../projectm/build && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=~/Visualizer/dep ..
+	cd ../projectm/build && cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_SDL=OFF -DCMAKE_INSTALL_PREFIX=~/Visualizer/dep ..
 	cd ../projectm/build && cmake --build .
 	cd ../projectm/build && cmake --build . --target install
 
