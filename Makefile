@@ -29,7 +29,7 @@ ifdef ARCH_LIN
 endif
 
 ifdef ARCH_MAC
-	LDFLAGS += ~/Visualizer/dep/lib/libprojectM.4.dylib -fopenmp -shared 
+	LDFLAGS += ~/Visualizer/dep/lib/libprojectM.4.dylib -shared 
 endif
 
 # Add .cpp files to the build
