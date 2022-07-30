@@ -40,7 +40,7 @@ SOURCES += $(wildcard src/*.cpp)
 # The compiled plugin and "plugin.json" are automatically added.
 DISTRIBUTABLES += $(wildcard LICENSE*) res 
 
-projectm := ./dep/projectm/lib/libprojectM.a
+projectm := ./dep/lib/libprojectM.a
 
 # Build the static library into your plugin.dll/dylib/so
 OBJECTS += $(projectm)
