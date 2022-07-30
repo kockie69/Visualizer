@@ -23,23 +23,17 @@ jobs:
               install-dependencies: |
                 sudo apt-get update
                 sudo apt-get install libglu1-mesa-dev 
-            - os: macos-latest
-              name: Mac
-              arch: mac
-              compiler: cc
-              install-dependencies: |
-                brew install mesa
-            - os: windows-latest
-              name: Windows
-              arch: win
-              compiler: gcc
-              install-dependencies: |
-                git clone https://github.com/nigels-com/glew.git glew
-                cd glew
-                ls /usr/share
-                ls /mingw64/share
-                export GLEW_DEST=/usr
-                make install
+            #- os: macos-latest
+            #  name: Mac
+            #  arch: mac
+            #  compiler: cc
+            #  install-dependencies: |
+            #    brew install mesa
+            #- os: windows-latest
+            #  name: Windows
+            #  arch: win
+            #  compiler: gcc
+            #  install-dependencies: |
     steps:
       - uses: actions/checkout@v2
         with:
