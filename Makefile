@@ -55,7 +55,7 @@ $(projectm):
 	cd src/dep && git clone https://github.com/projectM-visualizer/projectm.git 
 	cd src/dep/projectm && git fetch --all --tags
 	cd src/dep/projectm && mkdir -p build
-	cd src/dep/projectm/build && cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_SDL=OFF -DCMAKE_INSTALL_PREFIX=../../../../dep/ ..
+	cd src/dep/projectm/build && cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_SDL=OFF -DCMAKE_INSTALL_PREFIX=../../../../dep/ ..
 	sh update_cache.sh "$(ARCH_WIN)"
 	cd src/dep/projectm/build && cmake --build .
 	cd src/dep/projectm/build && cmake --build . --target install
