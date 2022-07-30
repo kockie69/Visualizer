@@ -21,15 +21,18 @@ CXXFLAGS +=
 # Static libraries are fine, but they should be added to this plugin's build system.
 
 ifdef ARCH_WIN
-	LDFLAGS += -lopengl32 -fopenmp -shared 
+	LDFLAGS += -lopengl32 -fopenmp -shared
+	projectm := ./dep/lib/liblibprojectM.a
 endif
 
 ifdef ARCH_LIN
-	LDFLAGS += -fopenmp -shared 
+	LDFLAGS += -fopenmp -shared
+	projectm := ./dep/lib/libprojectM.a
 endif
 
 ifdef ARCH_MAC
 #	LDFLAGS += src/dep/projectm/lib/libprojectM.4.dylib -shared
+	projectm := ./dep/lib/libprojectM.a
 endif
 
 
@@ -39,8 +42,6 @@ SOURCES += $(wildcard src/*.cpp)
 # Add files to the ZIP package when running `make dist`
 # The compiled plugin and "plugin.json" are automatically added.
 DISTRIBUTABLES += $(wildcard LICENSE*) res 
-
-projectm := ./dep/lib/libprojectM.a
 
 # Build the static library into your plugin.dll/dylib/so
 OBJECTS += $(projectm)
@@ -55,7 +56,7 @@ $(projectm):
 	cd src/dep/projectm && git fetch --all --tags
 	cd src/dep/projectm && mkdir -p build
 	cd src/dep/projectm/build && cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_SDL=OFF -DCMAKE_INSTALL_PREFIX=../../../../dep/ ..
-	sed -i '' -e 's/CMAKE_CXX_STANDARD_LIBRARIES:STRING=/CMAKE_CXX_STANDARD_LIBRARIES:STRING=-lpsapi /g' src/dep/projectm/build/CMakeCache.txt
+	sh update_cache.sh "$(ARCH_WIN)"
 	cd src/dep/projectm/build && cmake --build .
 	cd src/dep/projectm/build && cmake --build . --target install
 
