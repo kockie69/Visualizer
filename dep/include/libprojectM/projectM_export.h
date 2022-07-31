@@ -8,16 +8,25 @@
 #else
 #  ifndef PROJECTM_EXPORT
 #    ifdef projectM_main_EXPORTS
+        
+#       ifdef ARCH_WIN
+#               define PROJECTM_EXPORT __declspec(dllexport)
+#       else        
         /* We are building this library */
-#      define PROJECTM_EXPORT __declspec(dllexport)
+#               define PROJECTM_EXPORT __attribute__((visibility("default")))
+#       endif
 #    else
+#       ifdef ARCH_WIN
+#               define PROJECTM_EXPORT __declspec(dllimport)
+#       else
         /* We are using this library */
-#      define PROJECTM_EXPORT __declspec(dllimport)
+#               define PROJECTM_EXPORT __attribute__((visibility("default")))
+#       endif
 #    endif
 #  endif
 
 #  ifndef PROJECTM_NO_EXPORT
-#    define PROJECTM_NO_EXPORT 
+#    define PROJECTM_NO_EXPORT __attribute__((visibility("hidden")))
 #  endif
 #endif
 
