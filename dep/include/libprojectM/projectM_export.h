@@ -9,15 +9,15 @@
 #  ifndef PROJECTM_EXPORT
 #    ifdef projectM_main_EXPORTS
         /* We are building this library */
-#      define PROJECTM_EXPORT __attribute__((visibility("default")))
+#      define PROJECTM_EXPORT __declspec(dllexport)
 #    else
         /* We are using this library */
-#      define PROJECTM_EXPORT __attribute__((visibility("default")))
+#      define PROJECTM_EXPORT __declspec(dllimport)
 #    endif
 #  endif
 
 #  ifndef PROJECTM_NO_EXPORT
-#    define PROJECTM_NO_EXPORT __attribute__((visibility("hidden")))
+#    define PROJECTM_NO_EXPORT 
 #  endif
 #endif
 
