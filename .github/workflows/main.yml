@@ -36,7 +36,8 @@ jobs:
               install-dependencies: |
     steps:
       - name: Install Prerequisites
-        run: cmake -P ${{ github.workspace }}/.github/workflows/install_prerequisites.cmake
+        run: |
+          cmake -P ${{ github.workspace }}/.github/workflows/install_prerequisites.cmake
       - uses: actions/checkout@v2
         with:
           submodules: recursive
