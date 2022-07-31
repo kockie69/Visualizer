@@ -50,10 +50,7 @@ DEPS += $(projectm)
 
 $(projectm):
 	# Out-of-source build dir
-	cd src && mkdir -p dep
-	cd src/dep && rm -fr projectm
-	cd src/dep && git clone https://github.com/projectM-visualizer/projectm.git 
-	cd src/dep/projectm && git fetch --all --tags
+
 	cd src/dep/projectm && git checkout a6293f63c8415cc757f89b82dcc99738d0c83027
 	cd src/dep/projectm && mkdir -p build
 	cd src/dep/projectm/build && cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_SDL=OFF -DCMAKE_INSTALL_PREFIX=../../../../dep/ ..
