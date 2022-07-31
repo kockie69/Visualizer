@@ -35,12 +35,6 @@ jobs:
               compiler: gcc
               install-dependencies: |
     steps:
-      - if: runner.os == 'Windows'
-        name: add custom pacman repository
-        uses: myci-actions/add-pacman-repo@4
-        with:
-          url: https://dl.bintray.com/igagis/msys2/mingw64
-          name: mingw-w64-x86_64-glew
       - uses: actions/checkout@v2
         with:
           submodules: recursive
