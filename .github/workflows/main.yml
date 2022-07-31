@@ -36,7 +36,8 @@ jobs:
               install-dependencies: |
                 pacman -Su mingw-w64-x86_64-glew
     steps:
-      - name: add custom pacman repository
+      - if: runner.os == 'Windows'
+        name: add custom pacman repository
         uses: myci-actions/add-pacman-repo@4
         with:
           url: https://dl.bintray.com/igagis/msys2/mingw64
