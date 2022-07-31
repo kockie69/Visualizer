@@ -29,17 +29,12 @@ jobs:
               compiler: cc
               install-dependencies: |
                 brew install mesa
-            - os: windows-latest
-              name: Windows
-              arch: win
-              compiler: gcc
-              install-dependencies: |
+            #- os: windows-latest
+            #  name: Windows
+            #  arch: win
+            #  compiler: gcc
+            #  install-dependencies: |
     steps:
-      - name: Install Prerequisites
-        run: |
-          pwd
-
-          cmake -P /home/runner/work/Visualizer/.github/workflows/install_prerequisites.cmake
       - uses: actions/checkout@v2
         with:
           submodules: recursive
