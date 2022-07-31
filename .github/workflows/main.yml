@@ -34,8 +34,8 @@ jobs:
               arch: win
               compiler: gcc
               install-dependencies: |
-              set(VCPKG "$ENV{VCPKG_INSTALLATION_ROOT}/vcpkg.exe")
-              execute_process(COMMAND "${VCPKG}" --triplet=x64-windows install glew
+                set(VCPKG "$ENV{VCPKG_INSTALLATION_ROOT}/vcpkg.exe")
+                execute_process(COMMAND "${VCPKG}" --triplet=x64-windows install glew
     steps:
       - uses: actions/checkout@v2
         with:
