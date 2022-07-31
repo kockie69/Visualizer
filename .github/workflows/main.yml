@@ -34,7 +34,6 @@ jobs:
               arch: win
               compiler: gcc
               install-dependencies: |
-                pacman -Su mingw-w64-x86_64-glew
     steps:
       - if: runner.os == 'Windows'
         name: add custom pacman repository
