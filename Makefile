@@ -51,7 +51,7 @@ DEPS += $(projectm)
 $(projectm):
 	# Out-of-source build dir
 	cd dep && git submodule update --init
-	cd dep/projectm && git checkout a6293f63c8415cc757f89b82dcc99738d0c83027
+	sh checkout_older.sh "$(ARCH_WIN)"
 	cd dep/projectm && mkdir -p build
 	cd dep/projectm/build && cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_SDL="OFF" -DCMAKE_INSTALL_PREFIX=../../../dep/ ..
 	sh update_cache.sh "$(ARCH_WIN)"
