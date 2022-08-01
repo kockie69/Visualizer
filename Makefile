@@ -50,14 +50,13 @@ DEPS += $(projectm)
 
 $(projectm):
 	# Out-of-source build dir
-	#cd dep/projectm && git checkout a6293f63c8415cc757f89b82dcc99738d0c83027
+	cd dep && git submodule update --init
+	cd dep/projectm && git checkout a6293f63c8415cc757f89b82dcc99738d0c83027
 	cd dep/projectm && mkdir -p build
-	cd dep/projectm/build && cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_SDL=OFF -DCMAKE_INSTALL_PREFIX=../../../../dep/ ..
+	cd dep/projectm/build && cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_SDL="OFF" -DCMAKE_INSTALL_PREFIX=../../../dep/ ..
 	sh update_cache.sh "$(ARCH_WIN)"
 	cd dep/projectm/build && cmake --build .
 	cd dep/projectm/build && cmake --build . --target install
 
-cleandep: 
-	cd dep/projectm && rm -fr build
 # Include the Rack plugin Makefile framework
 include $(RACK_DIR)/plugin.mk
