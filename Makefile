@@ -23,6 +23,7 @@ CXXFLAGS +=
 ifdef ARCH_WIN
 	LDFLAGS += -lopengl32 -fopenmp -shared
 	projectm := dep/projectm/build/src/libprojectM/liblibprojectM.a
+	glew := dep/lib/libglew32.a
 endif
 
 ifdef ARCH_LIN
@@ -47,6 +48,19 @@ DISTRIBUTABLES += $(wildcard LICENSE*) res
 OBJECTS += $(projectm)
 # Trigger the static library to be built when running `make dep`
 DEPS += $(projectm)
+DEPS += $(glew)
+
+glew-2.1.0:
+	cd dep && $(WGET) "https://github.com/nigels-com/glew/releases/download/glew-2.1.0/glew-2.1.0.tgz"
+	cd dep && $(SHA256) glew-2.1.0.tgz 04de91e7e6763039bc11940095cd9c7f880baba82196a7765f727ac05a993c95
+	cd dep && $(UNTAR) glew-2.1.0.tgz
+	cd dep && rm glew-2.1.0.tgz
+
+$(glew): | glew-2.1.0
+	cd dep/glew-2.1.0 && mkdir -p build
+	cd dep/glew-2.1.0/build && $(CMAKE) ./cmake
+	cd dep && $(MAKE) -C glew-2.1.0/build
+	cd dep && $(MAKE) -C glew-2.1.0/build install
 
 $(projectm):
 	# Out-of-source build dir
