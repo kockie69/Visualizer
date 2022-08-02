@@ -62,7 +62,7 @@ $(glew): | glew-2.1.0
 	cd dep && $(MAKE) -C glew-2.1.0/build
 	cd dep && $(MAKE) -C glew-2.1.0/build install
 
-$(projectm):
+$(projectm): | $(glew)
 	# Out-of-source build dir
 	cd dep && git submodule update --init
 	sh checkout_older.sh "$(ARCH_WIN)"
