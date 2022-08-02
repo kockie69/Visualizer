@@ -29,11 +29,11 @@ jobs:
               compiler: cc
               install-dependencies: |
                 brew install mesa
-            #- os: windows-latest
-            #  name: Windows
-            #  arch: win
-            #  compiler: gcc
-            #  install-dependencies: |
+            - os: windows-latest
+              name: Windows
+              arch: win
+              compiler: gcc
+              install-dependencies: |
     steps:
       - uses: actions/checkout@v2
         with:
