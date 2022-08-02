@@ -53,7 +53,7 @@ DEPS += $(glew)
 glew-2.1.0:
 	cd dep && wget https://github.com/nigels-com/glew/releases/download/glew-2.1.0/glew-2.1.0.tgz 2>/dev/null || curl -LO  https://github.com/nigels-com/glew/releases/download/glew-2.1.0/glew-2.1.0.tgz
 	cd dep && $(SHA256) glew-2.1.0.tgz 04de91e7e6763039bc11940095cd9c7f880baba82196a7765f727ac05a993c95
-	cd dep && $(TAR) glew-2.1.0.tgz
+	cd dep && $(UNTAR) glew-2.1.0.tgz
 	cd dep && rm glew-2.1.0.tgz
 
 $(glew): | glew-2.1.0
