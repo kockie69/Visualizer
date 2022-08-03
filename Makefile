@@ -68,7 +68,7 @@ $(projectm): | $(glew)
 	cd dep && git submodule update --init
 	sh checkout_older.sh "$(ARCH_WIN)"
 	cd dep/projectm && mkdir -p build
-	cd dep/projectm/build && cmake -DENABLE_OPENMP="OFF" -DCMAKE_BUILD_TYPE=Release -DENABLE_THREADING="OFF" -DENABLE_SDL="OFF" -DCMAKE_INSTALL_PREFIX=../../../dep/ ..
+	cd dep/projectm/build && cmake -DENABLE_OPENMP="OFF" -DCMAKE_BUILD_TYPE="Release" -DENABLE_THREADING="OFF" -DENABLE_SDL="OFF" -DCMAKE_INSTALL_PREFIX=../../../dep/ ..
 	sh update_cache.sh "$(ARCH_WIN)"
 	cd dep/projectm/build && cmake --build .
 	cd dep/projectm/build && cmake --build . --target install
