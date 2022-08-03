@@ -28,12 +28,10 @@ ifdef ARCH_WIN
 endif
 
 ifdef ARCH_LIN
-	LDFLAGS += -fopenmp -shared
 	projectm := dep/projectm/build/src/libprojectM/libprojectM.a
 endif
 
 ifdef ARCH_MAC
-#	LDFLAGS += src/dep/projectm/lib/libprojectM.4.dylib -shared
 	projectm := dep/projectm/build/src/libprojectM/libprojectM.a
 endif
 
