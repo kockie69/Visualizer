@@ -21,7 +21,8 @@ CXXFLAGS +=
 # Static libraries are fine, but they should be added to this plugin's build system.
 
 ifdef ARCH_WIN
-	LDFLAGS += -lopengl32 -fopenmp -shared
+	LDFLAGS += dep/lib/libglew32.a 
+	LDFLAGS += -lopengl32
 	projectm := dep/projectm/build/src/libprojectM/liblibprojectM.a
 	glew := dep/lib/libglew32.a
 endif
@@ -67,7 +68,7 @@ $(projectm): | $(glew)
 	cd dep && git submodule update --init
 	sh checkout_older.sh "$(ARCH_WIN)"
 	cd dep/projectm && mkdir -p build
-	cd dep/projectm/build && cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_SDL="OFF" -DCMAKE_INSTALL_PREFIX=../../../dep/ ..
+	cd dep/projectm/build && cmake -DENABLE_OPENMP="OFF" -DCMAKE_BUILD_TYPE=Release -DENABLE_THREADING="OFF" -DENABLE_SDL="OFF" -DCMAKE_INSTALL_PREFIX=../../../dep/ ..
 	sh update_cache.sh "$(ARCH_WIN)"
 	cd dep/projectm/build && cmake --build .
 	cd dep/projectm/build && cmake --build . --target install
