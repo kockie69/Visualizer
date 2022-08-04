@@ -50,9 +50,6 @@ jobs:
       - name: Build
         run: cmake -P ${{ github.workspace }}/.github/workflows/build.cmake
 
-      - name: Package
-        run: cmake -P ${{ github.workspace }}/.github/workflows/package.cmake
-
       - name: Get Rack-SDK
         run: |
           pushd $HOME
@@ -69,15 +66,8 @@ jobs:
           CC: ${{ matrix.compiler }}
         run: |
           ${{ matrix.install-dependencies }}
-          export RACK_DIR=$HOME/Rack-SDK
-          ls
-          ls dep
-          ls dep/projectm
           ls dep/projectm/build
-          ls dep/projectm/build/src
-          ls dep/projectm/build/src/libprojectM
-          ls dep/projectm/build/src/libprojectM/include
-          ls dep/projectm/build/src/libprojectM/include/libprojectM
+          export RACK_DIR=$HOME/Rack-SDK
           make -f Makefile_git dist
       - name: Upload artifact
         uses: actions/upload-artifact@v2
