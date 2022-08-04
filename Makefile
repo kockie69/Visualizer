@@ -5,6 +5,8 @@ include $(RACK_DIR)/arch.mk
 
 # FLAGS will be passed to both the C and C++ compiler
 
+
+
 ifdef ARCH_WIN
 	FLAGS += -D_USE_MATH_DEFINES -DprojectM_main_EXPORTS 
 endif
@@ -13,7 +15,7 @@ endif
 #	LDFLAGS += ./dep/lib/Linux/libprojectM.so
 #endif
 
-FLAGS += 
+FLAGS += -I./dep/projectm/build/src/libprojectM/include/libprojectM
 CFLAGS += /mingw64/include/
 CXXFLAGS += 
 

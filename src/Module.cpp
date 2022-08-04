@@ -1,7 +1,7 @@
 #define NANOVG_GL2
 #include "RPJ.hpp"
 #include "nanovg_gl.h"
-#include "../dep/include/libprojectM/projectM.h"
+#include "../dep/projectm/src/libprojectM/projectM.h"
 #include "Renderer.hpp"
 #include "ctrl/RPJKnobs.hpp"
 #include "ctrl/RPJButtons.hpp"
