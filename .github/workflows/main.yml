@@ -3,6 +3,7 @@ on: [workflow_dispatch,push,pull_request]
 
 env:
   rack-sdk-version: 2.1.2
+  BUILD_TYPE: Release
 
 defaults:
   run:
@@ -29,16 +30,28 @@ jobs:
               compiler: cc
               install-dependencies: |
                 brew install mesa
-            #- os: windows-latest
-            #  name: Windows
-            #  arch: win
-            #  compiler: gcc
-            #  install-dependencies: |
+            - os: windows-latest
+              name: Windows
+              arch: win
+              compiler: gcc
+              install-dependencies: |
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
           submodules: recursive
+      - name: Install Prerequisites
+        run: cmake -P ${{ github.workspace }}/.github/workflows/install_prerequisites.cmake
+
+      - name: Configure CMake
+        run: cmake -P ${{ github.workspace }}/.github/workflows/configure.cmake
+
+      - name: Build
+        run: cmake -P ${{ github.workspace }}/.github/workflows/build.cmake
+
+      - name: Package
+        run: cmake -P ${{ github.workspace }}/.github/workflows/package.cmake
+
       - name: Get Rack-SDK
         run: |
           pushd $HOME
@@ -55,8 +68,7 @@ jobs:
         run: |
           ${{ matrix.install-dependencies }}
           export RACK_DIR=$HOME/Rack-SDK
-          make dep
-          make dist
+          make -f Makefile_git dist
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
