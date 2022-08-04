@@ -6,6 +6,9 @@ if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Windows")
             -B "$ENV{GITHUB_WORKSPACE}/dep/projectm/cmake-build"
             -DTARGET_TRIPLET=x64-windows
             -DCMAKE_VERBOSE_MAKEFILE=YES
+            -DENABLE_OPENMP=OFF
+            -DENABLE_THREADING=OFF 
+            -DENABLE_SDL=OFF
             "-DCMAKE_INSTALL_PREFIX=$ENV{GITHUB_WORKSPACE}/dep/projectm/cmake-install"
             "-DCMAKE_TOOLCHAIN_FILE=$ENV{VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake"
 
