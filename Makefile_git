@@ -13,7 +13,7 @@ endif
 #	LDFLAGS += ./dep/lib/Linux/libprojectM.so
 #endif
 
-FLAGS += 
+FLAGS += -I./dep/projectm/build/src/libprojectM/include/libprojectM
 CFLAGS += /mingw64/include/
 CXXFLAGS += 
 
