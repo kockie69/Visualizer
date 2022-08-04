@@ -1,17 +1,17 @@
 if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Windows")
-    execute_process(COMMAND "${CMAKE_COMMAND}" --build "$ENV{GITHUB_WORKSPACE}/cmake-build"
+    execute_process(COMMAND "${CMAKE_COMMAND}" --build "$ENV{GITHUB_WORKSPACE}/dep/projectm/cmake-build"
             --config $ENV{BUILD_TYPE}
 
             RESULT_VARIABLE result
             )
 elseif("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
-    execute_process(COMMAND "${CMAKE_COMMAND}" --build "$ENV{GITHUB_WORKSPACE}/cmake-build"
+    execute_process(COMMAND "${CMAKE_COMMAND}" --build "$ENV{GITHUB_WORKSPACE}/dep/projectm/cmake-build"
             -- -j 3
 
             RESULT_VARIABLE result
             )
 elseif("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Darwin")
-    execute_process(COMMAND "${CMAKE_COMMAND}" --build "$ENV{GITHUB_WORKSPACE}/cmake-build"
+    execute_process(COMMAND "${CMAKE_COMMAND}" --build "$ENV{GITHUB_WORKSPACE}/dep/projectm/cmake-build"
             --config $ENV{BUILD_TYPE}
             -- -j 5
 
