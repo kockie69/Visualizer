@@ -5,9 +5,9 @@ env:
   rack-sdk-version: 2.1.2
   BUILD_TYPE: Release
 
-#defaults:
-#  run:
-    #shell: bash
+defaults:
+  run:
+    shell: bash
 
 jobs:
   build:
