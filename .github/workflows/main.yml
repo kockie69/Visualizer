@@ -72,7 +72,6 @@ jobs:
           export RACK_DIR=$HOME/Rack-SDK
           make -f Makefile_git dist
       - name: Upload artifact
-        shell: bash
         uses: actions/upload-artifact@v2
         with:
           path: dist
@@ -80,7 +79,6 @@ jobs:
           
   publish:
     name: Publish plugin
-    shell: bash
     # only create a release if a tag was created that is called e.g. v1.2.3
     # see also https://vcvrack.com/manual/Manifest#version
     if: startsWith(github.ref, 'refs/tags/v')
