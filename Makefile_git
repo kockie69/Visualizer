@@ -22,7 +22,7 @@ CXXFLAGS +=
 
 ifdef ARCH_WIN
 	FLAGS +=
-	LDFLAGS += -lopengl32 dep/projectm/cmake-build/src/libprojectM/Release/libprojectM.lib
+	LDFLAGS += -lopengl32 dep/projectm/cmake-build/src/libprojectM/Release/projectM.lib
 endif
 
 ifdef ARCH_LIN
