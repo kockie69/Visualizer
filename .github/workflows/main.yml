@@ -67,6 +67,11 @@ jobs:
         run: |
           ${{ matrix.install-dependencies }}
           export RACK_DIR=$HOME/Rack-SDK
+          ls dep
+          ls dep/projectm
+          ls dep/projectm/build
+          ls dep/projectm/build/src
+          ls dep/projectm/build/src/libprojectM
           make -f Makefile_git dist
       - name: Upload artifact
         uses: actions/upload-artifact@v2
