@@ -27,7 +27,7 @@ ifdef ARCH_WIN
 endif
 
 ifdef ARCH_LIN
-	LDFLAGS += -lopengl32 dep/projectm/cmake-build/src/libprojectM/Release/libprojectM.so
+	LDFLAGS += -lopengl32 dep/projectm/cmake-build/src/libprojectM/Release/libprojectM.so.4
 endif
 
 ifdef ARCH_MAC
