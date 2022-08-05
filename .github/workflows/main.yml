@@ -67,7 +67,10 @@ jobs:
         run: |
           ${{ matrix.install-dependencies }}
           export RACK_DIR=$HOME/Rack-SDK
-          ls dep/projectm/cmake-build/src/libprojectM/Release/
+          ls dep/projectm
+          ls dep/projectm/cmake-build
+          ls dep/projectm/cmake-build/src
+          ls dep/projectm/cmake-build/src/libprojectM
           make -f Makefile_git dep
           make -f Makefile_git dist
       - name: Upload artifact
