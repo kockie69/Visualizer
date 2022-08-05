@@ -24,7 +24,7 @@ CXXFLAGS +=
 
 ifdef ARCH_WIN
 	#LDFLAGS += dep/lib/libglew32.a 
-	LDFLAGS += -lopengl32
+	LDFLAGS += -lopengl32 dep/lib/libglew32.a
 	projectm := dep/projectm/build/src/libprojectM/liblibprojectM.a
 	glew := dep/lib/libglew32.a
 endif
