@@ -13,7 +13,7 @@ endif
 #	LDFLAGS += ./dep/lib/Linux/libprojectM.so
 #endif
 
-FLAGS += -I dep/projectm/build/src/libprojectM/include/libprojectM
+FLAGS += 
 CFLAGS += /mingw64/include/
 CXXFLAGS += 
 
@@ -21,8 +21,8 @@ CXXFLAGS +=
 # Static libraries are fine, but they should be added to this plugin's build system.
 
 ifdef ARCH_WIN
-	FLAGS += -I dep/projectm/cmake-build/src/libprojectM/include/libprojectM
-	LDFLAGS += -lopengl32
+	FLAGS +=
+	LDFLAGS += -lopengl32 -L dep/projectm/build/src/libprojectM -llibprojectM
 endif
 
 ifdef ARCH_LIN
