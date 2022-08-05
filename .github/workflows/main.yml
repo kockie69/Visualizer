@@ -69,9 +69,9 @@ jobs:
           export RACK_DIR=$HOME/Rack-SDK
           ls dep
           ls dep/projectm
-          ls dep/projectm/build
-          ls dep/projectm/build/src
-          ls dep/projectm/build/src/libprojectM
+          ls dep/projectm/cmake-build
+          ls dep/projectm/cmake-build/src
+          ls dep/projectm/cmake-build/src/libprojectM
           make -f Makefile_git dist
       - name: Upload artifact
         uses: actions/upload-artifact@v2
