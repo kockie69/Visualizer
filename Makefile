@@ -23,7 +23,7 @@ CXXFLAGS +=
 # Static libraries are fine, but they should be added to this plugin's build system.
 
 ifdef ARCH_WIN
-	LDFLAGS += dep/lib/libglew32.a 
+	#LDFLAGS += dep/lib/libglew32.a 
 	LDFLAGS += -lopengl32
 	projectm := dep/projectm/build/src/libprojectM/liblibprojectM.a
 	glew := dep/lib/libglew32.a
