@@ -22,7 +22,7 @@ CXXFLAGS +=
 
 ifdef ARCH_WIN
 	FLAGS += 
-	LDFLAGS += -lopengl32 dep/projectm/cmake-build/src/libprojectM/Release/libprojectM.lib dep/lib/libglew32.lib 
+	LDFLAGS += -lopengl32 dep/projectm/cmake-build/src/libprojectM/Release/libprojectM.lib dep/lib/libglew32.dll.a
 	glew := dep/lib/libglew32.a
 endif
 
