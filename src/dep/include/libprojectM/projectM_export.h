@@ -28,7 +28,7 @@
 #       ifdef ARCH_WIN
 #               define PROJECTM_NO_EXPORT 
 #       else
-#              define PROJECTM_EXPORT __attribute__((visibility("hidden")))
+#              define PROJECTM_NO_EXPORT __attribute__((visibility("hidden")))
 #       endif             
 #  endif
 #endif
