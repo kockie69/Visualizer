@@ -23,6 +23,7 @@ elseif("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
             -B "$ENV{GITHUB_WORKSPACE}/dep/projectm/cmake-build"
             -DCMAKE_VERBOSE_MAKEFILE=YES
             -DENABLE_OPENMP=OFF
+            -DENABLE_SDL=OFF
             -DCMAKE_BUILD_TYPE=$ENV{BUILD_TYPE}
             "-DCMAKE_INSTALL_PREFIX=$ENV{GITHUB_WORKSPACE}/dep/projectm/cmake-install"
 
@@ -35,6 +36,7 @@ elseif("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Darwin")
             -B "$ENV{GITHUB_WORKSPACE}/dep/projectm/cmake-build"
             -DCMAKE_VERBOSE_MAKEFILE=YES
             -DENABLE_OPENMP=OFF
+            -DENABLE_SDL=OFF
             "-DCMAKE_INSTALL_PREFIX=$ENV{GITHUB_WORKSPACE}/dep/projectm/cmake-install"
 
             RESULT_VARIABLE result
