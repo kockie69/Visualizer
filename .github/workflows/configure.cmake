@@ -10,6 +10,7 @@ if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Windows")
             -DENABLE_THREADING=OFF 
             -DENABLE_SDL=OFF
             -DENABLE_SHARED_LIB=FALSE
+            -DENABLE_OPENMP=OFF
             "-DCMAKE_INSTALL_PREFIX=$ENV{GITHUB_WORKSPACE}/dep/projectm/cmake-install"
             "-DCMAKE_TOOLCHAIN_FILE=$ENV{VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake"
 
@@ -21,6 +22,7 @@ elseif("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
             -S "$ENV{GITHUB_WORKSPACE}/dep/projectm"
             -B "$ENV{GITHUB_WORKSPACE}/dep/projectm/cmake-build"
             -DCMAKE_VERBOSE_MAKEFILE=YES
+            -DENABLE_OPENMP=OFF
             -DCMAKE_BUILD_TYPE=$ENV{BUILD_TYPE}
             "-DCMAKE_INSTALL_PREFIX=$ENV{GITHUB_WORKSPACE}/dep/projectm/cmake-install"
 
@@ -32,6 +34,7 @@ elseif("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Darwin")
             -S "$ENV{GITHUB_WORKSPACE}/dep/projectm"
             -B "$ENV{GITHUB_WORKSPACE}/dep/projectm/cmake-build"
             -DCMAKE_VERBOSE_MAKEFILE=YES
+            -DENABLE_OPENMP=OFF
             "-DCMAKE_INSTALL_PREFIX=$ENV{GITHUB_WORKSPACE}/dep/projectm/cmake-install"
 
             RESULT_VARIABLE result
