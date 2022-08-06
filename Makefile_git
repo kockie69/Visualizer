@@ -22,8 +22,7 @@ CXXFLAGS +=
 
 ifdef ARCH_WIN
 	FLAGS += 
-	LDFLAGS += -Wl,--exclude-all-symbols -lopengl32 dep/projectm/cmake-build/src/libprojectM/Release/libprojectM.lib dep/lib/libglew32.dll.a
-	glew := dep/lib/libglew32.a
+	LDFLAGS += -Wl,--exclude-all-symbols -lopengl32 dep/projectm/cmake-build/src/libprojectM/Release/libprojectM.lib
 endif
 
 ifdef ARCH_LIN
@@ -46,18 +45,6 @@ DISTRIBUTABLES += $(wildcard LICENSE*) res
 OBJECTS += 
 # Trigger the static library to be built when running `make dep`
 DEPS += 
-DEPS += $(glew)
 
-glew-2.1.0:
-	cd dep && wget https://github.com/nigels-com/glew/releases/download/glew-2.1.0/glew-2.1.0.tgz 2>/dev/null || curl -LO  https://github.com/nigels-com/glew/releases/download/glew-2.1.0/glew-2.1.0.tgz
-	cd dep && $(SHA256) glew-2.1.0.tgz 04de91e7e6763039bc11940095cd9c7f880baba82196a7765f727ac05a993c95
-	cd dep && $(UNTAR) glew-2.1.0.tgz
-	cd dep && rm glew-2.1.0.tgz
-
-$(glew): | glew-2.1.0
-	cd dep/glew-2.1.0 && mkdir -p build
-	cd dep/glew-2.1.0/build && $(CMAKE) ./cmake
-	cd dep && $(MAKE) -C glew-2.1.0/build
-	cd dep && $(MAKE) -C glew-2.1.0/build install
 # Include the Rack plugin Makefile framework
 include $(RACK_DIR)/plugin.mk
