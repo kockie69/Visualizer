@@ -16,7 +16,11 @@
 #       endif
 #    else
         /* We are using this library */
-#       define PROJECTM_EXPORT __attribute__((visibility("default")))
+#       ifdef ARCH_WIN
+#               define PROJECTM_EXPORT declspec(dllimport)
+#       else
+#              define PROJECTM_EXPORT __attribute__((visibility("default")))
+#       endif 
 #    endif
 #  endif
 
