@@ -4,7 +4,7 @@ if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Windows")
     # On Windows, using vcpkg to install and build is the best practice.
     set(VCPKG "$ENV{VCPKG_INSTALLATION_ROOT}/vcpkg.exe")
     message("$ENV{VCPKG_INSTALLATION_ROOT}")
-    execute_process(COMMAND "${VCPKG}" --triplet=x64-windows install glew
+    execute_process(COMMAND "${VCPKG}" --triplet=x64-mingw-static install glew
 
            RESULT_VARIABLE result
            )
