@@ -10,6 +10,7 @@ if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Windows")
             -DENABLE_THREADING=OFF 
             -DENABLE_SDL=OFF
             -DENABLE_OPENMP=OFF
+            -DENABLE_SHARED_LIB=OFF
             "-DCMAKE_INSTALL_PREFIX=$ENV{GITHUB_WORKSPACE}/dep/projectm/cmake-install"
             "-DCMAKE_TOOLCHAIN_FILE=$ENV{VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake"
 
