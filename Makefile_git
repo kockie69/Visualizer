@@ -22,15 +22,18 @@ CXXFLAGS +=
 
 ifdef ARCH_WIN
 	FLAGS += 
-	LDFLAGS += -lopengl32 dep/projectm/build/src/libprojectM/libprojectM.lib
+	LDFLAGS += -lopengl32 
+	projectm := dep/projectm/build/src/libprojectM/libprojectM.lib
 endif
 
 ifdef ARCH_LIN
-	LDFLAGS += dep/projectm/build/src/libprojectM/libprojectM.a
+	LDFLAGS += 
+	projectm := dep/projectm/build/src/libprojectM/libprojectM.a
 endif
 
 ifdef ARCH_MAC
-	LDFLAGS += dep/projectm/build/src/libprojectM/libprojectM.a
+	LDFLAGS += 
+	projectm := dep/projectm/build/src/libprojectM/libprojectM.a
 endif
 
 
