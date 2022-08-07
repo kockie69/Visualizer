@@ -68,7 +68,6 @@ jobs:
           ${{ matrix.install-dependencies }}
           export RACK_DIR=$HOME/Rack-SDK
           find dep/projectm -depth -print
-          ls -l /home/runner/work/Visualizer/Visualizer/dep/projectm/cmake-install
           make -f Makefile_git dist
       - name: Upload artifact
         uses: actions/upload-artifact@v2
