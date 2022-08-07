@@ -41,6 +41,8 @@ jobs:
         with:
           fetch-depth: 0
           submodules: recursive
+      - name: Install Prerequisites
+        run: cmake -P .github/workflows/install_prerequisites.cmake
       - name: Get Rack-SDK
         run: |
           pushd $HOME

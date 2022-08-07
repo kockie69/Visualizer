@@ -22,7 +22,7 @@ CXXFLAGS +=
 
 ifdef ARCH_WIN
 	FLAGS += 
-	LDFLAGS += -lopengl32 dep/projectm/build/src/libprojectM/Release/libprojectM.lib
+	LDFLAGS += -lopengl32 dep/projectm/build/src/libprojectM/libprojectM.lib
 endif
 
 ifdef ARCH_LIN
@@ -42,7 +42,11 @@ SOURCES += $(wildcard src/*.cpp)
 DISTRIBUTABLES += $(wildcard LICENSE*) res 
 
 # Build the static library into your plugin.dll/dylib/so
-OBJECTS += 
+OBJECTS += $(projectm)
+# Trigger the static library to be built when running `make dep`
+DEPS += $(projectm)
+DEPS += $(glew)
+
 # Trigger the static library to be built when running `make dep`
 glew-2.1.0:
 	cd dep && wget https://github.com/nigels-com/glew/releases/download/glew-2.1.0/glew-2.1.0.tgz 2>/dev/null || curl -LO  https://github.com/nigels-com/glew/releases/download/glew-2.1.0/glew-2.1.0.tgz
