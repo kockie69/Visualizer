@@ -5,8 +5,6 @@ include $(RACK_DIR)/arch.mk
 
 # FLAGS will be passed to both the C and C++ compiler
 
-
-
 ifdef ARCH_WIN
 	FLAGS += -D_USE_MATH_DEFINES -DprojectM_main_EXPORTS 
 endif
@@ -15,7 +13,7 @@ endif
 #	LDFLAGS += ./dep/lib/Linux/libprojectM.so
 #endif
 
-FLAGS += -I./dep/projectm/build/src/libprojectM/include/libprojectM
+FLAGS += 
 CFLAGS += /mingw64/include/
 CXXFLAGS += 
 
@@ -23,18 +21,19 @@ CXXFLAGS +=
 # Static libraries are fine, but they should be added to this plugin's build system.
 
 ifdef ARCH_WIN
-	#LDFLAGS += dep/lib/libglew32.a 
-	LDFLAGS += -lopengl32 dep/lib/libglew32.a
-	projectm := dep/projectm/build/src/libprojectM/liblibprojectM.a
+	LDFLAGS += -lopengl32
+	projectm := dep/lib/liblibprojectM.a
 	glew := dep/lib/libglew32.a
 endif
 
 ifdef ARCH_LIN
 	projectm := dep/projectm/build/src/libprojectM/libprojectM.a
+	glew := dep/lib/libglew32.a
 endif
 
 ifdef ARCH_MAC
 	projectm := dep/projectm/build/src/libprojectM/libprojectM.a
+	glew := dep/lib/libglew32.a
 endif
 
 
@@ -68,7 +67,7 @@ $(projectm): | $(glew)
 	cd dep && git submodule update --init
 	sh checkout_older.sh "$(ARCH_WIN)"
 	cd dep/projectm && mkdir -p build
-	cd dep/projectm/build && cmake -DENABLE_OPENMP="OFF" -DCMAKE_BUILD_TYPE="Release" -DENABLE_THREADING="OFF" -DENABLE_SDL="OFF" -DCMAKE_INSTALL_PREFIX=../../../dep/ ..
+	sh build_projectm.sh "$(ARCH_WIN)"	
 	sh update_cache.sh "$(ARCH_WIN)"
 	cd dep/projectm/build && cmake --build .
 	cd dep/projectm/build && cmake --build . --target install
