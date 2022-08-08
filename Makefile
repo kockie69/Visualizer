@@ -65,10 +65,20 @@ $(glew): | glew-2.1.0
 $(projectm): | $(glew)
 	# Out-of-source build dir
 	cd dep && git submodule update --init
-	sh checkout_older.sh "$(ARCH_WIN)"
+	
+ifdef ARCH_WIN
+	cd dep/projectm && git checkout --force a6293f63c8415cc757f89b82dcc99738d0c83027
+endif
+
 	cd dep/projectm && mkdir -p build
-	sh build_projectm.sh "$(ARCH_WIN)"	
-	sh update_cache.sh "$(ARCH_WIN)"
+
+ifdef ARCH_WIN
+	cd dep/projectm/build && cmake -G "Ninja" -DCMAKE_LIBRARY_PATH=dep/lib -DENABLE_OPENMP="OFF" -DCMAKE_BUILD_TYPE=Release -DENABLE_THREADING="OFF" -DENABLE_SDL="OFF" -DCMAKE_INSTALL_PREFIX=../../../dep/ ..
+	sed -i 's/CMAKE_CXX_STANDARD_LIBRARIES:STRING=/CMAKE_CXX_STANDARD_LIBRARIES:STRING=-lpsapi /g' dep/projectm/build/CMakeCache.txt; 
+else
+	cd dep/projectm/build && cmake -DCMAKE_LIBRARY_PATH=dep/lib -DENABLE_OPENMP="OFF" -DCMAKE_BUILD_TYPE=Release -DENABLE_THREADING="OFF" -DENABLE_SDL="OFF" -DCMAKE_INSTALL_PREFIX=../../../dep/ ..
+endif
+	
 	cd dep/projectm/build && cmake --build .
 	cd dep/projectm/build && cmake --build . --target install
 
