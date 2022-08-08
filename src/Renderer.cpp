@@ -2,7 +2,7 @@
 #include "RPJ.hpp"
 #include "Renderer.hpp"
 #include "GLFW/glfw3.h"
-#include "../dep/include/libprojectM/projectM.h"
+#include "dep/include/libprojectM/projectM.h"
 #include "GlfwUtils.hpp"
 #include <thread>
 #include <mutex>
