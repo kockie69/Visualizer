@@ -73,7 +73,7 @@ endif
 	cd dep/projectm && mkdir -p build
 
 ifdef $(ARCH_WIN)	
-	cd dep/projectm/build && cmake -G "Ninja" -DCMAKE_LIBRARY_PATH=dep/lib -DENABLE_OPENMP="OFF" -DCMAKE_BUILD_TYPE=Release -DENABLE_THREADING="OFF" -DENABLE_SDL="OFF" -DCMAKE_INSTALL_PREFIX=../../../dep/ ..
+	cd dep/projectm/build && cmake -G Ninja -DCMAKE_LIBRARY_PATH=dep/lib -DENABLE_OPENMP=OFF -DCMAKE_BUILD_TYPE=Release -DENABLE_THREADING=OFF -DENABLE_SDL=OFF -DCMAKE_INSTALL_PREFIX=../../../dep/ ..
 	sed -i 's/CMAKE_CXX_STANDARD_LIBRARIES:STRING=/CMAKE_CXX_STANDARD_LIBRARIES:STRING=-lpsapi /g' dep/projectm/build/CMakeCache.txt; 
 else
 	cd dep/projectm/build && cmake -DCMAKE_LIBRARY_PATH=dep/lib -DENABLE_OPENMP="OFF" -DCMAKE_BUILD_TYPE=Release -DENABLE_THREADING="OFF" -DENABLE_SDL="OFF" -DCMAKE_INSTALL_PREFIX=../../../dep/ ..
