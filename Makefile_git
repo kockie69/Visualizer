@@ -24,16 +24,19 @@ ifdef ARCH_WIN
 	FLAGS += 
 	LDFLAGS += -lopengl32 
 	projectm := dep/projectm/build/src/libprojectM/libprojectM.lib
+	glew := dep/lib/libglew32.a
 endif
 
 ifdef ARCH_LIN
 	LDFLAGS += 
 	projectm := dep/projectm/build/src/libprojectM/libprojectM.a
+	glew := dep/lib/libglew32.a
 endif
 
 ifdef ARCH_MAC
 	LDFLAGS += 
 	projectm := dep/projectm/build/src/libprojectM/libprojectM.a
+	glew := dep/lib/libglew32.a
 endif
 
 
