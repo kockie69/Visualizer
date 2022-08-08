@@ -41,8 +41,6 @@ jobs:
         with:
           fetch-depth: 0
           submodules: recursive
-      - name: Install Prerequisites
-        run: cmake -P .github/workflows/install_prerequisites.cmake
       - name: Get Rack-SDK
         run: |
           pushd $HOME
@@ -61,7 +59,7 @@ jobs:
           ${{ matrix.install-dependencies }}
           export RACK_DIR=$HOME/Rack-SDK
           make -f Makefile_git dep
-          find . -depth -print 
+          find dep -depth -print
           make -f Makefile_git dist
       - name: Upload artifact
         uses: actions/upload-artifact@v2
