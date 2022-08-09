@@ -23,19 +23,11 @@ CXXFLAGS +=
 ifdef ARCH_WIN
 	LDFLAGS += -lopengl32
 	projectm := dep/lib/liblibprojectM.a
-	glew := dep/lib/libglew32.a
+else	
+	projectm := dep/lib/libprojectM.a
 endif
 
-ifdef ARCH_LIN
-	projectm := dep/projectm/build/src/libprojectM/libprojectM.a
-	glew := dep/lib/libglew32.a
-endif
-
-ifdef ARCH_MAC
-	projectm := dep/projectm/build/src/libprojectM/libprojectM.a
-	glew := dep/lib/libglew32.a
-endif
-
+glew := dep/lib/libglew32.a
 
 # Add .cpp files to the build
 SOURCES += $(wildcard src/*.cpp) 
