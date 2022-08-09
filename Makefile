@@ -57,13 +57,17 @@ $(glew): | glew-2.1.0
 $(projectm): | $(glew)
 	# Out-of-source build dir
 	cd dep && git submodule update --init
-	
+
+# There is an issue with the latest version for projectm on windows so we need to rollback a version
+# These lines can be removed when ProjectM fix #632 is deployed	
 ifdef ARCH_WIN
 	cd dep/projectm && git checkout --force a6293f63c8415cc757f89b82dcc99738d0c83027
 endif
 
 	cd dep/projectm && mkdir -p build
 
+# Config make customization per platform type
+# An additional lib needs to be added for the build of projectm, so sed to the rescue
 ifdef ARCH_WIN
 	cd dep/projectm/build && cmake -G "Ninja" -DCMAKE_LIBRARY_PATH=dep/lib -DENABLE_OPENMP="OFF" -DCMAKE_BUILD_TYPE=Release -DENABLE_THREADING="OFF" -DENABLE_SDL="OFF" -DCMAKE_INSTALL_PREFIX=../../../dep/ ..
 	sed -i 's/CMAKE_CXX_STANDARD_LIBRARIES:STRING=/CMAKE_CXX_STANDARD_LIBRARIES:STRING=-lpsapi /g' dep/projectm/build/CMakeCache.txt; 
