@@ -14,7 +14,7 @@ endif
 #endif
 
 FLAGS += 
-CFLAGS += /mingw64/include/ 
+CFLAGS += /mingw64/include/
 CXXFLAGS += 
 
 # Careful about linking to shared libraries, since you can't assume much about the user's environment and library search path.
@@ -56,10 +56,8 @@ endif
 # An additional lib needs to be added for the build of projectm, so sed to the rescue
 ifdef ARCH_WIN
 	cp src/dep/include/libprojectM/CMakeLists.txt dep/projectm
-	cp src/dep/include/libprojectM/projectM-opengl.h dep/projectm/src/libprojectM/
 	cd dep/projectm/build && cmake -G "Ninja" -DCMAKE_LIBRARY_PATH=dep/lib -DENABLE_OPENMP="OFF" -DCMAKE_BUILD_TYPE=Release -DENABLE_THREADING="OFF" -DENABLE_SDL="OFF" -DCMAKE_INSTALL_PREFIX=../../../dep/ ..
 	sed -i 's/CMAKE_CXX_STANDARD_LIBRARIES:STRING=/CMAKE_CXX_STANDARD_LIBRARIES:STRING= ..\/..\/..\/..\/Rack-SDK\/libRack.dll.a -lpsapi /g' dep/projectm/build/CMakeCache.txt; 
-
 else
 	cd dep/projectm/build && cmake -DCMAKE_LIBRARY_PATH=dep/lib -DENABLE_OPENMP="OFF" -DCMAKE_BUILD_TYPE=Release -DENABLE_THREADING="OFF" -DENABLE_SDL="OFF" -DCMAKE_INSTALL_PREFIX=../../../dep/ ..
 endif
