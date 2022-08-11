@@ -13,6 +13,10 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
 set(CMAKE_POSITION_INDEPENDENT_CODE YES)
 
+INCLUDE_DIRECTORIES(
+    ../../$ENV{Rack_DIR}/dep/include/
+)
+
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 option(ENABLE_DEBUG_POSTFIX "Add \"d\" after library names for debug builds" ON)
