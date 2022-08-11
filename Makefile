@@ -1,4 +1,5 @@
 # If RACK_DIR is not defined when calling the Makefile, default to two directories above
+$(info Rackdir is $(RACK_DIR))
 RACK_DIR ?= ../..
 
 include $(RACK_DIR)/arch.mk
@@ -57,7 +58,8 @@ endif
 ifdef ARCH_WIN
 	cp src/dep/include/libprojectM/CMakeLists.txt dep/projectm
 	cd dep/projectm/build && cmake -G "Ninja" -DCMAKE_LIBRARY_PATH=dep/lib -DENABLE_OPENMP="OFF" -DCMAKE_BUILD_TYPE=Release -DENABLE_THREADING="OFF" -DENABLE_SDL="OFF" -DCMAKE_INSTALL_PREFIX=../../../dep/ ..
-	sed -i 's/CMAKE_CXX_STANDARD_LIBRARIES:STRING=/CMAKE_CXX_STANDARD_LIBRARIES:STRING= $(RACK_DIR)\/Rack-SDK\/libRack.dll.a -lpsapi /g' dep/projectm/build/CMakeCache.txt; 
+	cp $(RACK_DIR)/libRack.dll.a dep/
+	sed -i 's/CMAKE_CXX_STANDARD_LIBRARIES:STRING=/CMAKE_CXX_STANDARD_LIBRARIES:STRING= ..\/..\/..\/dep\/libRack.dll.a -lpsapi /g' dep/projectm/build/CMakeCache.txt; 
 else
 	cd dep/projectm/build && cmake -DCMAKE_LIBRARY_PATH=dep/lib -DENABLE_OPENMP="OFF" -DCMAKE_BUILD_TYPE=Release -DENABLE_THREADING="OFF" -DENABLE_SDL="OFF" -DCMAKE_INSTALL_PREFIX=../../../dep/ ..
 endif
