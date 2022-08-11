@@ -14,7 +14,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED YES)
 set(CMAKE_POSITION_INDEPENDENT_CODE YES)
 
 INCLUDE_DIRECTORIES(
-    ../../$ENV{Rack_DIR}/dep/include/
+    $ENV{Rack_DIR}/dep/include/
 )
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
