@@ -1,4 +1,5 @@
 # If RACK_DIR is not defined when calling the Makefile, default to two directories above
+$(info Rackdir is $(RACK_DIR))
 RACK_DIR ?= ../..
 
 include $(RACK_DIR)/arch.mk
@@ -27,8 +28,6 @@ else
 	projectm := dep/lib/libprojectM.a
 endif
 
-glew := dep/lib/libglew32.a
-
 # Add .cpp files to the build
 SOURCES += $(wildcard src/*.cpp) 
 
@@ -40,21 +39,9 @@ DISTRIBUTABLES += $(wildcard LICENSE*) res
 OBJECTS += $(projectm)
 # Trigger the static library to be built when running `make dep`
 DEPS += $(projectm)
-DEPS += $(glew)
+#DEPS += $(glew)
 
-glew-2.1.0:
-	cd dep && wget https://github.com/nigels-com/glew/releases/download/glew-2.1.0/glew-2.1.0.tgz 2>/dev/null || curl -LO  https://github.com/nigels-com/glew/releases/download/glew-2.1.0/glew-2.1.0.tgz
-	cd dep && $(SHA256) glew-2.1.0.tgz 04de91e7e6763039bc11940095cd9c7f880baba82196a7765f727ac05a993c95
-	cd dep && $(UNTAR) glew-2.1.0.tgz
-	cd dep && rm glew-2.1.0.tgz
-
-$(glew): | glew-2.1.0
-	cd dep/glew-2.1.0 && mkdir -p build
-	cd dep/glew-2.1.0/build && $(CMAKE) ./cmake
-	cd dep && $(MAKE) -C glew-2.1.0/build
-	cd dep && $(MAKE) -C glew-2.1.0/build install
-
-$(projectm): | $(glew)
+$(projectm):
 	# Out-of-source build dir
 	cd dep && git submodule update --init
 
@@ -69,8 +56,10 @@ endif
 # Config make customization per platform type
 # An additional lib needs to be added for the build of projectm, so sed to the rescue
 ifdef ARCH_WIN
+	cp src/dep/include/libprojectM/CMakeLists.txt dep/projectm
 	cd dep/projectm/build && cmake -G "Ninja" -DCMAKE_LIBRARY_PATH=dep/lib -DENABLE_OPENMP="OFF" -DCMAKE_BUILD_TYPE=Release -DENABLE_THREADING="OFF" -DENABLE_SDL="OFF" -DCMAKE_INSTALL_PREFIX=../../../dep/ ..
-	sed -i 's/CMAKE_CXX_STANDARD_LIBRARIES:STRING=/CMAKE_CXX_STANDARD_LIBRARIES:STRING=-lpsapi /g' dep/projectm/build/CMakeCache.txt; 
+	cp $(RACK_DIR)/libRack.dll.a dep/
+	sed -i 's/CMAKE_CXX_STANDARD_LIBRARIES:STRING=/CMAKE_CXX_STANDARD_LIBRARIES:STRING= ..\/..\/..\/dep\/libRack.dll.a -lpsapi /g' dep/projectm/build/CMakeCache.txt; 
 else
 	cd dep/projectm/build && cmake -DCMAKE_LIBRARY_PATH=dep/lib -DENABLE_OPENMP="OFF" -DCMAKE_BUILD_TYPE=Release -DENABLE_THREADING="OFF" -DENABLE_SDL="OFF" -DCMAKE_INSTALL_PREFIX=../../../dep/ ..
 endif
