@@ -42,15 +42,13 @@ DEPS += $(projectm)
 #DEPS += $(glew)
 
 $(projectm):
-	# Out-of-source build dir
+# 	Out-of-source build dir
 	cd dep && git submodule update --init
 
 # There is an issue with the latest version for projectm on windows so we need to rollback a version
 # These lines can be removed when ProjectM fix #632 is deployed	
-ifdef ARCH_WIN
-	cd dep/projectm && git checkout --force a6293f63c8415cc757f89b82dcc99738d0c83027
-endif
 
+	cd dep/projectm && git checkout --force a6293f63c8415cc757f89b82dcc99738d0c83027
 	cd dep/projectm && mkdir -p build
 
 # Config make customization per platform type
