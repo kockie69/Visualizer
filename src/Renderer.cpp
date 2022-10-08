@@ -116,14 +116,14 @@ void ProjectMRenderer::setHardcut(bool hardCut) {
 std::list<std::pair<unsigned int, std::string> > ProjectMRenderer::listPresets() const {
   std::list<std::pair<unsigned int, std::string> > presets;
   
-  DEBUG("Ok, lets check the number of presets found");
+  //DEBUG("Ok, lets check the number of presets found");
   unsigned int n;
   {
     std::lock_guard<std::mutex> l(pm_m);
     if (!pm) return presets;
       n = projectm_get_playlist_size(pm);
   }
-  DEBUG("The number of presets found is %d", n);
+  //DEBUG("The number of presets found is %d", n);
   if (!n) {
     return presets;
   }
@@ -212,7 +212,7 @@ void ProjectMRenderer::CheckViewportSize(GLFWwindow* win)
         _renderWidth = renderWidth;
         _renderHeight = renderHeight;
 
-        DEBUG("Resized rendering canvas to %d %d.", renderWidth, renderHeight);
+        //DEBUG("Resized rendering canvas to %d %d.", renderWidth, renderHeight);
     }
 }
 
@@ -245,7 +245,7 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
     sp->shuffle_enabled = s.shuffle_enabled;
   {
     std::lock_guard<std::mutex> l(pm_m);
-    DEBUG("The preset path is %s", sp->preset_url);
+    //DEBUG("The preset path is %s", sp->preset_url);
     pm = projectm_create_settings(sp, PROJECTM_FLAG_NONE);    
     //extraProjectMInitialization();
   }
@@ -331,11 +331,11 @@ void ProjectMRenderer::logContextInfo(std::string name, GLFWwindow* w) const {
   int minor = glfwGetWindowAttrib(w, GLFW_CONTEXT_VERSION_MINOR);
   int revision = glfwGetWindowAttrib(w, GLFW_CONTEXT_REVISION);
   int api = glfwGetWindowAttrib(w, GLFW_CLIENT_API);
-  DEBUG("%s context using API %d version %d.%d.%d", name.c_str(), api, major, minor, revision);
+  //DEBUG("%s context using API %d version %d.%d.%d", name.c_str(), api, major, minor, revision);
 }
 
 void ProjectMRenderer::logGLFWError(int errcode, const char* errmsg) {
-  DEBUG("GLFW error %s: %s", std::to_string(errcode).c_str(), errmsg);
+  //DEBUG("GLFW error %s: %s", std::to_string(errcode).c_str(), errmsg);
 }
 
 GLFWwindow* WindowedRenderer::createWindow() {
