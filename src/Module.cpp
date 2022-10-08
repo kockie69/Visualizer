@@ -404,19 +404,19 @@ struct BaseLFMModuleWidget : ModuleWidget {
     menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Options"));
     menu->addChild(createBoolPtrMenuItem("Cycle through presets","", &m->autoPlay));
     if (m->getModel()->name == "LFMEmbedded" ) {
-      DEBUG("Ok, embedded so we will add option to select a preset title");
+      //DEBUG("Ok, embedded so we will add option to select a preset title");
       menu->addChild(createBoolPtrMenuItem("Show Preset Title","", &m->displayPresetName));
-      DEBUG("Ok, we have added the option to select a preset title");
+      //DEBUG("Ok, we have added the option to select a preset title");
     }
     menu->addChild(createBoolPtrMenuItem("Hardcut enabled","", &m->hardCut));
     menu->addChild(createBoolPtrMenuItem("Aspectcorrection enabled","", &m->aspectCorrection));
     menu->addChild(createBoolPtrMenuItem("Case sensitive Visual Preset Search","", &m->caseSensitive));
     menu->addChild(construct<MenuLabel>());
-    DEBUG("Ok, we now add the preset menu title");
+    //DEBUG("Ok, we now add the preset menu title");
     menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Visual Presets"));
-    DEBUG("Ok, added menu title");
+    //DEBUG("Ok, added menu title");
     
-    DEBUG("Ok, we will now get the list of presets");
+    //DEBUG("Ok, we will now get the list of presets");
     auto holder = new rack::Widget;
     holder->box.size.x = 200;
     holder->box.size.y = 20;
@@ -430,7 +430,7 @@ struct BaseLFMModuleWidget : ModuleWidget {
 
     menu->addChild(construct<MenuLabel>());
     //auto presets = w->getRenderer()->listPresets();
-    DEBUG("Ok, we have the list of presets");
+    //DEBUG("Ok, we have the list of presets");
     auto presets = w->getRenderer()->listPresets();
     for (auto p : presets) 
       menu->addChild(SetPresetMenuItem::construct(p.second, p.first, w,textfield));
