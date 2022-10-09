@@ -212,7 +212,7 @@ void ProjectMRenderer::CheckViewportSize(GLFWwindow* win)
         _renderWidth = renderWidth;
         _renderHeight = renderHeight;
 
-        //DEBUG("Resized rendering canvas to %d %d.", renderWidth, renderHeight);
+        DEBUG("Resized rendering canvas to %d %d.", renderWidth, renderHeight);
     }
 }
 
