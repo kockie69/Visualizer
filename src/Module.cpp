@@ -310,7 +310,6 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
 
 
     void drawLayer(const DrawArgs& args, int layer) override {
-    //void draw(const DrawArgs& args) override {
     if (layer == 1) {
       const int y = RACK_GRID_HEIGHT;
       int x = renderer->getWindowWidth();

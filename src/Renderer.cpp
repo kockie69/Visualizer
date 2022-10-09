@@ -252,7 +252,7 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
   if (pm) {
     setStatus(Status::RENDERING);
     renderLoopNextPreset();
-    //projectm_select_preset(pm,s.presetIndex,true);
+    projectm_select_preset(pm,s.presetIndex,true);
     while (true) {
       {
         // Did the main thread request that we exit?
