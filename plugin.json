@@ -8,10 +8,10 @@
   "authorEmail": "robert.kock@gmail.com",
   "authorUrl": "",
   "pluginUrl": "",
-  "manualUrl": "https://github.com/kockie69/Visualizer/blob/v2/docs/lowfatmilk.md",
+  "manualUrl": "https://github.com/kockie69/Visualizer/blob/main/docs/lowfatmilk.md",
   "sourceUrl": "https://github.com/kockie69/Visualizer",
   "donateUrl": "https://paypal.me/RPJVCV",
-  "changelogUrl": "https://github.com/kockie69/Visualizer/blob/v2/CHANGELOG.md",
+  "changelogUrl": "https://github.com/kockie69/Visualizer/blob/main/CHANGELOG.md",
   "modules": [
     {
       "slug": "LFMFull",
