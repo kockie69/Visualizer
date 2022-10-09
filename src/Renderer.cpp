@@ -346,10 +346,8 @@ GLFWwindow* WindowedRenderer::createWindow() {
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
   glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
+  glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
 
-  #if defined ARCH_MAC
-	glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_TRUE);
-  #endif
   
   GLFWwindow* c = glfwCreateWindow(RENDER_WIDTH, RACK_GRID_HEIGHT, "", NULL, NULL);
   
@@ -362,12 +360,6 @@ GLFWwindow* WindowedRenderer::createWindow() {
   glfwSetWindowTitle(c, u8"LowFatMilk");
   return c;
 }
-
-void WindowedRenderer::framebufferSizeCallback(GLFWwindow* win, int x, int y) {
-  WindowedRenderer* r = reinterpret_cast<WindowedRenderer*>(glfwGetWindowUserPointer(win));
-  r->dirtySize = true;
-}
-
 
 void WindowedRenderer::keyCallback(GLFWwindow* win, int key, int scancode, int action, int mods) {
   WindowedRenderer* r = reinterpret_cast<WindowedRenderer*>(glfwGetWindowUserPointer(win));
@@ -430,11 +422,6 @@ GLFWwindow* TextureRenderer::createWindow() {
   glfwSetWindowUserPointer(c, reinterpret_cast<void*>(this));
   logContextInfo("LFM context", c);
   return c;
-}
-
-void TextureRenderer::framebufferSizeCallback(GLFWwindow* win, int x, int y) {
-  TextureRenderer* r = reinterpret_cast<TextureRenderer*>(glfwGetWindowUserPointer(win));
-  r->dirtySize = true;
 }
 
 void TextureRenderer::extraProjectMInitialization() {
