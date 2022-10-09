@@ -1,17 +1,17 @@
 {
   "slug": "RPJVisualizer",
   "name": "RPJ Visualizer",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "license": "GPL-3.0-or-later",
   "brand": "RPJ",
   "author": "Robert Kock",
   "authorEmail": "robert.kock@gmail.com",
   "authorUrl": "",
   "pluginUrl": "",
-  "manualUrl": "https://github.com/kockie69/RPJ/blob/v2/docs/lowfatmilk.md",
+  "manualUrl": "https://github.com/kockie69/Visualizer/blob/v2/docs/lowfatmilk.md",
   "sourceUrl": "https://github.com/kockie69/Visualizer",
   "donateUrl": "https://paypal.me/RPJVCV",
-  "changelogUrl": "https://github.com/kockie69/RPJ/blob/v2/CHANGELOG2.md",
+  "changelogUrl": "https://github.com/kockie69/Visualizer/blob/v2/CHANGELOG.md",
   "modules": [
     {
       "slug": "LFMFull",
