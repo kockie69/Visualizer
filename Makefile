@@ -48,7 +48,7 @@ $(projectm):
 # There is an issue with the latest version for projectm on windows so we need to rollback a version
 # These lines can be removed when ProjectM fix #632 is deployed	
 
-	cd dep/projectm && git checkout --force a6293f63c8415cc757f89b82dcc99738d0c83027
+	cd dep/projectm && git checkout --force 44f51f9fb67e8cc93c7d4fc5befb237bf9185310
 	cd dep/projectm && mkdir -p build
 
 # Config make customization per platform type
