@@ -46,7 +46,7 @@ protected:
 
 public:
   ProjectMRenderer() {}
-    GLFWwindow* window;
+  GLFWwindow* window;
   std::vector<unsigned char> buffer;
   int bufferWidth = RENDER_WIDTH;
   double presetTime = 0;
@@ -59,7 +59,7 @@ public:
   // init creates the OpenGL context to render in, in the main thread,
   // then starts the rendering thread. This can't be done in the ctor
   // because creating the window calls out to virtual methods.
-  void init(mySettings const& s);
+  void init(mySettings const& s,int*,int*);
 
   // The dtor signals the rendering thread to terminate, then waits
   // for it to do so. It then deletes the OpenGL context in the main
@@ -107,10 +107,9 @@ public:
 
   // True if the renderer is currently able to render projectM images
   bool isRendering() const;
-
+  virtual void showWindow(int* ,int* ) {};
 protected:
   virtual void extraProjectMInitialization() {}
-
   static void logGLFWError(int errcode, const char* errmsg);
   void logContextInfo(std::string name, GLFWwindow* w) const;
 private:
@@ -125,20 +124,25 @@ private:
   void renderLoopNextPreset();
   void renderLoop(mySettings s,std::string);
   void CheckViewportSize(GLFWwindow*);
-  virtual GLFWwindow* createWindow() = 0;
   int _renderWidth{ 0 };
   int _renderHeight{ 0 };
+  virtual GLFWwindow* createWindow(int*,int*) = 0;
 };
 
 class WindowedRenderer : public ProjectMRenderer {
 public:
+  GLFWwindow* c;
   virtual ~WindowedRenderer() {}
-
+  void showWindow(int* ,int* ) override;
 private:
-  GLFWwindow* createWindow() override;
+  void setPosition(int,int);
+  GLFWwindow* createWindow(int*,int*) override;
   int last_xpos, last_ypos, last_width, last_height;
   static void framebufferSizeCallback(GLFWwindow* win, int x, int y);
   static void keyCallback(GLFWwindow* win, int key, int scancode, int action, int mods);
+  static void window_pos_callback(GLFWwindow*, int, int);
+  int *xPos;
+  int *yPos;
 };
 
 class TextureRenderer : public ProjectMRenderer {
@@ -147,12 +151,11 @@ public:
   int getTextureID() const;
   unsigned char* getBuffer();
   int getWindowWidth();
-  
+
 private:
   int texture;
+  GLFWwindow* createWindow(int*,int*) override;
   static void framebufferSizeCallback(GLFWwindow* win, int x, int y);
-  
-  GLFWwindow* createWindow() override;
   void extraProjectMInitialization() override;
 };
 
