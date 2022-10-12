@@ -81,6 +81,8 @@ struct LFMModule : Module {
   bool prevPreset = false;
   int windowedXpos = 100;
   int windowedYpos = 100;
+  int windowedWidth = 640;
+  int windowedHeight = 480;
   // If hardCut is not enabled the rendering will screw up after a while. Not clear yet what is causing this
   bool hardCut = true;
   
@@ -129,6 +131,8 @@ struct LFMModule : Module {
     if (this->getModel()->getFullName() == "RPJ LFMFull") {
       json_object_set_new(rootJ, "windowedXpos", json_integer(windowedXpos));
       json_object_set_new(rootJ, "windowedYpos", json_integer(windowedYpos));
+      json_object_set_new(rootJ, "windowedWidth", json_integer(windowedWidth));
+      json_object_set_new(rootJ, "windowedHeight", json_integer(windowedHeight));
     }
 	  return rootJ;
   }
@@ -142,6 +146,14 @@ struct LFMModule : Module {
     json_t *nHardcutJ = json_object_get(rootJ, "Hardcut");
     json_t *nWindowedXposJ = json_object_get(rootJ, "windowedXpos");
     json_t *nWindowedYposJ = json_object_get(rootJ, "windowedYpos");
+    json_t *nWindowedWidthJ = json_object_get(rootJ, "windowedWidth");
+    json_t *nWindowedHeightJ = json_object_get(rootJ, "windowedHeight");
+    if (nWindowedWidthJ) {
+	    windowedWidth = json_integer_value(nWindowedWidthJ);
+    }
+    if (nWindowedHeightJ) {
+	    windowedHeight = json_integer_value(nWindowedHeightJ);
+    }
     if (nWindowedXposJ) {
 	    windowedXpos = json_integer_value(nWindowedXposJ);
     }
@@ -181,7 +193,7 @@ struct BaseProjectMWidget : FramebufferWidget {
   BaseProjectMWidget() {}
 
   void init(std::string presetURL,int presetIndex) {
-      getRenderer()->init(initSettings(presetURL,presetIndex),&module->windowedXpos,&module->windowedYpos);
+      getRenderer()->init(initSettings(presetURL,presetIndex),&module->windowedXpos,&module->windowedYpos,&module->windowedWidth,&module->windowedHeight);
   }
 
   template<typename T>
@@ -475,7 +487,7 @@ struct LFMModuleWidget : BaseLFMModuleWidget {
       w->box.size = Vec(RENDER_WIDTH,RACK_GRID_HEIGHT);
       //w->font = font;
       addChild(w);
-      w->getRenderer()->showWindow(&module->windowedXpos,&module->windowedYpos);
+      w->getRenderer()->showWindow(&module->windowedXpos,&module->windowedYpos,&module->windowedWidth,&module->windowedHeight);
     }
   }
 };
@@ -498,7 +510,6 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
       w->module = module;
       w->box.size = Vec(RENDER_WIDTH,RACK_GRID_HEIGHT);
       addChild(w);
-      //w->getRenderer()->showWindow(module->windowedXpos,module->windowedYpos);
       JWModuleResizeHandle *rightHandle = new JWModuleResizeHandle(w->getRenderer()->window);
 		  rightHandle->right = true;
 		  this->rightHandle = rightHandle;

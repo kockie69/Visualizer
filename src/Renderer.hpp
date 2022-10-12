@@ -59,7 +59,7 @@ public:
   // init creates the OpenGL context to render in, in the main thread,
   // then starts the rendering thread. This can't be done in the ctor
   // because creating the window calls out to virtual methods.
-  void init(mySettings const& s,int*,int*);
+  void init(mySettings const& s,int*,int*,int*,int*);
 
   // The dtor signals the rendering thread to terminate, then waits
   // for it to do so. It then deletes the OpenGL context in the main
@@ -107,7 +107,7 @@ public:
 
   // True if the renderer is currently able to render projectM images
   bool isRendering() const;
-  virtual void showWindow(int* ,int* ) {};
+  virtual void showWindow(int* ,int*,int*,int* ) {};
 protected:
   virtual void extraProjectMInitialization() {}
   static void logGLFWError(int errcode, const char* errmsg);
@@ -126,23 +126,26 @@ private:
   void CheckViewportSize(GLFWwindow*);
   int _renderWidth{ 0 };
   int _renderHeight{ 0 };
-  virtual GLFWwindow* createWindow(int*,int*) = 0;
+  virtual GLFWwindow* createWindow(int*,int*,int*,int*) = 0;
 };
 
 class WindowedRenderer : public ProjectMRenderer {
 public:
   GLFWwindow* c;
   virtual ~WindowedRenderer() {}
-  void showWindow(int* ,int* ) override;
+  void showWindow(int* ,int*,int*,int* ) override;
 private:
   void setPosition(int,int);
-  GLFWwindow* createWindow(int*,int*) override;
+  GLFWwindow* createWindow(int*,int*,int*,int*) override;
   int last_xpos, last_ypos, last_width, last_height;
   static void framebufferSizeCallback(GLFWwindow* win, int x, int y);
   static void keyCallback(GLFWwindow* win, int key, int scancode, int action, int mods);
   static void window_pos_callback(GLFWwindow*, int, int);
+  static void window_size_callback(GLFWwindow*, int, int);
   int *xPos;
   int *yPos;
+  int *winWidth;
+  int *winHeight;
 };
 
 class TextureRenderer : public ProjectMRenderer {
@@ -154,7 +157,7 @@ public:
 
 private:
   int texture;
-  GLFWwindow* createWindow(int*,int*) override;
+  GLFWwindow* createWindow(int*,int*,int*,int*) override;
   static void framebufferSizeCallback(GLFWwindow* win, int x, int y);
   void extraProjectMInitialization() override;
 };
