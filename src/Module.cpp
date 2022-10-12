@@ -79,7 +79,8 @@ struct LFMModule : Module {
   bool full = false;
   bool nextPreset = false;
   bool prevPreset = false;
-
+  int windowedXpos = 100;
+  int windowedYpos = 100;
   // If hardCut is not enabled the rendering will screw up after a while. Not clear yet what is causing this
   bool hardCut = true;
   
@@ -124,7 +125,11 @@ struct LFMModule : Module {
     json_object_set_new(rootJ, "Autoplay", json_boolean(autoPlay));
     json_object_set_new(rootJ, "CaseSensitiveSearch", json_boolean(caseSensitive));
     json_object_set_new(rootJ, "Aspectcorrection", json_boolean(aspectCorrection)); 
-    json_object_set_new(rootJ, "Hardcut", json_boolean(hardCut)); 
+    json_object_set_new(rootJ, "Hardcut", json_boolean(hardCut));
+    if (this->getModel()->getFullName() == "RPJ LFMFull") {
+      json_object_set_new(rootJ, "windowedXpos", json_integer(windowedXpos));
+      json_object_set_new(rootJ, "windowedYpos", json_integer(windowedYpos));
+    }
 	  return rootJ;
   }
 
@@ -135,6 +140,14 @@ struct LFMModule : Module {
     json_t *nCSSJ = json_object_get(rootJ, "CaseSensitiveSearch");
     json_t *nAspectCorrectionJ = json_object_get(rootJ, "Aspectcorrection");
     json_t *nHardcutJ = json_object_get(rootJ, "Hardcut");
+    json_t *nWindowedXposJ = json_object_get(rootJ, "windowedXpos");
+    json_t *nWindowedYposJ = json_object_get(rootJ, "windowedYpos");
+    if (nWindowedXposJ) {
+	    windowedXpos = json_integer_value(nWindowedXposJ);
+    }
+    if (nWindowedYposJ) {
+	    windowedYpos = json_integer_value(nWindowedYposJ);
+    } 
 	  if (nActivePresetJ) {
 	    presetIndex = json_integer_value(nActivePresetJ);
     }
@@ -168,7 +181,7 @@ struct BaseProjectMWidget : FramebufferWidget {
   BaseProjectMWidget() {}
 
   void init(std::string presetURL,int presetIndex) {
-      getRenderer()->init(initSettings(presetURL,presetIndex));
+      getRenderer()->init(initSettings(presetURL,presetIndex),&module->windowedXpos,&module->windowedYpos);
   }
 
   template<typename T>
@@ -462,6 +475,7 @@ struct LFMModuleWidget : BaseLFMModuleWidget {
       w->box.size = Vec(RENDER_WIDTH,RACK_GRID_HEIGHT);
       //w->font = font;
       addChild(w);
+      w->getRenderer()->showWindow(&module->windowedXpos,&module->windowedYpos);
     }
   }
 };
@@ -484,7 +498,7 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
       w->module = module;
       w->box.size = Vec(RENDER_WIDTH,RACK_GRID_HEIGHT);
       addChild(w);
-
+      //w->getRenderer()->showWindow(module->windowedXpos,module->windowedYpos);
       JWModuleResizeHandle *rightHandle = new JWModuleResizeHandle(w->getRenderer()->window);
 		  rightHandle->right = true;
 		  this->rightHandle = rightHandle;
