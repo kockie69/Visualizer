@@ -7,8 +7,8 @@
 #include <thread>
 #include <mutex>
 
-void ProjectMRenderer::init(mySettings const& s) {
-  window = createWindow();
+void ProjectMRenderer::init(mySettings const& s,int *xpos, int *ypos) {
+  window = createWindow(xpos,ypos);
   std::string url = s.preset_url;
   renderThread = std::thread([this,s,url](){ this->renderLoop(s,url); });
 }
@@ -338,7 +338,7 @@ void ProjectMRenderer::logGLFWError(int errcode, const char* errmsg) {
   //DEBUG("GLFW error %s: %s", std::to_string(errcode).c_str(), errmsg);
 }
 
-GLFWwindow* WindowedRenderer::createWindow() {
+GLFWwindow* WindowedRenderer::createWindow(int *xpos,int *ypos) {
   glfwSetErrorCallback(logGLFWError);
   logContextInfo("gWindow", APP->window->win);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -349,7 +349,7 @@ GLFWwindow* WindowedRenderer::createWindow() {
   glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
 
   
-  GLFWwindow* c = glfwCreateWindow(RENDER_WIDTH, RACK_GRID_HEIGHT, "", NULL, NULL);
+  c = glfwCreateWindow(RENDER_WIDTH, RACK_GRID_HEIGHT, "", NULL, NULL);
   
   if (!c) {
     return nullptr;
@@ -357,8 +357,22 @@ GLFWwindow* WindowedRenderer::createWindow() {
   glfwSetWindowUserPointer(c, reinterpret_cast<void*>(this));
   glfwSetWindowCloseCallback(c, [](GLFWwindow* w) { glfwIconifyWindow(w); });
   glfwSetKeyCallback(c, keyCallback);
+  glfwSetWindowPosCallback(c, window_pos_callback);
   glfwSetWindowTitle(c, u8"LowFatMilk");
   return c;
+}
+
+void WindowedRenderer::window_pos_callback(GLFWwindow* win, int xpos, int ypos) {
+  WindowedRenderer* r = reinterpret_cast<WindowedRenderer*>(glfwGetWindowUserPointer(win));
+  *(r->xPos)=xpos;
+  *(r->yPos)=ypos;
+}
+
+void WindowedRenderer::showWindow(int *xpos, int *ypos) {
+  xPos = xpos;
+  yPos = ypos;
+  glfwSetWindowPos(c,*(xpos),*(ypos));
+  glfwShowWindow(c);
 }
 
 void WindowedRenderer::keyCallback(GLFWwindow* win, int key, int scancode, int action, int mods) {
@@ -401,7 +415,7 @@ void WindowedRenderer::keyCallback(GLFWwindow* win, int key, int scancode, int a
   }
 }
 
-GLFWwindow* TextureRenderer::createWindow() {
+GLFWwindow* TextureRenderer::createWindow(int *xpos,int *ypos) {
   glfwSetErrorCallback(logGLFWError);
   logContextInfo("gWindow", APP->window->win);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
