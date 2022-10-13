@@ -31,6 +31,43 @@ const float jackX3 = 47;
 const float jackY1 = 147;
 const float jackY2 = 311;
 
+struct ImageWidget : TransparentWidget
+{
+  std::string image_file_path;
+  float width;
+  float height;
+  float alpha = 1.0;
+
+  ImageWidget(std::string image_file_path, float width, float height, float alpha = 1.0)
+  {
+    this->image_file_path = image_file_path;
+    this->width = width; // 2154
+    this->height = height; // 1525
+    this->alpha = alpha;
+  }
+
+  void draw(const DrawArgs &args) override
+  {
+    std::shared_ptr<Image> img = APP->window->loadImage(asset::plugin(pluginInstance, this->image_file_path));
+
+    int temp_width, temp_height;
+
+    // Get the image size and store it in the width and height variables
+    nvgImageSize(args.vg, img->handle, &temp_width, &temp_height);
+
+    // Set the bounding box of the widget
+    box.size = Vec(width, height);
+
+    // Paint the .png background
+    NVGpaint paint = nvgImagePattern(args.vg, 0.0, 0.0, box.size.x, box.size.y, 0.0, img->handle, this->alpha);
+    nvgBeginPath(args.vg);
+    nvgRect(args.vg, 85.0, 0.0, box.size.x, box.size.y);
+    nvgFillPaint(args.vg, paint);
+    nvgFill(args.vg);
+
+    Widget::draw(args);
+  }
+};
 
 struct LFMModule : Module {
   enum ParamIds {
@@ -503,7 +540,7 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
 		panel = new BGPanel(nvgRGB(0, 0, 0));
 		panel->box.size = box.size;
 
-
+		addChild(panel);
 
     if (module) {
       w = BaseProjectMWidget::create<EmbeddedProjectMWidget>(Vec(95, 0), asset::plugin(pluginInstance, "res/presets_projectM/"),module->presetIndex);
@@ -516,8 +553,16 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
 
 		  addChild(rightHandle);
     }
+    else {
+      	  std::string imagePath = asset::plugin(pluginInstance, "res/LFMBackground.png");
 
-		addChild(panel);
+		      //ImageWidget *display = new ImageWidget(imagePath,RACK_GRID_WIDTH*MODULE_WIDTH,RACK_GRID_HEIGHT);
+		      ImageWidget *display = new ImageWidget(imagePath,800,RACK_GRID_HEIGHT);
+
+          addChild(display);
+    }
+
+
         
     addParam(createParam<RPJKnob>(Vec(knobX1,knobY1), module, LFMModule::PARAM_TIMER));
     //addParam(createParam<RPJKnob>(Vec(knobX1,knobY2), module, LFMModule::PARAM_BEAT_SENS));
