@@ -16,13 +16,13 @@
     {
       "slug": "LFMFull",
       "name": "LFMFull",
-      "description": "Psycho visualizer, shown in a separate display. Based on ProjectM.",
+      "description": "Psycho visualizer, shown in a separate display. \nBased on ProjectM, this module uses MilkDrop/Winamp presets.",
       "tags": ["Utility", "Visual"]
     },
     {
       "slug": "LFMEmbedded",
       "name": "LFMEmbedded",
-      "description": "Psycho visualizer, shown in an embedded display. Based on ProjectM.",
+      "description": "Psycho visualizer, shown in an embedded display. \nBased on ProjectM, this module uses MilkDrop/Winamp presets.",
       "tags": ["Utility", "Visual"]
     }
   ]
