@@ -543,6 +543,7 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
 		addChild(panel);
 
     if (module) {
+      // this is a "live" module in Rack
       w = BaseProjectMWidget::create<EmbeddedProjectMWidget>(Vec(95, 0), asset::plugin(pluginInstance, "res/presets_projectM/"),module->presetIndex);
       w->module = module;
       w->box.size = Vec(RENDER_WIDTH,RACK_GRID_HEIGHT);
@@ -554,7 +555,8 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
 		  addChild(rightHandle);
     }
     else {
-      	  std::string imagePath = asset::plugin(pluginInstance, "res/LFMBackground.png");
+      // this is the preview in Rack's module browser
+      	  std::string imagePath = asset::plugin(pluginInstance, "res/LFMBackground-3.png");
 
 		      //ImageWidget *display = new ImageWidget(imagePath,RACK_GRID_WIDTH*MODULE_WIDTH,RACK_GRID_HEIGHT);
 		      ImageWidget *display = new ImageWidget(imagePath,800,RACK_GRID_HEIGHT);
