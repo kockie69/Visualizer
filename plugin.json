@@ -16,14 +16,14 @@
     {
       "slug": "LFMFull",
       "name": "LFMFull",
-      "description": "Psycho visualizer",
-      "tags": ["Utilities"]
+      "description": "Psycho visualizer, shown in a separate display. Based on ProjectM.",
+      "tags": ["Utilities", "Visual"]
     },
     {
       "slug": "LFMEmbedded",
       "name": "LFMEmbedded",
-      "description": "Psycho visualizer",
-      "tags": ["Utilities"]
+      "description": "Psycho visualizer, shown in an embedded display. Based on ProjectM.",
+      "tags": ["Utilities", "Visual"]
     }
   ]
 }
