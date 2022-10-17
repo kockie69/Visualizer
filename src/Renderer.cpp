@@ -99,21 +99,27 @@ void ProjectMRenderer::setBeatSensitivity(float s) {
   if (!pm) return;
   std::lock_guard<std::mutex> l(pm_m);
   int steps;
-  if (firstBeat)
+  if (firstBeat) {
+    for (int j=0;j<=500;j++)
+      projectm_key_handler(pm, PROJECTM_KEYDOWN, PROJECTM_K_DOWN, PROJECTM_KMOD_NONE);
     steps = s * 100;
+    for (int j=0;j<steps;j++)
+      projectm_key_handler(pm, PROJECTM_KEYDOWN, PROJECTM_K_UP, PROJECTM_KMOD_NONE);
+    firstBeat=false;
+  }
   else
-    steps = abs((s - beatSensitivity) * 100);
-  if (s >= beatSensitivity) {
+    steps = abs((s - oldBeatSensitivity) * 100);
+  if (s > oldBeatSensitivity) {
     // We go up
     for (int j=0;j<=steps;j++)
       projectm_key_handler(pm, PROJECTM_KEYDOWN, PROJECTM_K_UP, PROJECTM_KMOD_NONE);
   }
-  else {
+  if (s < oldBeatSensitivity) {
   // We go down
     for (int j=0;j<=steps;j++)
       projectm_key_handler(pm, PROJECTM_KEYDOWN, PROJECTM_K_DOWN, PROJECTM_KMOD_NONE);
   }
-  beatSensitivity = s;
+  oldBeatSensitivity = s;
 }
 
 void ProjectMRenderer::setHardcut(bool hardCut) {
