@@ -50,7 +50,8 @@ public:
   std::vector<unsigned char> buffer;
   int bufferWidth = RENDER_WIDTH;
   double presetTime = 0;
-  float beatSensitivity = 0;
+  float beatSensitivity = 1;
+  float oldBeatSensitivity = 1;
   bool firstBeat = true;
   bool aspectCorrection = true;
   bool nextPreset = false;
