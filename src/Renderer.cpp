@@ -95,13 +95,21 @@ void ProjectMRenderer::setAspectCorrection(bool correction) {
     projectm_set_aspect_correction(pm, correction);
 }
 
-void ProjectMRenderer::setBeatSensitivity(bool up,bool down) {
+void ProjectMRenderer::setBeatSensitivity(float s) {
   if (!pm) return;
   std::lock_guard<std::mutex> l(pm_m);
-  if (up)
-    projectm_key_handler(pm, PROJECTM_KEYDOWN, PROJECTM_K_UP, PROJECTM_KMOD_NONE);
-  if (down)
-    projectm_key_handler(pm, PROJECTM_KEYDOWN, PROJECTM_K_DOWN, PROJECTM_KMOD_NONE);
+  int steps = abs((s - beatSensitivity) * 100);
+  if (s > beatSensitivity) {
+    // We go up
+    for (int s=0;s<=steps;s++)
+      projectm_key_handler(pm, PROJECTM_KEYDOWN, PROJECTM_K_UP, PROJECTM_KMOD_NONE);
+  }
+  else {
+  // We go down
+    for (int s=0;s<=steps;s++)
+      projectm_key_handler(pm, PROJECTM_KEYDOWN, PROJECTM_K_DOWN, PROJECTM_KMOD_NONE);
+  }
+  beatSensitivity = s;
 }
 
 void ProjectMRenderer::setHardcut(bool hardCut) {
@@ -265,10 +273,10 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
         {
 
     setPresetTime(presetTime);
+    setBeatSensitivity(beatSensitivity);
     setAspectCorrection(aspectCorrection);
-
-    setBeatSensitivity(beatSensitivity_up,beatSensitivity_down);
     setHardcut(hardCut);
+
     if (nextPreset) {
       selectNextPreset(projectm_get_hard_cut_enabled(pm));
       nextPreset=false;

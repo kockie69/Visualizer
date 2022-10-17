@@ -50,9 +50,8 @@ public:
   std::vector<unsigned char> buffer;
   int bufferWidth = RENDER_WIDTH;
   double presetTime = 0;
+  float beatSensitivity = 1;
   bool aspectCorrection = true;
-  bool beatSensitivity_up = false;
-  bool beatSensitivity_down = false;
   bool nextPreset = false;
   bool prevPreset = false;
   bool hardCut = true;
@@ -100,7 +99,7 @@ public:
   void setAspectCorrection(bool);
 
   // Set the sensitivity 
-  void setBeatSensitivity(bool,bool);
+  void setBeatSensitivity(float);
 
   // Set the Hardcut
   void setHardcut(bool);
