@@ -75,8 +75,6 @@ struct LFMModule : Module {
 		PARAM_PREV,
     PARAM_TIMER,
     PARAM_BEAT_SENS,
-    PARAM_BEAT_SENSE_DOWN,
-    PARAM_BEAT_SENSE_UP,
     NUM_PARAMS
   };
   enum InputIds {
@@ -100,14 +98,11 @@ struct LFMModule : Module {
 	  configButton(PARAM_PREV, "Previous preset");
     configParam(PARAM_TIMER, 0.f, 300.f, 30.f, "Time till next preset"," Seconds");
     configParam(PARAM_BEAT_SENS, 0.f, 5.f, 1.f, "Beat sensitivity","");
-    configButton(PARAM_BEAT_SENSE_DOWN, "Decrease beat sensitivity");
-    configButton(PARAM_BEAT_SENSE_UP,"Increase beat sensitivity");
   }
 
   float presetTime = 0;
+  float beatSensitivity = 1;
   bool aspectCorrection = true;
-  bool beatSensitivity_up = false;
-  bool beatSensitivity_down = false;
   int presetIndex = 0;
   bool displayPresetName = false;
   bool autoPlay = false;
@@ -140,10 +135,7 @@ struct LFMModule : Module {
     }
 
     presetTime = params[PARAM_TIMER].getValue();
-
-    beatSensitivity_up = params[PARAM_BEAT_SENSE_UP].getValue();
-    beatSensitivity_down = params[PARAM_BEAT_SENSE_DOWN].getValue();
-
+    beatSensitivity = params[PARAM_BEAT_SENS].getValue();
     if (nextTrigger.process(params[PARAM_NEXT].getValue()) > 0.f || nextInputTrigger.process(rescale(inputs[NEXT_PRESET_INPUT].getVoltage(), 0.1f, 2.f, 0.f, 1.f))) {
       nextPreset=true;
 	  }
@@ -252,9 +244,8 @@ struct BaseProjectMWidget : FramebufferWidget {
     dirty = true;
     if (module) {
       getRenderer()->presetTime = module->presetTime;
+      getRenderer()->beatSensitivity = module->beatSensitivity;
       getRenderer()->aspectCorrection = module->aspectCorrection;
-      getRenderer()->beatSensitivity_up = module->beatSensitivity_up;
-      getRenderer()->beatSensitivity_down = module->beatSensitivity_down;
       getRenderer()->hardCut = module->hardCut;
       module->presetIndex = getRenderer()->activePreset();
       if (module->autoPlay != getRenderer()->isAutoplayEnabled())
@@ -505,9 +496,7 @@ struct LFMModuleWidget : BaseLFMModuleWidget {
     setModule(module);
     setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/VisualizerWindow.svg")));
     addParam(createParam<RPJKnob>(Vec(knobX1,knobY1), module, LFMModule::PARAM_TIMER));
-    //addParam(createParam<RPJKnob>(Vec(knobX1,knobY2), module, LFMModule::PARAM_BEAT_SENS));
-    addParam(createParam<ButtonMinBig>(Vec(7,96),module, LFMModule::PARAM_BEAT_SENSE_DOWN));
-    addParam(createParam<ButtonPlusBig>(Vec(60,96),module, LFMModule::PARAM_BEAT_SENSE_UP));
+    addParam(createParam<RPJKnob>(Vec(knobX1,knobY2), module, LFMModule::PARAM_BEAT_SENS));
 
     addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY1), module, LFMModule::PARAM_NEXT,LFMModule::NEXT_LIGHT));
 		addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY2), module, LFMModule::PARAM_PREV,LFMModule::PREV_LIGHT));
@@ -567,10 +556,7 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
 
         
     addParam(createParam<RPJKnob>(Vec(knobX1,knobY1), module, LFMModule::PARAM_TIMER));
-    //addParam(createParam<RPJKnob>(Vec(knobX1,knobY2), module, LFMModule::PARAM_BEAT_SENS));
-
-    addParam(createParam<ButtonMinBig>(Vec(7,96),module, LFMModule::PARAM_BEAT_SENSE_DOWN));
-    addParam(createParam<ButtonPlusBig>(Vec(60,96),module, LFMModule::PARAM_BEAT_SENSE_UP));
+    addParam(createParam<RPJKnob>(Vec(knobX1,knobY2), module, LFMModule::PARAM_BEAT_SENS));
 
     addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY1), module, LFMModule::PARAM_NEXT,LFMModule::NEXT_LIGHT));
 		addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY2), module, LFMModule::PARAM_PREV,LFMModule::PREV_LIGHT));
