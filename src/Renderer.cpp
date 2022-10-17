@@ -98,15 +98,19 @@ void ProjectMRenderer::setAspectCorrection(bool correction) {
 void ProjectMRenderer::setBeatSensitivity(float s) {
   if (!pm) return;
   std::lock_guard<std::mutex> l(pm_m);
-  int steps = abs((s - beatSensitivity) * 100);
-  if (s > beatSensitivity) {
+  int steps;
+  if (firstBeat)
+    steps = s * 100;
+  else
+    steps = abs((s - beatSensitivity) * 100);
+  if (s >= beatSensitivity) {
     // We go up
-    for (int s=0;s<=steps;s++)
+    for (int j=0;j<=steps;j++)
       projectm_key_handler(pm, PROJECTM_KEYDOWN, PROJECTM_K_UP, PROJECTM_KMOD_NONE);
   }
   else {
   // We go down
-    for (int s=0;s<=steps;s++)
+    for (int j=0;j<=steps;j++)
       projectm_key_handler(pm, PROJECTM_KEYDOWN, PROJECTM_K_DOWN, PROJECTM_KMOD_NONE);
   }
   beatSensitivity = s;
