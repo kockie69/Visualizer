@@ -52,7 +52,8 @@ bool ProjectMRenderer::isAutoplayEnabled() const {
 void ProjectMRenderer::selectPreviousPreset(bool hard_cut) const {
   std::lock_guard<std::mutex> l(pm_m);
   if (!pm) return;
-  projectm_select_previous_preset(pm,hard_cut); 
+  projectm_select_previous_preset(pm,hard_cut);
+  //projectm_lock_preset(pm,true); 
 }
 
 // Switches to the next preset in the current playlist.
@@ -60,6 +61,7 @@ void ProjectMRenderer::selectNextPreset(bool hard_cut) const {
   std::lock_guard<std::mutex> l(pm_m);
   if (!pm) return;
   projectm_select_next_preset(pm,hard_cut);
+  //projectm_lock_preset(pm,true);
 }
 
 // ID of the current preset in projectM's list
@@ -303,6 +305,7 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
 
     if (nextPreset) {
       selectNextPreset(projectm_get_hard_cut_enabled(pm));
+
       nextPreset=false;
     }
     if (prevPreset) {

@@ -97,7 +97,7 @@ struct LFMModule : Module {
 	  configButton(PARAM_PREV, "Previous preset");
     configParam(PARAM_TIMER, 0.f, 300.f, 30.f, "Time till next preset"," Seconds");
     configParam(PARAM_BEAT_SENS, 0.f, 5.f, 1.f, "Beat sensitivity","");
-    configParam(PARAM_HARD_SENS, 0.f, 0.5f, 0.25f, "Hardcut sensitivity","");
+    configParam(PARAM_HARD_SENS, 0.f, 0.1f, 0.05f, "Hardcut sensitivity","");
   }
 
   float presetTime = 0;
@@ -125,11 +125,11 @@ struct LFMModule : Module {
 
   void step() override {
     
-    pcm_data[i++] = inputs[LEFT_INPUT].getVoltage();
+    pcm_data[i++] = inputs[LEFT_INPUT].getVoltage()/5.0f;
     if (inputs[RIGHT_INPUT].isConnected())
-      pcm_data[i++] = inputs[RIGHT_INPUT].getVoltage();
+      pcm_data[i++] = inputs[RIGHT_INPUT].getVoltage()/5.0f;
     else
-      pcm_data[i++] = inputs[LEFT_INPUT].getVoltage();
+      pcm_data[i++] = inputs[LEFT_INPUT].getVoltage()/5.0f;
     if (i >= kSampleWindow) {
       i = 0;
       full = true;
