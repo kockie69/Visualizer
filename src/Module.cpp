@@ -556,7 +556,7 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
     }
     else {
       // this is the preview in Rack's module browser
-      	  std::string imagePath = asset::plugin(pluginInstance, "res/LFMBackground-3.png");
+      	  std::string imagePath = "res/LFMBackground-3.png";
 
 		      //ImageWidget *display = new ImageWidget(imagePath,RACK_GRID_WIDTH*MODULE_WIDTH,RACK_GRID_HEIGHT);
 		      ImageWidget *display = new ImageWidget(imagePath,800,RACK_GRID_HEIGHT);
