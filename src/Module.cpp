@@ -8,7 +8,7 @@
 #include "JWResizableHandle.hpp"
 #include <thread>
 
-static const unsigned int kSampleWindow = 2;
+static const unsigned int kSampleWindow = 512;
 
 // Then do the knobs
 const float knobX1 = 27;
@@ -261,7 +261,7 @@ struct BaseProjectMWidget : FramebufferWidget {
         getRenderer()->requestToggleAutoplay();
         
       if (module->full) {
-        getRenderer()->addPCMData(module->pcm_data, kSampleWindow);
+        getRenderer()->addPCMData(module->pcm_data, kSampleWindow/2);
         module->full = false;
       }
 
