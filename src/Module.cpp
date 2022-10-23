@@ -129,11 +129,11 @@ struct LFMModule : Module {
 
   void step() override {
     
-    pcm_data[i++] = inputs[LEFT_INPUT].value;
+    pcm_data[i++] = inputs[LEFT_INPUT].value/5.f;
     if (inputs[RIGHT_INPUT].active)
-      pcm_data[i++] = inputs[RIGHT_INPUT].value;
+      pcm_data[i++] = inputs[RIGHT_INPUT].value/5.f;
     else
-      pcm_data[i++] = inputs[LEFT_INPUT].value;
+      pcm_data[i++] = inputs[LEFT_INPUT].value/5.f;
     if (i >= kSampleWindow) {
       i = 0;
       full = true;
