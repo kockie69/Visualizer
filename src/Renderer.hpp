@@ -106,7 +106,7 @@ public:
 
   void setHardcutSensitivity(float);
 
-  void setHardcutDuration(float);
+  void setHardcutDuration(double);
   
   // Set the Hardcut
   void setHardcut(bool);

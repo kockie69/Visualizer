@@ -130,7 +130,7 @@ void ProjectMRenderer::setHardcutSensitivity(float s) {
   projectm_set_hard_cut_sensitivity(pm,s);
 }
 
-void ProjectMRenderer::setHardcutDuration(float d) {
+void ProjectMRenderer::setHardcutDuration(double d) {
   if (!pm) return;
   std::lock_guard<std::mutex> l(pm_m);
   projectm_set_hard_cut_duration(pm,d);
@@ -299,7 +299,7 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
     setPresetTime(presetTime);
     setBeatSensitivity(beatSensitivity);
     setHardcutSensitivity(hardcutSensitivity);
-    setHardcutDuration(1.0f);
+    setHardcutDuration(1.0);
     setAspectCorrection(aspectCorrection);
     setHardcut(hardCut);
 
