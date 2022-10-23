@@ -8,7 +8,7 @@
 #include "JWResizableHandle.hpp"
 #include <thread>
 
-static const unsigned int kSampleWindow = 2;
+static const unsigned int kSampleWindow = 512;
 
 // Then do the knobs
 const float knobX1 = 27;
@@ -97,7 +97,7 @@ struct LFMModule : Module {
 	  configButton(PARAM_PREV, "Previous preset");
     configParam(PARAM_TIMER, 0.f, 300.f, 30.f, "Time till next preset"," Seconds");
     configParam(PARAM_BEAT_SENS, 0.f, 5.f, 1.f, "Beat sensitivity","");
-    configParam(PARAM_HARD_SENS, 0.f, 0.1f, 0.05f, "Hardcut sensitivity","");
+    configParam(PARAM_HARD_SENS, 0.f, 1.f, 0.5f, "Hardcut sensitivity","");
   }
 
   float presetTime = 0;
@@ -116,7 +116,6 @@ struct LFMModule : Module {
   int windowedYpos = 100;
   int windowedWidth = 640;
   int windowedHeight = 480;
-  // If hardCut is not enabled the rendering will screw up after a while. Not clear yet what is causing this
   bool hardCut = true;
   
   dsp::SchmittTrigger nextInputTrigger;
@@ -124,12 +123,14 @@ struct LFMModule : Module {
   float pcm_data[kSampleWindow];
 
   void step() override {
-    
-    pcm_data[i++] = inputs[LEFT_INPUT].getVoltage()/5.0f;
+    float x = inputs[LEFT_INPUT].getVoltage();
+    if (x>0.1f)
+      x++;
+    pcm_data[i++] = inputs[LEFT_INPUT].getVoltage();
     if (inputs[RIGHT_INPUT].isConnected())
-      pcm_data[i++] = inputs[RIGHT_INPUT].getVoltage()/5.0f;
+      pcm_data[i++] = inputs[RIGHT_INPUT].getVoltage();
     else
-      pcm_data[i++] = inputs[LEFT_INPUT].getVoltage()/5.0f;
+      pcm_data[i++] = inputs[LEFT_INPUT].getVoltage();
     if (i >= kSampleWindow) {
       i = 0;
       full = true;
@@ -255,7 +256,7 @@ struct BaseProjectMWidget : FramebufferWidget {
         getRenderer()->requestToggleAutoplay();
         
       if (module->full) {
-        getRenderer()->addPCMData(module->pcm_data, kSampleWindow);
+        getRenderer()->addPCMData(module->pcm_data, kSampleWindow/2);
         module->full = false;
       }
 
@@ -311,8 +312,8 @@ struct BaseProjectMWidget : FramebufferWidget {
     s.soft_cut_duration = 10;
     s.hard_cut_enabled = true;
     s.hard_cut_duration= 20;
-    s.hard_cut_sensitivity =  1.0;
-    s.beat_sensitivity = 1.0;
+    s.hard_cut_sensitivity =  0.5;
+    s.beat_sensitivity = 1;
     s.shuffle_enabled = false;
 
     // Unsupported settings
