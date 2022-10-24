@@ -49,7 +49,10 @@ $(projectm):
 # These lines can be removed when ProjectM fix #632 is deployed	
 
 	cd dep/projectm && git checkout --force a6293f63c8415cc757f89b82dcc99738d0c83027
-	cp src/dep/* dep/projectm/src/libprojectM
+	cp src/dep/ProjectM.cpp dep/projectm/src/libprojectM
+	cp src/dep/ProjectM.h dep/projectm/src/libprojectM
+	cp src/dep/ProjectM.hpp dep/projectm/src/libprojectM
+	cp src/dep/ProjectMCWrapper.cpp dep/projectm/src/libprojectM
 	cd dep/projectm && mkdir -p build
 
 # Config make customization per platform type
