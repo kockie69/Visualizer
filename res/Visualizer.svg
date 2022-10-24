@@ -29,13 +29,21 @@
      inkscape:cy="266.51916"
      inkscape:window-width="1920"
      inkscape:window-height="991"
-     inkscape:window-x="-9"
+     inkscape:window-x="3191"
      inkscape:window-y="-9"
      inkscape:window-maximized="1"
      inkscape:current-layer="layer1"
      width="157.48mm" />
   <defs
      id="defs846">
+    <linearGradient
+       id="linearGradient1590"
+       inkscape:swatch="solid">
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1;"
+         offset="0"
+         id="stop1588" />
+    </linearGradient>
     <linearGradient
        id="SVGID_16_"
        gradientUnits="userSpaceOnUse"
@@ -317,7 +325,7 @@
        style="fill:#272724;fill-opacity:1;stroke-width:0.544292" />
     <g
        id="g8859-8"
-       transform="translate(-5.2120041,-26.31439)"
+       transform="translate(-4.1536707,-26.31439)"
        style="display:inline">
       <g
          id="g145-8-5"
@@ -441,7 +449,7 @@
     </g>
     <g
        id="g8859-4-76"
-       transform="translate(-17.326676,-26.31439)"
+       transform="translate(-16.268342,-26.31439)"
        style="display:inline">
       <g
          id="g145-8-9-3"
@@ -567,7 +575,7 @@
        aria-label="R"
        id="text8179-2"
        style="font-weight:bold;font-size:2.82222px;line-height:1.25;font-family:Roboto;-inkscape-font-specification:'Roboto, Bold';fill:#ffffff;stroke-width:0.264583"
-       transform="translate(-1.5874661,5.9360425)">
+       transform="translate(-0.52913273,5.9360425)">
       <path
          d="m 21.549552,109.89759 h -0.329351 v 0.73449 H 20.80679 v -2.00642 h 0.745518 q 0.355534,0 0.548459,0.15847 0.192925,0.15848 0.192925,0.44786 0,0.20533 -0.08957,0.34314 -0.08819,0.13642 -0.268717,0.21773 l 0.434081,0.81993 v 0.0193 h -0.443728 z m -0.329351,-0.33487 h 0.333485 q 0.155719,0 0.241157,-0.0785 0.08544,-0.0799 0.08544,-0.21911 0,-0.14194 -0.0813,-0.22324 -0.07993,-0.0813 -0.246669,-0.0813 h -0.332107 z"
          id="path9967" />
@@ -576,7 +584,7 @@
        aria-label="L"
        id="text8179"
        style="font-weight:bold;font-size:2.82222px;line-height:1.25;font-family:Roboto;-inkscape-font-specification:'Roboto, Bold';fill:#ffffff;stroke-width:0.264583"
-       transform="translate(-1.5874676,5.9360475)">
+       transform="translate(-0.52913423,5.9360475)">
       <path
          d="m 9.2412681,110.29997 h 0.8778099 v 0.33211 H 8.827857 v -2.00642 h 0.4134111 z"
          id="path9946" />
@@ -585,7 +593,7 @@
        aria-label="PREV"
        id="text2681"
        style="font-weight:bold;font-size:2.82222px;line-height:1.25;font-family:Roboto;-inkscape-font-specification:'Roboto, Bold';fill:#ffffff;stroke-width:0.264583"
-       transform="translate(3.417071e-5,40.533064)">
+       transform="translate(-4.9990171,40.533064)">
       <path
          d="m 10.924071,61.009311 v 0.706933 H 10.51066 v -2.006422 h 0.782725 q 0.225998,0 0.396875,0.08268 0.172255,0.08268 0.264583,0.235644 0.09233,0.151584 0.09233,0.345888 0,0.2949 -0.202572,0.465776 -0.201193,0.169499 -0.558105,0.169499 z m 0,-0.334863 h 0.369314 q 0.163987,0 0.249425,-0.07717 0.08682,-0.07717 0.08682,-0.220486 0,-0.14745 -0.08682,-0.238401 -0.08682,-0.09095 -0.239778,-0.09371 h -0.378961 z"
          id="path7522" />
@@ -603,7 +611,7 @@
        aria-label="NEXT"
        id="text2681-0"
        style="font-weight:bold;font-size:2.82222px;line-height:1.25;font-family:Roboto;-inkscape-font-specification:'Roboto, Bold';fill:#ffffff;stroke-width:0.264583"
-       transform="translate(3.367071e-5,50.349398)">
+       transform="translate(-4.9990176,50.349398)">
       <path
          d="m 12.133299,41.690224 h -0.413411 l -0.804774,-1.32016 v 1.32016 h -0.413411 v -2.006422 h 0.413411 l 0.806152,1.322915 v -1.322915 h 0.412033 z"
          id="path7495" />
@@ -620,7 +628,7 @@
     <g
        id="g434752-6-9"
        style="display:inline"
-       transform="translate(-27.980602,-132.56374)">
+       transform="translate(-26.922268,-132.56374)">
       <ellipse
          fill="url(#SVGID_1_)"
          cx="41.924015"
@@ -726,7 +734,7 @@
        aria-label="TIMER"
        id="text3051"
        style="font-weight:bold;font-size:2.82222px;line-height:1.25;font-family:Roboto;-inkscape-font-specification:'Roboto, Bold';fill:#ffffff;stroke-width:0.264583"
-       transform="translate(-3.0696852,-33.749074)">
+       transform="translate(-2.0113518,-33.749074)">
       <path
          d="m 14.489881,58.901792 h -0.614605 v 1.671561 h -0.413411 v -1.671561 h -0.606337 v -0.334863 h 1.634353 z"
          style="font-size:2.82222px"
@@ -800,7 +808,7 @@
        aria-label="       BEAT  SENSITIVITY "
        id="text1841"
        style="font-weight:bold;font-size:2.82222px;line-height:1.25;font-family:Roboto;-inkscape-font-specification:'Roboto, Bold';fill:#ffffff;stroke-width:0.264583"
-       transform="translate(0,-1.0583333)">
+       transform="translate(-5.0465941,-1.0583333)">
       <path
          d="m 10.77321,43.658527 v -2.006422 h 0.702799 q 0.36518,0 0.553971,0.14056 0.188791,0.139182 0.188791,0.409277 0,0.14745 -0.07579,0.260449 -0.07579,0.111621 -0.210839,0.163987 0.15434,0.03858 0.242534,0.155718 0.08957,0.117133 0.08957,0.286631 0,0.289388 -0.184657,0.438216 -0.184657,0.148828 -0.52641,0.151584 z m 0.413412,-0.873675 v 0.541568 h 0.354155 q 0.146072,0 0.227376,-0.0689 0.08268,-0.07028 0.08268,-0.192926 0,-0.275607 -0.285254,-0.279741 z m 0,-0.292144 h 0.305924 q 0.312814,-0.0055 0.312814,-0.249425 0,-0.136425 -0.07993,-0.195681 -0.07855,-0.06063 -0.249425,-0.06063 h -0.289387 z"
          id="path6125" />
@@ -848,10 +856,10 @@
          id="path6153" />
     </g>
     <g
-       aria-label="  HARDCUT 
-SENSITIVITY"
+       aria-label="  HARDCUT  SENSITIVITY"
        id="text1998"
-       style="font-weight:bold;font-size:2.82222px;line-height:1.25;font-family:Roboto;-inkscape-font-specification:'Roboto, Bold';fill:#ffffff;stroke-width:0.264583">
+       style="font-weight:bold;font-size:2.82222px;line-height:1.25;font-family:Roboto;-inkscape-font-specification:'Roboto, Bold';fill:#ffffff;stroke-width:0.264583"
+       transform="translate(-5.0941368)">
       <path
          d="M 8.9397322,59.659039 H 8.526321 V 58.799143 H 7.7201693 v 0.859896 H 7.3067581 v -2.006423 h 0.4134112 v 0.813042 H 8.526321 v -0.813042 h 0.4134112 z"
          id="path15624" />

@@ -11,23 +11,26 @@
 static const unsigned int kSampleWindow = 512;
 
 // Then do the knobs
-const float knobX1 = 27;
+const float knobX1 = 14;
+const float knobX2 = 30;
 
 const float knobY1 = 44;
 const float knobY2 = 90;
 const float knobY3 = 140;
 
-const float buttonX1 = 41;
+const float buttonX1 = 26;
 
 const float buttonY1 = 255;
 const float buttonY2 = 285;
 
-const float jackX1 = 11;
-const float jackX2 = 27;
-const float jackX3 = 47;
+const float jackX1 = 14;
+const float jackX2 = 50;
 
-const float jackY1 = 217;
-const float jackY2 = 311;
+const float jackY1 = 91;
+const float jackY2 = 141;
+const float jackY3 = 245;
+const float jackY4 = 275;
+const float jackY5 = 311;
 
 struct ImageWidget : TransparentWidget
 {
@@ -80,6 +83,9 @@ struct LFMModule : Module {
     LEFT_INPUT, 
     RIGHT_INPUT,
     NEXT_PRESET_INPUT,
+    PREV_PRESET_INPUT,
+    BEAT_INPUT,
+    HARDCUT_INPUT,
     NUM_INPUTS
   };
   enum OutputIds {
@@ -118,7 +124,7 @@ struct LFMModule : Module {
   int windowedHeight = 480;
   bool hardCut = true;
   
-  dsp::SchmittTrigger nextInputTrigger;
+  dsp::SchmittTrigger nextInputTrigger,prevInputTrigger;
   dsp::BooleanTrigger nextTrigger,prevTrigger;
   float pcm_data[kSampleWindow];
 
@@ -135,12 +141,17 @@ struct LFMModule : Module {
 
     presetTime = params[PARAM_TIMER].getValue();
     beatSensitivity = params[PARAM_BEAT_SENS].getValue();
+    if (inputs[BEAT_INPUT].isConnected())
+      beatSensitivity+=inputs[BEAT_INPUT].getVoltage();
     hardcutSensitivity = params[PARAM_HARD_SENS].getValue();
+    if (inputs[HARDCUT_INPUT].isConnected())
+      hardcutSensitivity+=inputs[HARDCUT_INPUT].getVoltage();
+
     if (nextTrigger.process(params[PARAM_NEXT].getValue()) > 0.f || nextInputTrigger.process(rescale(inputs[NEXT_PRESET_INPUT].getVoltage(), 0.1f, 2.f, 0.f, 1.f))) {
       nextPreset=true;
 	  }
 
-    if (prevTrigger.process(params[PARAM_PREV].getValue()) > 0.f) {
+    if (prevTrigger.process(params[PARAM_PREV].getValue()) > 0.f || prevInputTrigger.process(rescale(inputs[PREV_PRESET_INPUT].getVoltage(), 0.1f, 2.f, 0.f, 1.f))) {
 		  prevPreset=true;
 	  }
     
@@ -263,7 +274,6 @@ struct BaseProjectMWidget : FramebufferWidget {
       if (module->nextPreset) {
         module->nextPreset = false;
         if (!getRenderer()->isAutoplayEnabled())
-          //getRenderer()->selectNextPreset(module->hardCut);
           getRenderer()->nextPreset=true;
         else 
           getRenderer()->requestPresetID(kPresetIDRandom);
@@ -271,7 +281,6 @@ struct BaseProjectMWidget : FramebufferWidget {
       if (module->prevPreset) {
         module->prevPreset = false;
         if (!getRenderer()->isAutoplayEnabled())
-          //getRenderer()->selectPreviousPreset(module->hardCut);
           getRenderer()->prevPreset=true;
         else
           getRenderer()->requestPresetID(kPresetIDRandom);
@@ -496,16 +505,23 @@ struct LFMModuleWidget : BaseLFMModuleWidget {
     
     setModule(module);
     setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/VisualizerWindow.svg")));
-    addParam(createParam<RPJKnob>(Vec(knobX1,knobY1), module, LFMModule::PARAM_TIMER));
+
+        
+    addParam(createParam<RPJKnob>(Vec(knobX2,knobY1), module, LFMModule::PARAM_TIMER));
     addParam(createParam<RPJKnob>(Vec(knobX1,knobY2), module, LFMModule::PARAM_BEAT_SENS));
+    addParam(createParam<RPJKnob>(Vec(knobX1,knobY3), module, LFMModule::PARAM_HARD_SENS));
 
     addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY1), module, LFMModule::PARAM_NEXT,LFMModule::NEXT_LIGHT));
 		addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY2), module, LFMModule::PARAM_PREV,LFMModule::PREV_LIGHT));
-    
-		addInput(createInput<PJ301MPort>(Vec(jackX1, jackY2), module, LFMModule::LEFT_INPUT));	
-		addInput(createInput<PJ301MPort>(Vec(jackX3, jackY2), module, LFMModule::RIGHT_INPUT));	
 
-    addInput(createInput<PJ301MPort>(Vec(30, jackY1), module, LFMModule::NEXT_PRESET_INPUT));
+   	addInput(createInput<PJ301MPort>(Vec(jackX2, jackY1), module, LFMModule::BEAT_INPUT));	
+		addInput(createInput<PJ301MPort>(Vec(jackX2, jackY2), module, LFMModule::HARDCUT_INPUT));	 
+
+    addInput(createInput<PJ301MPort>(Vec(jackX2, jackY3), module, LFMModule::NEXT_PRESET_INPUT));
+    addInput(createInput<PJ301MPort>(Vec(jackX2, jackY4), module, LFMModule::PREV_PRESET_INPUT));
+    
+    addInput(createInput<PJ301MPort>(Vec(jackX1, jackY5), module, LFMModule::LEFT_INPUT));	
+		addInput(createInput<PJ301MPort>(Vec(jackX2, jackY5), module, LFMModule::RIGHT_INPUT));	
 
     //std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
     if (module) {
@@ -556,17 +572,21 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
 
 
         
-    addParam(createParam<RPJKnob>(Vec(knobX1,knobY1), module, LFMModule::PARAM_TIMER));
+    addParam(createParam<RPJKnob>(Vec(knobX2,knobY1), module, LFMModule::PARAM_TIMER));
     addParam(createParam<RPJKnob>(Vec(knobX1,knobY2), module, LFMModule::PARAM_BEAT_SENS));
     addParam(createParam<RPJKnob>(Vec(knobX1,knobY3), module, LFMModule::PARAM_HARD_SENS));
 
     addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY1), module, LFMModule::PARAM_NEXT,LFMModule::NEXT_LIGHT));
 		addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY2), module, LFMModule::PARAM_PREV,LFMModule::PREV_LIGHT));
-    
-		addInput(createInput<PJ301MPort>(Vec(jackX1, jackY2), module, LFMModule::LEFT_INPUT));	
-		addInput(createInput<PJ301MPort>(Vec(jackX3, jackY2), module, LFMModule::RIGHT_INPUT));	
 
-    addInput(createInput<PJ301MPort>(Vec(30, jackY1), module, LFMModule::NEXT_PRESET_INPUT));
+   	addInput(createInput<PJ301MPort>(Vec(jackX2, jackY1), module, LFMModule::BEAT_INPUT));	
+		addInput(createInput<PJ301MPort>(Vec(jackX2, jackY2), module, LFMModule::HARDCUT_INPUT));	 
+
+    addInput(createInput<PJ301MPort>(Vec(jackX2, jackY3), module, LFMModule::NEXT_PRESET_INPUT));
+    addInput(createInput<PJ301MPort>(Vec(jackX2, jackY4), module, LFMModule::PREV_PRESET_INPUT));
+    
+    addInput(createInput<PJ301MPort>(Vec(jackX1, jackY5), module, LFMModule::LEFT_INPUT));	
+		addInput(createInput<PJ301MPort>(Vec(jackX2, jackY5), module, LFMModule::RIGHT_INPUT));	
   }
 
   void step() override {
