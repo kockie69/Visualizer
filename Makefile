@@ -55,7 +55,7 @@ $(projectm):
 # Config make customization per platform type
 # An additional lib needs to be added for the build of projectm, so sed to the rescue
 ifdef ARCH_WIN
-#	cp src/dep/include/libprojectM/CMakeLists.txt dep/projectm
+	cp src/dep/CMakeLists.txt dep/projectm
 	cd dep/projectm/build && cmake -G "Ninja" -DCMAKE_LIBRARY_PATH=dep/lib -DENABLE_OPENMP="OFF" -DCMAKE_BUILD_TYPE=Release -DENABLE_THREADING="OFF" -DENABLE_SDL="OFF" -DCMAKE_INSTALL_PREFIX=../../../dep/ ..
 	cp $(RACK_DIR)/libRack.dll.a dep/
 	sed -i 's/CMAKE_CXX_STANDARD_LIBRARIES:STRING=/CMAKE_CXX_STANDARD_LIBRARIES:STRING= ..\/..\/..\/dep\/libRack.dll.a -lpsapi /g' dep/projectm/build/CMakeCache.txt; 
