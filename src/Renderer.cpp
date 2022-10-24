@@ -2,7 +2,7 @@
 #include "RPJ.hpp"
 #include "Renderer.hpp"
 #include "GLFW/glfw3.h"
-#include "dep/include/libprojectM/projectM.h"
+#include "../dep/include/libprojectM/projectM.h"
 #include "GlfwUtils.hpp"
 #include <thread>
 #include <mutex>
@@ -52,7 +52,8 @@ bool ProjectMRenderer::isAutoplayEnabled() const {
 void ProjectMRenderer::selectPreviousPreset(bool hard_cut) const {
   std::lock_guard<std::mutex> l(pm_m);
   if (!pm) return;
-  projectm_select_previous_preset(pm,hard_cut); 
+  projectm_select_previous_preset(pm,hard_cut);
+  //projectm_lock_preset(pm,true); 
 }
 
 // Switches to the next preset in the current playlist.
@@ -60,6 +61,7 @@ void ProjectMRenderer::selectNextPreset(bool hard_cut) const {
   std::lock_guard<std::mutex> l(pm_m);
   if (!pm) return;
   projectm_select_next_preset(pm,hard_cut);
+  //projectm_lock_preset(pm,true);
 }
 
 // ID of the current preset in projectM's list
@@ -95,13 +97,22 @@ void ProjectMRenderer::setAspectCorrection(bool correction) {
     projectm_set_aspect_correction(pm, correction);
 }
 
-void ProjectMRenderer::setBeatSensitivity(bool up,bool down) {
+void ProjectMRenderer::setBeatSensitivity(float s) {
   if (!pm) return;
   std::lock_guard<std::mutex> l(pm_m);
-  if (up)
-    projectm_key_handler(pm, PROJECTM_KEYDOWN, PROJECTM_K_UP, PROJECTM_KMOD_NONE);
-  if (down)
-    projectm_key_handler(pm, PROJECTM_KEYDOWN, PROJECTM_K_DOWN, PROJECTM_KMOD_NONE);
+  projectm_set_beat_sensitivity(pm,s);
+}
+
+void ProjectMRenderer::setHardcutSensitivity(float s) {
+  if (!pm) return;
+  std::lock_guard<std::mutex> l(pm_m);
+  projectm_set_hard_cut_sensitivity(pm,s);
+}
+
+void ProjectMRenderer::setHardcutDuration(double d) {
+  if (!pm) return;
+  std::lock_guard<std::mutex> l(pm_m);
+  projectm_set_hard_cut_duration(pm,d);
 }
 
 void ProjectMRenderer::setHardcut(bool hardCut) {
@@ -265,12 +276,15 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
         {
 
     setPresetTime(presetTime);
+    setBeatSensitivity(beatSensitivity);
+    setHardcutSensitivity(hardcutSensitivity);
+    setHardcutDuration(1.0);
     setAspectCorrection(aspectCorrection);
-
-    setBeatSensitivity(beatSensitivity_up,beatSensitivity_down);
     setHardcut(hardCut);
+
     if (nextPreset) {
       selectNextPreset(projectm_get_hard_cut_enabled(pm));
+
       nextPreset=false;
     }
     if (prevPreset) {

@@ -48,7 +48,7 @@ Below it one can see the Visual presets that are available. The list can be huge
 With the timer knob you can set the time that the preset will stay active when the menu option is set to cycle through presets. The time can vary between 0 and 300 seconds.
 
 ### Beat sensitivity
-This is a value that varies between 0 and 5 and can be controlled by the buttons on the left and right. Left to be used to lower the sensitivty and right to increase the value.
+This is a value that varies between 0 and 5 and can be controlled by the buttons on the left and right. Left to be used to lower the sensitivty and right to increase the value. Beat Sensitivity impacts how reactive your visualizations are to volume, bass, mid-range, and treble. Range: 0 - 5 (from "dead" to VERY reactive)
 
 ### Next
 There is a next button and a next input, and both have the same functionality. If next is triggered it depends on the setting of Cycle through presets what will happen. If it is enabled, a random preset will be shown next. If Cycle through presets is disabled the next preset in line will be shown.

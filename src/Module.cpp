@@ -1,7 +1,7 @@
 #define NANOVG_GL2
 #include "RPJ.hpp"
 #include "nanovg_gl.h"
-#include "dep/include/libprojectM/projectM.h"
+#include "../dep/include/libprojectM/projectM.h"
 #include "Renderer.hpp"
 #include "ctrl/RPJKnobs.hpp"
 #include "ctrl/RPJButtons.hpp"
@@ -15,20 +15,18 @@ const float knobX1 = 27;
 
 const float knobY1 = 44;
 const float knobY2 = 90;
+const float knobY3 = 140;
 
 const float buttonX1 = 41;
 
-const float buttonY0 = 100;
-const float buttonY1 = 185;
-const float buttonY2 = 215;
-const float buttonY3 = 245;
-const float buttonY4 = 275;
+const float buttonY1 = 255;
+const float buttonY2 = 285;
 
 const float jackX1 = 11;
 const float jackX2 = 27;
 const float jackX3 = 47;
 
-const float jackY1 = 147;
+const float jackY1 = 217;
 const float jackY2 = 311;
 
 struct ImageWidget : TransparentWidget
@@ -75,8 +73,7 @@ struct LFMModule : Module {
 		PARAM_PREV,
     PARAM_TIMER,
     PARAM_BEAT_SENS,
-    PARAM_BEAT_SENSE_DOWN,
-    PARAM_BEAT_SENSE_UP,
+    PARAM_HARD_SENS,
     NUM_PARAMS
   };
   enum InputIds {
@@ -100,14 +97,13 @@ struct LFMModule : Module {
 	  configButton(PARAM_PREV, "Previous preset");
     configParam(PARAM_TIMER, 0.f, 300.f, 30.f, "Time till next preset"," Seconds");
     configParam(PARAM_BEAT_SENS, 0.f, 5.f, 1.f, "Beat sensitivity","");
-    configButton(PARAM_BEAT_SENSE_DOWN, "Decrease beat sensitivity");
-    configButton(PARAM_BEAT_SENSE_UP,"Increase beat sensitivity");
+    configParam(PARAM_HARD_SENS, 0.f, 5.f, 1.f, "Hardcut sensitivity","");
   }
 
   float presetTime = 0;
+  float beatSensitivity = 1;
+  float hardcutSensitivity = 1;
   bool aspectCorrection = true;
-  bool beatSensitivity_up = false;
-  bool beatSensitivity_down = false;
   int presetIndex = 0;
   bool displayPresetName = false;
   bool autoPlay = false;
@@ -120,7 +116,6 @@ struct LFMModule : Module {
   int windowedYpos = 100;
   int windowedWidth = 640;
   int windowedHeight = 480;
-  // If hardCut is not enabled the rendering will screw up after a while. Not clear yet what is causing this
   bool hardCut = true;
   
   dsp::SchmittTrigger nextInputTrigger;
@@ -128,22 +123,19 @@ struct LFMModule : Module {
   float pcm_data[kSampleWindow];
 
   void step() override {
-    
-    pcm_data[i++] = inputs[LEFT_INPUT].value/5.f;
-    if (inputs[RIGHT_INPUT].active)
-      pcm_data[i++] = inputs[RIGHT_INPUT].value/5.f;
+    pcm_data[i++] = inputs[LEFT_INPUT].getVoltage()/5;
+    if (inputs[RIGHT_INPUT].isConnected())
+      pcm_data[i++] = inputs[RIGHT_INPUT].getVoltage()/5;
     else
-      pcm_data[i++] = inputs[LEFT_INPUT].value/5.f;
+      pcm_data[i++] = inputs[LEFT_INPUT].getVoltage()/5;
     if (i >= kSampleWindow) {
       i = 0;
       full = true;
     }
 
     presetTime = params[PARAM_TIMER].getValue();
-
-    beatSensitivity_up = params[PARAM_BEAT_SENSE_UP].getValue();
-    beatSensitivity_down = params[PARAM_BEAT_SENSE_DOWN].getValue();
-
+    beatSensitivity = params[PARAM_BEAT_SENS].getValue();
+    hardcutSensitivity = params[PARAM_HARD_SENS].getValue();
     if (nextTrigger.process(params[PARAM_NEXT].getValue()) > 0.f || nextInputTrigger.process(rescale(inputs[NEXT_PRESET_INPUT].getVoltage(), 0.1f, 2.f, 0.f, 1.f))) {
       nextPreset=true;
 	  }
@@ -252,9 +244,9 @@ struct BaseProjectMWidget : FramebufferWidget {
     dirty = true;
     if (module) {
       getRenderer()->presetTime = module->presetTime;
+      getRenderer()->beatSensitivity = module->beatSensitivity;
+      getRenderer()->hardcutSensitivity = module->hardcutSensitivity;
       getRenderer()->aspectCorrection = module->aspectCorrection;
-      getRenderer()->beatSensitivity_up = module->beatSensitivity_up;
-      getRenderer()->beatSensitivity_down = module->beatSensitivity_down;
       getRenderer()->hardCut = module->hardCut;
       module->presetIndex = getRenderer()->activePreset();
       if (module->autoPlay != getRenderer()->isAutoplayEnabled())
@@ -317,8 +309,8 @@ struct BaseProjectMWidget : FramebufferWidget {
     s.soft_cut_duration = 10;
     s.hard_cut_enabled = true;
     s.hard_cut_duration= 20;
-    s.hard_cut_sensitivity =  0.0;
-    s.beat_sensitivity = 1.0;
+    s.hard_cut_sensitivity =  0.5;
+    s.beat_sensitivity = 1;
     s.shuffle_enabled = false;
 
     // Unsupported settings
@@ -505,9 +497,7 @@ struct LFMModuleWidget : BaseLFMModuleWidget {
     setModule(module);
     setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/VisualizerWindow.svg")));
     addParam(createParam<RPJKnob>(Vec(knobX1,knobY1), module, LFMModule::PARAM_TIMER));
-    //addParam(createParam<RPJKnob>(Vec(knobX1,knobY2), module, LFMModule::PARAM_BEAT_SENS));
-    addParam(createParam<ButtonMinBig>(Vec(7,96),module, LFMModule::PARAM_BEAT_SENSE_DOWN));
-    addParam(createParam<ButtonPlusBig>(Vec(60,96),module, LFMModule::PARAM_BEAT_SENSE_UP));
+    addParam(createParam<RPJKnob>(Vec(knobX1,knobY2), module, LFMModule::PARAM_BEAT_SENS));
 
     addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY1), module, LFMModule::PARAM_NEXT,LFMModule::NEXT_LIGHT));
 		addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY2), module, LFMModule::PARAM_PREV,LFMModule::PREV_LIGHT));
@@ -567,10 +557,8 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
 
         
     addParam(createParam<RPJKnob>(Vec(knobX1,knobY1), module, LFMModule::PARAM_TIMER));
-    //addParam(createParam<RPJKnob>(Vec(knobX1,knobY2), module, LFMModule::PARAM_BEAT_SENS));
-
-    addParam(createParam<ButtonMinBig>(Vec(7,96),module, LFMModule::PARAM_BEAT_SENSE_DOWN));
-    addParam(createParam<ButtonPlusBig>(Vec(60,96),module, LFMModule::PARAM_BEAT_SENSE_UP));
+    addParam(createParam<RPJKnob>(Vec(knobX1,knobY2), module, LFMModule::PARAM_BEAT_SENS));
+    addParam(createParam<RPJKnob>(Vec(knobX1,knobY3), module, LFMModule::PARAM_HARD_SENS));
 
     addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY1), module, LFMModule::PARAM_NEXT,LFMModule::NEXT_LIGHT));
 		addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY2), module, LFMModule::PARAM_PREV,LFMModule::PREV_LIGHT));
