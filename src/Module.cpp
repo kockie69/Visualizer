@@ -1,7 +1,7 @@
 #define NANOVG_GL2
 #include "RPJ.hpp"
 #include "nanovg_gl.h"
-#include "dep/include/libprojectM/projectM.h"
+#include "../dep/include/libprojectM/projectM.h"
 #include "Renderer.hpp"
 #include "ctrl/RPJKnobs.hpp"
 #include "ctrl/RPJButtons.hpp"
@@ -97,7 +97,7 @@ struct LFMModule : Module {
 	  configButton(PARAM_PREV, "Previous preset");
     configParam(PARAM_TIMER, 0.f, 300.f, 30.f, "Time till next preset"," Seconds");
     configParam(PARAM_BEAT_SENS, 0.f, 5.f, 1.f, "Beat sensitivity","");
-    configParam(PARAM_HARD_SENS, 0.f, 1.f, 0.5f, "Hardcut sensitivity","");
+    configParam(PARAM_HARD_SENS, 0.f, 5.f, 1.f, "Hardcut sensitivity","");
   }
 
   float presetTime = 0;
