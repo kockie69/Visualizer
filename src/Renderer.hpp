@@ -51,7 +51,6 @@ public:
   int bufferWidth = RENDER_WIDTH;
   double presetTime = 0;
   float beatSensitivity = 1;
-  float oldBeatSensitivity = 1;
   float hardcutSensitivity = 1;
   bool firstBeat = true;
   bool aspectCorrection = true;

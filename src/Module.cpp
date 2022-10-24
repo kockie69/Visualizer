@@ -123,9 +123,6 @@ struct LFMModule : Module {
   float pcm_data[kSampleWindow];
 
   void step() override {
-    float x = inputs[LEFT_INPUT].getVoltage();
-    if (x>0.1f)
-      x++;
     pcm_data[i++] = inputs[LEFT_INPUT].getVoltage()/5;
     if (inputs[RIGHT_INPUT].isConnected())
       pcm_data[i++] = inputs[RIGHT_INPUT].getVoltage()/5;
