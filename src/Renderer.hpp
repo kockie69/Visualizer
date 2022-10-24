@@ -3,7 +3,7 @@
 #define RENDERER_HPP
 
 #include "GLFW/glfw3.h"
-#include "dep/include/libprojectM/projectM.h"
+#include "../dep/include/libprojectM/projectM.h"
 
 #include <list>
 #include <thread>
@@ -50,9 +50,10 @@ public:
   std::vector<unsigned char> buffer;
   int bufferWidth = RENDER_WIDTH;
   double presetTime = 0;
+  float beatSensitivity = 1;
+  float hardcutSensitivity = 1;
+  bool firstBeat = true;
   bool aspectCorrection = true;
-  bool beatSensitivity_up = false;
-  bool beatSensitivity_down = false;
   bool nextPreset = false;
   bool prevPreset = false;
   bool hardCut = true;
@@ -100,8 +101,12 @@ public:
   void setAspectCorrection(bool);
 
   // Set the sensitivity 
-  void setBeatSensitivity(bool,bool);
+  void setBeatSensitivity(float);
 
+  void setHardcutSensitivity(float);
+
+  void setHardcutDuration(double);
+  
   // Set the Hardcut
   void setHardcut(bool);
 

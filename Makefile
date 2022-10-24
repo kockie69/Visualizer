@@ -49,12 +49,16 @@ $(projectm):
 # These lines can be removed when ProjectM fix #632 is deployed	
 
 	cd dep/projectm && git checkout --force a6293f63c8415cc757f89b82dcc99738d0c83027
+	cp src/dep/ProjectM.cpp dep/projectm/src/libprojectM
+	cp src/dep/projectM.h dep/projectm/src/libprojectM
+	cp src/dep/ProjectM.hpp dep/projectm/src/libprojectM
+	cp src/dep/ProjectMCWrapper.cpp dep/projectm/src/libprojectM
 	cd dep/projectm && mkdir -p build
 
 # Config make customization per platform type
 # An additional lib needs to be added for the build of projectm, so sed to the rescue
 ifdef ARCH_WIN
-	cp src/dep/include/libprojectM/CMakeLists.txt dep/projectm
+	cp src/dep/CMakeLists.txt dep/projectm
 	cd dep/projectm/build && cmake -G "Ninja" -DCMAKE_LIBRARY_PATH=dep/lib -DENABLE_OPENMP="OFF" -DCMAKE_BUILD_TYPE=Release -DENABLE_THREADING="OFF" -DENABLE_SDL="OFF" -DCMAKE_INSTALL_PREFIX=../../../dep/ ..
 	cp $(RACK_DIR)/libRack.dll.a dep/
 	sed -i 's/CMAKE_CXX_STANDARD_LIBRARIES:STRING=/CMAKE_CXX_STANDARD_LIBRARIES:STRING= ..\/..\/..\/dep\/libRack.dll.a -lpsapi /g' dep/projectm/build/CMakeCache.txt; 
