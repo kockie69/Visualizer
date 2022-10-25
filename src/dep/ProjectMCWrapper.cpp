@@ -98,10 +98,9 @@ void projectm_free_settings(const projectm_settings* settings)
 {
     if (settings)
     {
-        projectm_free_string(settings->preset_url);
-        projectm_free_string(settings->title_font_url);
-        projectm_free_string(settings->menu_font_url);
-        projectm_free_string(settings->data_dir);
+        projectm_free_string(settings->preset_path);
+        projectm_free_string(settings->texture_path);
+        projectm_free_string(settings->data_path);
     }
 
     delete settings;
@@ -131,10 +130,9 @@ projectm_handle projectm_create_settings(const projectm_settings* settings, int 
         cppSettings.textureSize = settings->texture_size;
         cppSettings.windowWidth = settings->window_width;
         cppSettings.windowHeight = settings->window_height;
-        cppSettings.presetURL = settings->preset_url ? settings->preset_url : "";
-        cppSettings.titleFontURL = settings->title_font_url ? settings->title_font_url : "";
-        cppSettings.menuFontURL = settings->menu_font_url ? settings->menu_font_url : "";
-        cppSettings.datadir = settings->data_dir ? settings->data_dir : "";
+        cppSettings.presetPath = settings->preset_path ? settings->preset_path : "";
+        cppSettings.texturePath = settings->texture_path ? settings->texture_path : "";
+        cppSettings.dataPath = settings->data_path ? settings->data_path : "";
         cppSettings.softCutDuration = settings->soft_cut_duration;
         cppSettings.presetDuration = settings->preset_duration;
         cppSettings.hardCutEnabled = settings->hard_cut_enabled;
@@ -205,18 +203,6 @@ void projectm_reset_textures(projectm_handle instance)
     projectMInstance->ResetTextures();
 }
 
-const char* projectm_get_title(projectm_handle instance)
-{
-    auto projectMInstance = handle_to_instance(instance);
-    return projectm_alloc_string_from_std_string(projectMInstance->Title());
-}
-
-void projectm_set_title(projectm_handle instance, const char* title)
-{
-    auto projectMInstance = handle_to_instance(instance);
-    projectMInstance->SetTitle(title);
-}
-
 void projectm_render_frame(projectm_handle instance)
 {
     auto projectMInstance = handle_to_instance(instance);
@@ -254,6 +240,12 @@ void projectm_set_texture_size(projectm_handle instance, size_t size)
     projectMInstance->SetTextureSize(size);
 }
 
+void projectm_set_beat_sensitivity(projectm_handle instance, float sensitivity)
+{
+    auto projectMInstance = handle_to_instance(instance);
+    projectMInstance->SetBeatSensitivity(sensitivity);
+}
+
 double projectm_get_hard_cut_duration(projectm_handle instance)
 {
     auto projectMInstance = handle_to_instance(instance);
@@ -282,12 +274,6 @@ float projectm_get_hard_cut_sensitivity(projectm_handle instance)
 {
     auto projectMInstance = handle_to_instance(instance);
     return projectMInstance->HardCutSensitivity();
-}
-
-void projectm_set_beat_sensitivity(projectm_handle instance, float sensitivity)
-{
-    auto projectMInstance = handle_to_instance(instance);
-    projectMInstance->SetBeatSensitivity(sensitivity);
 }
 
 void projectm_set_hard_cut_sensitivity(projectm_handle instance, float sensitivity)
@@ -335,25 +321,19 @@ size_t projectm_get_fps(projectm_handle instance)
 const char* projectm_get_preset_path(projectm_handle instance)
 {
     auto projectMInstance = handle_to_instance(instance);
-    return projectm_alloc_string_from_std_string(projectMInstance->Settings().presetURL);
+    return projectm_alloc_string_from_std_string(projectMInstance->Settings().presetPath);
 }
 
-const char* projectm_get_title_font_filename(projectm_handle instance)
+const char* projectm_get_texture_path(projectm_handle instance)
 {
     auto projectMInstance = handle_to_instance(instance);
-    return projectm_alloc_string_from_std_string(projectMInstance->Settings().titleFontURL);
+    return projectm_alloc_string_from_std_string(projectMInstance->Settings().texturePath);
 }
 
-const char* projectm_get_menu_font_filename(projectm_handle instance)
+const char* projectm_get_data_path(projectm_handle instance)
 {
     auto projectMInstance = handle_to_instance(instance);
-    return projectm_alloc_string_from_std_string(projectMInstance->Settings().menuFontURL);
-}
-
-const char* projectm_get_data_dir_path(projectm_handle instance)
-{
-    auto projectMInstance = handle_to_instance(instance);
-    return projectm_alloc_string_from_std_string(projectMInstance->Settings().datadir);
+    return projectm_alloc_string_from_std_string(projectMInstance->Settings().dataPath);
 }
 
 void projectm_set_aspect_correction(projectm_handle instance, bool enabled)
@@ -404,28 +384,6 @@ void projectm_touch_destroy_all(projectm_handle instance)
     projectMInstance->TouchDestroyAll();
 }
 
-void projectm_set_help_text(projectm_handle instance, const char* help_text)
-{
-    if (!help_text)
-    {
-        return;
-    }
-
-    auto projectMInstance = handle_to_instance(instance);
-    projectMInstance->SetHelpText(help_text);
-}
-
-void projectm_set_toast_message(projectm_handle instance, const char* toast_message)
-{
-    if (!toast_message)
-    {
-        return;
-    }
-
-    auto projectMInstance = handle_to_instance(instance);
-    projectMInstance->SetToastMessage(toast_message);
-}
-
 projectm_settings* projectm_get_settings(projectm_handle instance)
 {
     auto projectMInstance = handle_to_instance(instance);
@@ -438,10 +396,9 @@ projectm_settings* projectm_get_settings(projectm_handle instance)
     settingsStruct->texture_size = settings.textureSize;
     settingsStruct->window_width = settings.windowWidth;
     settingsStruct->window_height = settings.windowHeight;
-    settingsStruct->preset_url = projectm_alloc_string_from_std_string(settings.presetURL);
-    settingsStruct->title_font_url = projectm_alloc_string_from_std_string(settings.titleFontURL);
-    settingsStruct->menu_font_url = projectm_alloc_string_from_std_string(settings.menuFontURL);
-    settingsStruct->data_dir = projectm_alloc_string_from_std_string(settings.datadir);
+    settingsStruct->preset_path = projectm_alloc_string_from_std_string(settings.presetPath);
+    settingsStruct->texture_path = projectm_alloc_string_from_std_string(settings.texturePath);
+    settingsStruct->data_path = projectm_alloc_string_from_std_string(settings.dataPath);
     settingsStruct->soft_cut_duration = settings.softCutDuration;
     settingsStruct->preset_duration = settings.presetDuration;
     settingsStruct->hard_cut_enabled = settings.hardCutEnabled;
@@ -465,10 +422,9 @@ void projectm_write_config(const char* config_file, const projectm_settings* set
     cppSettings.textureSize = settings->texture_size;
     cppSettings.windowWidth = settings->window_width;
     cppSettings.windowHeight = settings->window_height;
-    cppSettings.presetURL = settings->preset_url ? settings->preset_url : "";
-    cppSettings.titleFontURL = settings->title_font_url ? settings->title_font_url : "";
-    cppSettings.menuFontURL = settings->menu_font_url ? settings->menu_font_url : "";
-    cppSettings.datadir = settings->data_dir ? settings->data_dir : "";
+    cppSettings.presetPath = settings->preset_path ? settings->preset_path : "";
+    cppSettings.texturePath = settings->texture_path ? settings->texture_path : "";
+    cppSettings.dataPath = settings->data_path ? settings->data_path : "";
     cppSettings.softCutDuration = settings->soft_cut_duration;
     cppSettings.presetDuration = settings->preset_duration;
     cppSettings.hardCutEnabled = settings->hard_cut_enabled;
@@ -495,12 +451,6 @@ void projectm_select_preset(projectm_handle instance, unsigned int index, bool h
     projectMInstance->SelectPreset(index, hard_cut);
 }
 
-void projectm_populate_preset_menu(projectm_handle instance)
-{
-    auto projectMInstance = handle_to_instance(instance);
-    projectMInstance->PopulatePresetMenu();
-}
-
 void projectm_remove_preset(projectm_handle instance, unsigned int index)
 {
     auto projectMInstance = handle_to_instance(instance);
@@ -525,12 +475,6 @@ bool projectm_is_preset_locked(projectm_handle instance)
     return projectMInstance->PresetLocked();
 }
 
-bool projectm_is_text_input_active(projectm_handle instance, bool no_minimum_length)
-{
-    auto projectMInstance = handle_to_instance(instance);
-    return projectMInstance->TextInputActive(no_minimum_length);
-}
-
 unsigned int projectm_get_preset_index(projectm_handle instance, const char* preset_name)
 {
     if (!preset_name)
@@ -551,35 +495,6 @@ void projectm_select_preset_by_name(projectm_handle instance, const char* preset
 
     auto projectMInstance = handle_to_instance(instance);
     return projectMInstance->SelectPresetByName(preset_name, hard_cut);
-}
-
-const char* projectm_get_search_text(projectm_handle instance)
-{
-    auto projectMInstance = handle_to_instance(instance);
-    return projectm_alloc_string_from_std_string(projectMInstance->SearchText());
-}
-
-void projectm_set_search_text(projectm_handle instance, const char* search_text)
-{
-    if (!search_text)
-    {
-        return;
-    }
-
-    auto projectMInstance = handle_to_instance(instance);
-    return projectMInstance->SetSearchText(search_text);
-}
-
-void projectm_delete_search_text(projectm_handle instance)
-{
-    auto projectMInstance = handle_to_instance(instance);
-    return projectMInstance->DeleteSearchText();
-}
-
-void projectm_reset_search_text(projectm_handle instance)
-{
-    auto projectMInstance = handle_to_instance(instance);
-    return projectMInstance->ResetSearchText();
 }
 
 bool projectm_get_selected_preset_index(projectm_handle instance, unsigned int* index)
