@@ -26,18 +26,13 @@
 #include "event.h"
 #include "fatal.h"
 
-#ifdef WIN32
-// libs required for win32
-#pragma comment(lib, "psapi.lib")
-#pragma comment(lib, "kernel32.lib")
+#ifdef _WIN32
 
+#ifdef _MSC_VER
 #pragma warning(disable : 4244)
 #pragma warning(disable : 4305)
-
-#include <windows.h>
-#else
-#include <unistd.h>
-#endif /** WIN32 */
+#endif /* _MSC_VER */
+#endif /** _WIN32 */
 
 #include <sys/types.h>
 
@@ -95,10 +90,9 @@ public:
         size_t textureSize{512};
         size_t windowWidth{512};
         size_t windowHeight{512};
-        std::string presetURL;
-        std::string titleFontURL;
-        std::string menuFontURL;
-        std::string datadir;
+        std::string presetPath;
+        std::string texturePath;
+        std::string dataPath;
         double presetDuration{15.0};
         double softCutDuration{10.0};
         double hardCutDuration{60.0};
@@ -120,10 +114,6 @@ public:
     void ResetOpenGL(size_t width, size_t height);
 
     void ResetTextures();
-
-    auto Title() const -> std::string;
-
-    void SetTitle(const std::string& title);
 
     void RenderFrame();
 
@@ -183,12 +173,6 @@ public:
 
     void TouchDestroyAll();
 
-    void SetHelpText(const std::string& helpText);
-
-    void ToggleSearchText(); // turn search text input on / off
-
-    void SetToastMessage(const std::string& toastMessage);
-
     auto Settings() const -> const class Settings&;
 
     /// Writes a Settings configuration to the specified file
@@ -200,9 +184,6 @@ public:
 
     /// Plays a preset immediately
     void SelectPreset(unsigned int index, bool hardCut = true);
-
-    /// Populates a page full of presets for the renderer to use.
-    void PopulatePresetMenu();
 
     /// Removes a preset from the play list. If it is playing then it will continue as normal until next switch
     void RemovePreset(unsigned int index);
@@ -216,25 +197,10 @@ public:
     /// Returns true if the active preset is locked
     auto PresetLocked() const -> bool;
 
-    /// Returns true if the text based search menu is up.
-    auto TextInputActive(bool noMinimumCharacters = false) const -> bool;
-
     auto PresetIndex(const std::string& presetFilename) const -> unsigned int;
 
     /// Plays a preset immediately when given preset name
     void SelectPresetByName(std::string presetName, bool hardCut = true);
-
-    // search based on keystroke
-    auto SearchText() const -> std::string;
-
-    // search based on keystroke
-    void SetSearchText(const std::string& searchKey);
-
-    // delete part of search term (backspace)
-    void DeleteSearchText();
-
-    // reset search term (blank)
-    void ResetSearchText();
 
     /// Returns index of currently active preset. In the case where the active
     /// preset was removed from the playlist, this function will return the element
@@ -278,14 +244,14 @@ public:
     auto ShuffleEnabled() const -> bool;
 
     /// Occurs when active preset has switched. Switched to index is returned
-    virtual void PresetSwitchedEvent(bool hardCut, size_t index) const {};
+    virtual void PresetSwitchedEvent(bool hardCut, size_t index) const;
 
-    virtual void ShuffleEnabledValueChanged(bool enabled) const {};
+    virtual void ShuffleEnabledValueChanged(bool enabled) const;
 
-    virtual void PresetSwitchFailedEvent(bool hardCut, unsigned int index, const std::string& message) const {};
+    virtual void PresetSwitchFailedEvent(bool hardCut, unsigned int index, const std::string& message) const;
 
     /// Occurs whenever preset rating has changed via ChangePresetRating() method
-    virtual void PresetRatingChanged(unsigned int index, int rating, PresetRatingType ratingType) const {};
+    virtual void PresetRatingChanged(unsigned int index, int rating, PresetRatingType ratingType) const;
 
     auto Pcm() -> class Pcm&;
 
@@ -357,6 +323,8 @@ private:
 
     std::vector<int> m_presetHistory; //!< List of previously played preset indices.
     std::vector<int> m_presetFuture;  //!< List of preset indices queued for playing.
+
+    std::vector<std::string> m_textureSearchPaths; ///!< List of paths to search for texture files
 
     /** Timing information */
     int m_count{0}; //!< Rendered frame count since start

@@ -29,17 +29,8 @@
 #include "PresetChooser.hpp"
 #include "Renderer.hpp"
 #include "TimeKeeper.hpp"
-#include "fatal.h"
-#include "projectM-opengl.h"
-
-#ifdef WIN32
-#include "dirent.h"
-#else
-#include <dirent.h>
-#endif
 
 #include <iostream>
-#include <map>
 
 namespace {
 constexpr int kMaxSwitchRetries = 10;
@@ -94,9 +85,7 @@ auto ProjectM::WriteConfig(const std::string& configurationFilename, const class
     config.add("Window Height", settings.windowHeight);
     config.add("Smooth Preset Duration", settings.softCutDuration);
     config.add("Preset Duration", settings.presetDuration);
-    config.add("Preset Path", settings.presetURL);
-    config.add("Title Font", settings.titleFontURL);
-    config.add("Menu Font", settings.menuFontURL);
+    config.add("Preset Path", settings.presetPath);
     config.add("Hard Cut Sensitivity", settings.beatSensitivity);
     config.add("Aspect Correction", settings.aspectCorrection);
     config.add("Easter Egg Parameter", settings.easterEgg);
@@ -130,33 +119,17 @@ void ProjectM::ReadConfig(const std::string& configurationFilename)
     m_settings.presetDuration = config.read<double>("Preset Duration", 15);
 
 #ifdef __unix__
-    m_settings.presetURL = config.read<string>("Preset Path", "/usr/local/share/projectM/presets");
+    m_settings.presetPath = config.read<string>("Preset Path", "/usr/local/share/projectM/presets");
 #endif
 
 #ifdef __APPLE__
     /// @bug awful hardcoded hack- need to add intelligence to cmake wrt bundling - carm
-    m_settings.presetURL = config.read<string>("Preset Path", "../Resources/presets");
+    m_settings.presetPath = config.read<string>("Preset Path", "../Resources/presets");
 #endif
 
-#ifdef WIN32
-    m_settings.presetURL = config.read<string>("Preset Path", "/usr/local/share/projectM/presets");
+#ifdef _WIN32
+    m_settings.presetPath = config.read<string>("Preset Path", "/usr/local/share/projectM/presets");
 #endif
-
-#ifdef __APPLE__
-    m_settings.titleFontURL = config.read<string>("Title Font", "../Resources/fonts/Vera.tff");
-    m_settings.menuFontURL = config.read<string>("Menu Font", "../Resources/fonts/VeraMono.ttf");
-#endif
-
-#ifdef __unix__
-    m_settings.titleFontURL = config.read<string>("Title Font", "/usr/local/share/projectM/fonts/Vera.tff");
-    m_settings.menuFontURL = config.read<string>("Menu Font", "/usr/local/share/projectM/fonts/VeraMono.tff");
-#endif
-
-#ifdef WIN32
-    m_settings.titleFontURL = config.read<string>("Title Font", projectM_FONT_TITLE);
-    m_settings.menuFontURL = config.read<string>("Menu Font", projectM_FONT_MENU);
-#endif
-
 
     m_settings.shuffleEnabled = config.read<bool>("Shuffle Enabled", true);
 
@@ -175,16 +148,7 @@ void ProjectM::ReadConfig(const std::string& configurationFilename)
     // Preset authors have developed their visualizations with the default of 1.0.
     m_settings.beatSensitivity = config.read<float>("Beat Sensitivity", 1.0);
 
-    if (config.read("Aspect Correction", true))
-    {
-        m_settings.aspectCorrection = true;
-        m_renderer->correction = true;
-    }
-    else
-    {
-        m_settings.aspectCorrection = false;
-        m_renderer->correction = false;
-    }
+    m_settings.aspectCorrection = config.read<bool>("Aspect Correction", true);
 
     Initialize();
 }
@@ -202,11 +166,10 @@ void ProjectM::ReadSettings(const class Settings& settings)
     m_settings.presetDuration = settings.presetDuration;
     m_settings.softCutRatingsEnabled = settings.softCutRatingsEnabled;
 
-    m_settings.presetURL = settings.presetURL;
-    m_settings.titleFontURL = settings.titleFontURL;
-    m_settings.menuFontURL = settings.menuFontURL;
+    m_settings.presetPath = settings.presetPath;
+    m_settings.texturePath = settings.texturePath;
     m_settings.shuffleEnabled = settings.shuffleEnabled;
-    m_settings.datadir = settings.datadir;
+    m_settings.dataPath = settings.dataPath;
 
     m_settings.easterEgg = settings.easterEgg;
 
@@ -413,15 +376,27 @@ void ProjectM::Initialize()
 
     m_beatDetect = std::make_unique<BeatDetect>(m_pcm);
 
+    // Create texture search path list
+    if (!m_settings.presetPath.empty())
+    {
+        m_textureSearchPaths.emplace_back(m_settings.presetPath);
+    }
+    if (!m_settings.texturePath.empty())
+    {
+        m_textureSearchPaths.emplace_back(m_settings.texturePath);
+    }
+    if (!m_settings.dataPath.empty())
+    {
+        m_textureSearchPaths.emplace_back(m_settings.dataPath + pathSeparator + "presets");
+        m_textureSearchPaths.emplace_back(m_settings.dataPath + pathSeparator + "textures");
+    }
+
     this->m_renderer = std::make_unique<Renderer>(m_settings.windowWidth,
                                                   m_settings.windowHeight,
                                                   m_settings.meshX,
                                                   m_settings.meshY,
                                                   m_beatDetect.get(),
-                                                  Settings().presetURL,
-                                                  Settings().titleFontURL,
-                                                  Settings().menuFontURL,
-                                                  Settings().datadir);
+                                                  m_textureSearchPaths);
 
     InitializePresetTools();
 
@@ -459,23 +434,6 @@ void ProjectM::ResetOpenGL(size_t width, size_t height)
     m_renderer->reset(width, height);
 }
 
-/** Sets the title to display */
-auto ProjectM::Title() const -> std::string
-{
-    return m_renderer->title;
-}
-
-/** Sets the title to display */
-void ProjectM::SetTitle(const std::string& title)
-{
-    if (title != m_renderer->title)
-    {
-        m_renderer->title = title;
-        m_renderer->drawtitle = 1;
-    }
-}
-
-
 auto ProjectM::InitializePresetTools() -> void
 {
     /* Set the seed to the current time in seconds */
@@ -484,7 +442,7 @@ auto ProjectM::InitializePresetTools() -> void
     std::string url;
     if ((m_flags & Flags::DisablePlaylistLoad) != Flags::DisablePlaylistLoad)
     {
-        url = Settings().presetURL;
+        url = Settings().presetPath;
     }
 
     m_presetLoader = std::make_unique<PresetLoader>(m_settings.meshX, m_settings.meshY, url);
@@ -497,9 +455,6 @@ auto ProjectM::InitializePresetTools() -> void
     // Load idle preset
     m_activePreset = m_presetLoader->loadPreset("idle://Geiss & Sperl - Feedback (projectM idle HDR mix).milk");
     m_renderer->setPresetName("Geiss & Sperl - Feedback (projectM idle HDR mix)");
-
-    PopulatePresetMenu();
-
     m_renderer->SetPipeline(m_activePreset->pipeline());
 
     ResetEngine();
@@ -561,79 +516,10 @@ void ProjectM::SelectPreset(unsigned int index, bool hardCut)
         return;
     }
 
-    PopulatePresetMenu();
-
     *m_presetPos = m_presetChooser->begin(index);
     if (!StartPresetTransition(hardCut))
     {
         SelectRandom(hardCut);
-    }
-}
-
-// populatePresetMenu is called when a preset is loaded.
-void ProjectM::PopulatePresetMenu()
-{
-    if (m_renderer->showmenu)
-    {                                     // only track a preset list buffer if the preset menu is up.
-        m_renderer->m_presetList.clear(); // clear preset list buffer from renderer.
-
-        if (TextInputActive())
-        {
-            // if a searchTerm is active, we will populate the preset menu with search terms instead of the page we are on.
-            int h = 0;
-            std::string presetName = m_renderer->presetName();
-            int presetIndex = SearchIndex(presetName);
-            for (unsigned int i = 0; i < PlaylistSize(); i++)
-            { // loop over all presets
-                if (CaseInsensitiveSubstringFind(PresetName(i), m_renderer->searchText()) != std::string::npos)
-                {                                         // if term matches
-                    if (h < m_renderer->textMenuPageSize) // limit to just one page, pagination is not needed.
-                    {
-                        h++;
-                        m_renderer->m_presetList.push_back(
-                            {h, PresetName(i), ""}); // populate the renders preset list.
-                        if (h == presetIndex)
-                        {
-                            m_renderer->m_activePresetID = h;
-                        }
-                    }
-                }
-            }
-        }
-        else
-        {
-            // normal preset menu, based on pagination.
-            m_renderer->m_activePresetID = m_presetPos->lastIndex(); // tell renderer about the active preset ID (so it can be highlighted)
-            int page_start = 0;
-            if (m_presetPos->lastIndex() != m_presetLoader->size())
-            {
-                page_start = m_renderer->m_activePresetID; // if it's not the idle preset, then set it to the true value
-            }
-            if (page_start < m_renderer->textMenuPageSize)
-            {
-                page_start = 0; // if we are on page 1, start at the first preset.
-            }
-            if (page_start % m_renderer->textMenuPageSize == 0)
-            {
-                // if it's a perfect division of the page size, we are good.
-            }
-            else
-            {
-                page_start = page_start - (page_start %
-                                           m_renderer->textMenuPageSize); // if not, find closest divisable number for page start
-            }
-            int page_end = page_start + m_renderer->textMenuPageSize; // page end is page start + page size
-            if (page_end > m_presetLoader->size())
-            {
-                page_end = m_presetLoader->size();
-            }
-            while (page_start < page_end)
-            {
-                m_renderer->m_presetList.push_back(
-                    {page_start, PresetName(page_start), ""}); // populate the renders preset list.
-                page_start++;
-            }
-        }
     }
 }
 
@@ -644,7 +530,7 @@ bool ProjectM::StartPresetTransition(bool hardCut)
     {
         PresetSwitchFailedEvent(hardCut, **m_presetPos, "fake error");
         m_errorLoadingCurrentPreset = true;
-        PopulatePresetMenu();
+
         return false;
     }
 
@@ -662,8 +548,6 @@ bool ProjectM::StartPresetTransition(bool hardCut)
 
     PresetSwitchedEvent(hardCut, **m_presetPos);
     m_errorLoadingCurrentPreset = false;
-
-    PopulatePresetMenu();
 
     return true;
 }
@@ -714,24 +598,8 @@ void ProjectM::SelectPrevious(const bool hardCut)
         return;
     }
 
-    if (TextInputActive() && m_renderer->m_presetList.size() >= 1)
-    {
-        // if search menu is up, previous is based on search terms.
-        if (m_renderer->m_activePresetID <= 1)
-        {
-            // loop to bottom of page is at top
-            m_renderer->m_activePresetID = m_renderer->m_presetList.size();
-            SelectPresetByName(m_renderer->m_presetList[m_renderer->m_activePresetID - 1].name, true);
-        }
-        else
-        {
-            // otherwise move back
-            m_renderer->m_activePresetID--;
-            SelectPresetByName(m_renderer->m_presetList[m_renderer->m_activePresetID - 1].name, true);
-        }
-    }
-    else if (Settings().shuffleEnabled && m_presetHistory.size() >= 1 &&
-             static_cast<std::size_t>(m_presetHistory.back()) != m_presetLoader->size() && !m_renderer->showmenu)
+    if (Settings().shuffleEnabled && m_presetHistory.size() >= 1 &&
+             static_cast<std::size_t>(m_presetHistory.back()) != m_presetLoader->size())
     { // if randomly browsing presets, "previous" should return to last random preset not the index--. Avoid returning to size() because that's the idle:// preset.
         m_presetFuture.push_back(m_presetPos->lastIndex());
         SelectPreset(m_presetHistory.back());
@@ -757,24 +625,8 @@ void ProjectM::SelectNext(const bool hardCut)
         return;
     }
 
-    if (TextInputActive() && m_renderer->m_presetList.size() >= 1) // if search is active and there are search results
-    {
-        // if search menu is down, next is based on search terms.
-        if (static_cast<std::size_t>(m_renderer->m_activePresetID) >= m_renderer->m_presetList.size())
-        {
-            // loop to top of page is at bottom
-            m_renderer->m_activePresetID = 1;
-            SelectPresetByName(m_renderer->m_presetList[0].name, true);
-        }
-        else
-        {
-            // otherwise move forward
-            m_renderer->m_activePresetID++;
-            SelectPresetByName(m_renderer->m_presetList[m_renderer->m_activePresetID - 1].name, true);
-        }
-    }
-    else if (Settings().shuffleEnabled && m_presetFuture.size() >= 1 &&
-             static_cast<std::size_t>(m_presetFuture.front()) != m_presetLoader->size() && !m_renderer->showmenu)
+    if (Settings().shuffleEnabled && m_presetFuture.size() >= 1 &&
+             static_cast<std::size_t>(m_presetFuture.front()) != m_presetLoader->size())
     { // if shuffling and we have future presets already stashed then let's go forward rather than truely move randomly.
         m_presetHistory.push_back(m_presetPos->lastIndex());
         SelectPreset(m_presetFuture.back());
@@ -835,27 +687,6 @@ auto ProjectM::SwitchToCurrentPreset() -> std::unique_ptr<Preset>
 void ProjectM::SetPresetLocked(bool locked)
 {
     m_renderer->noSwitch = locked;
-    if (PresetLocked())
-    {
-        m_renderer->setToastMessage("Preset Locked");
-    }
-    else
-    {
-        m_renderer->setToastMessage("Unlocked");
-    }
-}
-
-// check if search menu is up and you have search terms (2 chars). nomin means you don't care about search terms.
-auto ProjectM::TextInputActive(bool noMinimumCharacters) const -> bool
-{
-    if (m_renderer->showsearch && (m_renderer->searchText().length() >= 2 || noMinimumCharacters))
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
 }
 
 auto ProjectM::PresetLocked() const -> bool
@@ -891,7 +722,6 @@ void ProjectM::SelectPresetPosition(unsigned int index)
 
 auto ProjectM::SelectedPresetIndex(unsigned int& index) const -> bool
 {
-
     if (*m_presetPos == m_presetChooser->end())
     {
         return false;
@@ -904,7 +734,6 @@ auto ProjectM::SelectedPresetIndex(unsigned int& index) const -> bool
 
 auto ProjectM::PresetPositionValid() const -> bool
 {
-
     return (*m_presetPos != m_presetChooser->end());
 }
 
@@ -922,6 +751,14 @@ auto ProjectM::ShuffleEnabled() const -> bool
 {
     return m_settings.shuffleEnabled;
 }
+
+void ProjectM::PresetSwitchedEvent(bool, size_t) const {}
+
+void ProjectM::ShuffleEnabledValueChanged(bool) const {}
+
+void ProjectM::PresetSwitchFailedEvent(bool, unsigned int, const std::string&) const {}
+
+void ProjectM::PresetRatingChanged(unsigned int, int, PresetRatingType) const {}
 
 void ProjectM::ChangePresetRating(unsigned int index, int rating, const PresetRatingType ratingType)
 {
@@ -987,6 +824,11 @@ auto ProjectM::TextureSize() const -> size_t
     return m_settings.textureSize;
 }
 
+void ProjectM::SetBeatSensitivity(float sensitivity)
+{
+    m_beatDetect->beatSensitivity = sensitivity;
+}
+
 auto ProjectM::SoftCutDuration() const -> double
 {
     return m_settings.softCutDuration;
@@ -1034,11 +876,6 @@ void ProjectM::SetHardCutEnabled(bool enabled)
 auto ProjectM::HardCutSensitivity() const -> float
 {
     return m_settings.hardCutSensitivity;
-}
-
-void ProjectM::SetBeatSensitivity(float sensitivity)
-{
-    m_beatDetect->beatSensitivity = sensitivity;
 }
 
 void ProjectM::SetHardCutSensitivity(float sensitivity)
@@ -1092,15 +929,6 @@ void ProjectM::SetMeshSize(size_t meshResolutionX, size_t meshResolutionY)
     RecreateRenderer();
 }
 
-// toggleSearchText
-void ProjectM::ToggleSearchText()
-{
-    if (m_renderer)
-    {
-        m_renderer->toggleSearchText();
-    }
-}
-
 auto ProjectM::Pcm() -> class Pcm&
 {
     return m_pcm;
@@ -1138,67 +966,6 @@ void ProjectM::SelectPresetByName(std::string presetName, bool hardCut)
         return;
     }
     SelectPreset(index);
-}
-
-auto ProjectM::SearchText() const -> std::string
-{
-    return m_renderer->getSearchText();
-}
-
-// update search text based on new keystroke
-void ProjectM::SetSearchText(const std::string& searchKey)
-{
-    if (m_renderer)
-    {
-        m_renderer->setSearchText(searchKey);
-    }
-    PopulatePresetMenu();
-    if (m_renderer->m_presetList.size() >= 1)
-    {
-        std::string topPreset = m_renderer->m_presetList.front().name;
-        m_renderer->m_activePresetID = 1;
-        SelectPresetByName(topPreset);
-    }
-}
-
-// update search text based on new backspace
-void ProjectM::DeleteSearchText()
-{
-    if (m_renderer)
-    {
-        m_renderer->deleteSearchText();
-    }
-    PopulatePresetMenu();
-    if (m_renderer->m_presetList.size() >= 1)
-    {
-        m_renderer->m_activePresetID = 1;
-        std::string topPreset = m_renderer->m_presetList.front().name;
-        SelectPresetByName(topPreset);
-    }
-}
-
-// reset search text
-void ProjectM::ResetSearchText()
-{
-    if (m_renderer)
-    {
-        m_renderer->resetSearchText();
-    }
-    PopulatePresetMenu();
-    if (m_renderer->m_presetList.size() >= 1)
-    {
-        m_renderer->m_activePresetID = 1;
-        std::string topPreset = m_renderer->m_presetList.front().name;
-        SelectPresetByName(topPreset);
-    }
-}
-
-void ProjectM::SetToastMessage(const std::string& toastMessage)
-{
-    if (m_renderer)
-    {
-        m_renderer->setToastMessage(toastMessage);
-    }
 }
 
 auto ProjectM::Settings() const -> const class ProjectM::Settings&
@@ -1239,19 +1006,9 @@ void ProjectM::TouchDestroyAll()
     }
 }
 
-void ProjectM::SetHelpText(const std::string& helpText)
-{
-    if (m_renderer)
-    {
-        m_renderer->setHelpText(helpText);
-    }
-}
-
 void ProjectM::RecreateRenderer()
 {
     m_renderer = std::make_unique<Renderer>(m_settings.windowWidth, m_settings.windowHeight,
                                             m_settings.meshX, m_settings.meshY,
-                                            m_beatDetect.get(), m_settings.presetURL,
-                                            m_settings.titleFontURL, m_settings.menuFontURL,
-                                            m_settings.datadir);
+                                            m_beatDetect.get(), m_textureSearchPaths);
 }
