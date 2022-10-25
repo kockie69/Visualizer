@@ -304,8 +304,7 @@ struct BaseProjectMWidget : FramebufferWidget {
     // Window/rendering settings
     s.presetIndex = presetIndex;
     
-    s.preset_url = (char *)presetURL.c_str();
-    
+    s.preset_path = (char *)presetURL.c_str();
     s.window_width = RENDER_WIDTH;
     s.window_height = RACK_GRID_HEIGHT;
     s.fps =  60;

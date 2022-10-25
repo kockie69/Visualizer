@@ -9,7 +9,7 @@
 
 void ProjectMRenderer::init(mySettings const& s,int *xpos, int *ypos,int *width,int *height) {
   window = createWindow(xpos,ypos,width,height);
-  std::string url = s.preset_url;
+  std::string url = s.preset_path;
   renderThread = std::thread([this,s,url](){ this->renderLoop(s,url); });
 }
 
@@ -238,7 +238,7 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
   
   // Initialize projectM
   projectm_settings *sp = projectm_alloc_settings();
-    sp->preset_url = (char *)url.c_str();
+    sp->preset_path = (char *)url.c_str();
     sp->window_width = s.window_width;
     sp->window_height = s.window_height;
     sp->fps =  s.fps;
