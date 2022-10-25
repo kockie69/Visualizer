@@ -115,6 +115,12 @@ void ProjectMRenderer::setHardcutDuration(double d) {
   projectm_set_hard_cut_duration(pm,d);
 }
 
+void ProjectMRenderer::setSoftcutDuration(double d) {
+  if (!pm) return;
+  std::lock_guard<std::mutex> l(pm_m);
+  projectm_set_soft_cut_duration(pm,d);
+}
+
 void ProjectMRenderer::setHardcut(bool hardCut) {
   if (!pm) return;
   std::lock_guard<std::mutex> l(pm_m);
@@ -278,7 +284,8 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
     setPresetTime(presetTime);
     setBeatSensitivity(beatSensitivity);
     setHardcutSensitivity(hardcutSensitivity);
-    setHardcutDuration(1.0);
+    setHardcutDuration(hardcutDuration);
+    setSoftcutDuration(softcutDuration);
     setAspectCorrection(aspectCorrection);
     setHardcut(hardCut);
 
