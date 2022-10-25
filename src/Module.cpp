@@ -11,26 +11,30 @@
 static const unsigned int kSampleWindow = 512;
 
 // Then do the knobs
-const float knobX1 = 14;
+const float knobX1 = 12;
 const float knobX2 = 30;
 
-const float knobY1 = 44;
-const float knobY2 = 90;
-const float knobY3 = 140;
+const float knobY1 = 32;
+const float knobY2 = 72;
+const float knobY3 = 121;
+const float knobY4 = 169;
+const float knobY5 = 220;
 
 const float buttonX1 = 26;
 
-const float buttonY1 = 255;
-const float buttonY2 = 285;
+const float buttonY1 = 278;
+const float buttonY2 = 306;
 
 const float jackX1 = 14;
 const float jackX2 = 50;
 
-const float jackY1 = 91;
-const float jackY2 = 141;
-const float jackY3 = 245;
-const float jackY4 = 275;
-const float jackY5 = 311;
+const float jackY1 = 74;
+const float jackY2 = 123;
+const float jackY3 = 172;
+const float jackY4 = 221;
+const float jackY5 = 266;
+const float jackY6 = 295;
+const float jackY7 = 327;
 
 struct ImageWidget : TransparentWidget
 {
@@ -77,6 +81,8 @@ struct LFMModule : Module {
     PARAM_TIMER,
     PARAM_BEAT_SENS,
     PARAM_HARD_SENS,
+    PARAM_HARD_DURATION,
+    PARAM_SOFT_DURATION,
     NUM_PARAMS
   };
   enum InputIds {
@@ -86,6 +92,8 @@ struct LFMModule : Module {
     PREV_PRESET_INPUT,
     BEAT_INPUT,
     HARDCUT_INPUT,
+    HARDCUT_DURATION_INPUT,
+    SOFTCUT_DURATION_INPUT,
     NUM_INPUTS
   };
   enum OutputIds {
@@ -104,11 +112,15 @@ struct LFMModule : Module {
     configParam(PARAM_TIMER, 0.f, 300.f, 30.f, "Time till next preset"," Seconds");
     configParam(PARAM_BEAT_SENS, 0.f, 5.f, 1.f, "Beat sensitivity","");
     configParam(PARAM_HARD_SENS, 0.f, 5.f, 1.f, "Hardcut sensitivity","");
+    configParam(PARAM_HARD_DURATION, 0.f, 300.f, 30.f, "Hardcut duration"," Seconds");
+    configParam(PARAM_SOFT_DURATION, 0.f, 300.f, 30.f, "Softcut duration"," Seconds");
   }
 
   float presetTime = 0;
   float beatSensitivity = 1;
   float hardcutSensitivity = 1;
+  float hardcutDuration = 0;
+  float softcutDuration = 0;
   bool aspectCorrection = true;
   int presetIndex = 0;
   bool displayPresetName = false;
@@ -146,7 +158,13 @@ struct LFMModule : Module {
     hardcutSensitivity = params[PARAM_HARD_SENS].getValue();
     if (inputs[HARDCUT_INPUT].isConnected())
       hardcutSensitivity+=inputs[HARDCUT_INPUT].getVoltage();
-
+    hardcutDuration = params[PARAM_HARD_DURATION].getValue();
+    if (inputs[HARDCUT_DURATION_INPUT].isConnected())
+      hardcutDuration+=inputs[HARDCUT_DURATION_INPUT].getVoltage();
+    softcutDuration = params[PARAM_SOFT_DURATION].getValue();
+    if (inputs[SOFTCUT_DURATION_INPUT].isConnected())
+      softcutDuration+=inputs[SOFTCUT_DURATION_INPUT].getVoltage();   
+    
     if (nextTrigger.process(params[PARAM_NEXT].getValue()) > 0.f || nextInputTrigger.process(rescale(inputs[NEXT_PRESET_INPUT].getVoltage(), 0.1f, 2.f, 0.f, 1.f))) {
       nextPreset=true;
 	  }
@@ -257,6 +275,8 @@ struct BaseProjectMWidget : FramebufferWidget {
       getRenderer()->presetTime = module->presetTime;
       getRenderer()->beatSensitivity = module->beatSensitivity;
       getRenderer()->hardcutSensitivity = module->hardcutSensitivity;
+      getRenderer()->hardcutDuration = module->hardcutDuration;
+      getRenderer()->softcutDuration = module->softcutDuration;
       getRenderer()->aspectCorrection = module->aspectCorrection;
       getRenderer()->hardCut = module->hardCut;
       module->presetIndex = getRenderer()->activePreset();
@@ -516,11 +536,17 @@ struct LFMModuleWidget : BaseLFMModuleWidget {
    	addInput(createInput<PJ301MPort>(Vec(jackX2, jackY1), module, LFMModule::BEAT_INPUT));	
 		addInput(createInput<PJ301MPort>(Vec(jackX2, jackY2), module, LFMModule::HARDCUT_INPUT));	 
 
-    addInput(createInput<PJ301MPort>(Vec(jackX2, jackY3), module, LFMModule::NEXT_PRESET_INPUT));
-    addInput(createInput<PJ301MPort>(Vec(jackX2, jackY4), module, LFMModule::PREV_PRESET_INPUT));
+    addInput(createInput<PJ301MPort>(Vec(jackX2, jackY5), module, LFMModule::NEXT_PRESET_INPUT));
+    addInput(createInput<PJ301MPort>(Vec(jackX2, jackY6), module, LFMModule::PREV_PRESET_INPUT));
     
-    addInput(createInput<PJ301MPort>(Vec(jackX1, jackY5), module, LFMModule::LEFT_INPUT));	
-		addInput(createInput<PJ301MPort>(Vec(jackX2, jackY5), module, LFMModule::RIGHT_INPUT));	
+    addInput(createInput<PJ301MPort>(Vec(jackX1, jackY7), module, LFMModule::LEFT_INPUT));	
+		addInput(createInput<PJ301MPort>(Vec(jackX2, jackY7), module, LFMModule::RIGHT_INPUT));
+
+    addParam(createParam<RPJKnob>(Vec(knobX1,knobY4), module, LFMModule::PARAM_HARD_DURATION));	
+    addParam(createParam<RPJKnob>(Vec(knobX1,knobY5), module, LFMModule::PARAM_SOFT_DURATION));
+
+    addInput(createInput<PJ301MPort>(Vec(jackX2, jackY3), module, LFMModule::HARDCUT_DURATION_INPUT));
+    addInput(createInput<PJ301MPort>(Vec(jackX2, jackY4), module, LFMModule::SOFTCUT_DURATION_INPUT));
 
     //std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
     if (module) {
@@ -581,11 +607,17 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
    	addInput(createInput<PJ301MPort>(Vec(jackX2, jackY1), module, LFMModule::BEAT_INPUT));	
 		addInput(createInput<PJ301MPort>(Vec(jackX2, jackY2), module, LFMModule::HARDCUT_INPUT));	 
 
-    addInput(createInput<PJ301MPort>(Vec(jackX2, jackY3), module, LFMModule::NEXT_PRESET_INPUT));
-    addInput(createInput<PJ301MPort>(Vec(jackX2, jackY4), module, LFMModule::PREV_PRESET_INPUT));
+    addInput(createInput<PJ301MPort>(Vec(jackX2, jackY5), module, LFMModule::NEXT_PRESET_INPUT));
+    addInput(createInput<PJ301MPort>(Vec(jackX2, jackY6), module, LFMModule::PREV_PRESET_INPUT));
     
-    addInput(createInput<PJ301MPort>(Vec(jackX1, jackY5), module, LFMModule::LEFT_INPUT));	
-		addInput(createInput<PJ301MPort>(Vec(jackX2, jackY5), module, LFMModule::RIGHT_INPUT));	
+    addInput(createInput<PJ301MPort>(Vec(jackX1, jackY7), module, LFMModule::LEFT_INPUT));	
+		addInput(createInput<PJ301MPort>(Vec(jackX2, jackY7), module, LFMModule::RIGHT_INPUT));
+
+    addParam(createParam<RPJKnob>(Vec(knobX1,knobY4), module, LFMModule::PARAM_HARD_DURATION));	
+    addParam(createParam<RPJKnob>(Vec(knobX1,knobY5), module, LFMModule::PARAM_SOFT_DURATION));
+
+    addInput(createInput<PJ301MPort>(Vec(jackX2, jackY3), module, LFMModule::HARDCUT_DURATION_INPUT));
+    addInput(createInput<PJ301MPort>(Vec(jackX2, jackY4), module, LFMModule::SOFTCUT_DURATION_INPUT));
   }
 
   void step() override {

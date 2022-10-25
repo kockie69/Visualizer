@@ -52,6 +52,8 @@ public:
   double presetTime = 0;
   float beatSensitivity = 1;
   float hardcutSensitivity = 1;
+  double hardcutDuration = 0;
+  double softcutDuration = 0;
   bool firstBeat = true;
   bool aspectCorrection = true;
   bool nextPreset = false;
@@ -106,6 +108,8 @@ public:
   void setHardcutSensitivity(float);
 
   void setHardcutDuration(double);
+
+  void setSoftcutDuration(double);
   
   // Set the Hardcut
   void setHardcut(bool);
