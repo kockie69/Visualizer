@@ -229,7 +229,7 @@ void ProjectMRenderer::CheckViewportSize(GLFWwindow* win)
         _renderWidth = renderWidth;
         _renderHeight = renderHeight;
 
-        DEBUG("Resized rendering canvas to %d %d.", renderWidth, renderHeight);
+        //DEBUG("Resized rendering canvas to %d %d.", renderWidth, renderHeight);
     }
 }
 
@@ -321,6 +321,7 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
         }
         int width, height;
         glfwGetFramebufferSize(this->window, &width, &height);
+        
         GLsizei nrChannels = 4;
         GLsizei stride = nrChannels * width;
         stride += (stride % 4) ? (4 - stride % 4) : 0;
@@ -329,8 +330,8 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
         buffer.reserve(bufferSize);
 
         glPixelStorei(GL_PACK_ALIGNMENT, 4); 
-        glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer.data());
-
+        glReadnPixels(0, 0, width, height, GL_RGBA, GL_BYTE, bufferSize, buffer.data());
+        GLenum error = glGetError();
         bufferWidth = width;
 
         glfwSwapBuffers(window);
@@ -453,7 +454,7 @@ GLFWwindow* TextureRenderer::createWindow(int *xpos,int *ypos,int *width,int *he
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-  glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+  glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
 
   #if defined ARCH_MAC
 	glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_TRUE);

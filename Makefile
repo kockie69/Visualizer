@@ -48,7 +48,7 @@ $(projectm):
 # TSometimes there are issues with the latest version for projectm so we need to rollback to a stable version
 # By specifying the right commit in the next line we force using that specific one. 
 
-	cd dep/projectm && git checkout --force ad2203f7bbd36690f93dcc7b562fd1c04668fc22
+	cd dep/projectm && git checkout --force dbbbc3e591def6bc6dcc113670ca611427fa6629
 
 # I built my own api service but it is not part of ProjectM yet (I have send a PR)
 # So copy my files over the existing to make the api available. 
