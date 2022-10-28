@@ -82,7 +82,7 @@ struct LFMModule : Module {
     PARAM_BEAT_SENS,
     PARAM_HARD_SENS,
     PARAM_HARD_DURATION,
-    PARAM_SOFT_DURATION,
+    PARAM_GRADIENT,
     NUM_PARAMS
   };
   enum InputIds {
@@ -93,7 +93,7 @@ struct LFMModule : Module {
     BEAT_INPUT,
     HARDCUT_INPUT,
     HARDCUT_DURATION_INPUT,
-    SOFTCUT_DURATION_INPUT,
+    GRADIENT_INPUT,
     NUM_INPUTS
   };
   enum OutputIds {
@@ -113,14 +113,14 @@ struct LFMModule : Module {
     configParam(PARAM_BEAT_SENS, 0.f, 5.f, 1.f, "Beat sensitivity","");
     configParam(PARAM_HARD_SENS, 0.f, 5.f, 1.f, "Hardcut sensitivity","");
     configParam(PARAM_HARD_DURATION, 0.f, 300.f, 30.f, "Hardcut duration"," Seconds");
-    configParam(PARAM_SOFT_DURATION, 0.f, 300.f, 30.f, "Softcut duration"," Seconds");
+    configParam(PARAM_GRADIENT, 0.f, 30.f, 5.f, "Gradient"," ");
   }
 
   float presetTime = 0;
   float beatSensitivity = 1;
   float hardcutSensitivity = 1;
   float hardcutDuration = 0;
-  float softcutDuration = 0;
+  float gradient = 1;
   bool aspectCorrection = true;
   int presetIndex = 0;
   bool displayPresetName = false;
@@ -161,9 +161,9 @@ struct LFMModule : Module {
     hardcutDuration = params[PARAM_HARD_DURATION].getValue();
     if (inputs[HARDCUT_DURATION_INPUT].isConnected())
       hardcutDuration+=inputs[HARDCUT_DURATION_INPUT].getVoltage();
-    softcutDuration = params[PARAM_SOFT_DURATION].getValue();
-    if (inputs[SOFTCUT_DURATION_INPUT].isConnected())
-      softcutDuration+=inputs[SOFTCUT_DURATION_INPUT].getVoltage();   
+    gradient = params[PARAM_GRADIENT].getValue();
+    if (inputs[GRADIENT_INPUT].isConnected())
+      gradient+=inputs[GRADIENT_INPUT].getVoltage();   
     
     if (nextTrigger.process(params[PARAM_NEXT].getValue()) > 0.f || nextInputTrigger.process(rescale(inputs[NEXT_PRESET_INPUT].getVoltage(), 0.1f, 2.f, 0.f, 1.f))) {
       nextPreset=true;
@@ -276,7 +276,7 @@ struct BaseProjectMWidget : FramebufferWidget {
       getRenderer()->beatSensitivity = module->beatSensitivity;
       getRenderer()->hardcutSensitivity = module->hardcutSensitivity;
       getRenderer()->hardcutDuration = module->hardcutDuration;
-      getRenderer()->softcutDuration = module->softcutDuration;
+      //getRenderer()->softcutDuration = module->softcutDuration;
       getRenderer()->aspectCorrection = module->aspectCorrection;
       getRenderer()->hardCut = module->hardCut;
       module->presetIndex = getRenderer()->activePreset();
@@ -334,7 +334,7 @@ struct BaseProjectMWidget : FramebufferWidget {
 
     // Preset display settings
     s.preset_duration = 30;
-    s.soft_cut_duration = 10;
+    s.soft_cut_duration = 0;
     s.hard_cut_enabled = true;
     s.hard_cut_duration= 20;
     s.hard_cut_sensitivity =  0.5;
@@ -400,7 +400,7 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
       img = nvgCreateImageRGBA(args.vg,x,y,0,renderer->getBuffer());
       std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
   
-      NVGpaint imgPaint = nvgImagePattern(args.vg, 0, 0, x, y, 0.0f, img, 1.0f);
+      NVGpaint imgPaint = nvgImagePattern(args.vg, 0, 0, x, y, 0.0f, img, module->gradient);
 
       nvgSave(args.vg);
       nvgScale(args.vg, 1, -1); // flip
@@ -543,10 +543,10 @@ struct LFMModuleWidget : BaseLFMModuleWidget {
 		addInput(createInput<PJ301MPort>(Vec(jackX2, jackY7), module, LFMModule::RIGHT_INPUT));
 
     addParam(createParam<RPJKnob>(Vec(knobX1,knobY4), module, LFMModule::PARAM_HARD_DURATION));	
-    addParam(createParam<RPJKnob>(Vec(knobX1,knobY5), module, LFMModule::PARAM_SOFT_DURATION));
+    addParam(createParam<RPJKnob>(Vec(knobX1,knobY5), module, LFMModule::PARAM_GRADIENT));
 
     addInput(createInput<PJ301MPort>(Vec(jackX2, jackY3), module, LFMModule::HARDCUT_DURATION_INPUT));
-    addInput(createInput<PJ301MPort>(Vec(jackX2, jackY4), module, LFMModule::SOFTCUT_DURATION_INPUT));
+    addInput(createInput<PJ301MPort>(Vec(jackX2, jackY4), module, LFMModule::GRADIENT_INPUT));
 
     //std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
     if (module) {
@@ -614,10 +614,10 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
 		addInput(createInput<PJ301MPort>(Vec(jackX2, jackY7), module, LFMModule::RIGHT_INPUT));
 
     addParam(createParam<RPJKnob>(Vec(knobX1,knobY4), module, LFMModule::PARAM_HARD_DURATION));	
-    addParam(createParam<RPJKnob>(Vec(knobX1,knobY5), module, LFMModule::PARAM_SOFT_DURATION));
+    addParam(createParam<RPJKnob>(Vec(knobX1,knobY5), module, LFMModule::PARAM_GRADIENT));
 
     addInput(createInput<PJ301MPort>(Vec(jackX2, jackY3), module, LFMModule::HARDCUT_DURATION_INPUT));
-    addInput(createInput<PJ301MPort>(Vec(jackX2, jackY4), module, LFMModule::SOFTCUT_DURATION_INPUT));
+    addInput(createInput<PJ301MPort>(Vec(jackX2, jackY4), module, LFMModule::GRADIENT_INPUT));
   }
 
   void step() override {
