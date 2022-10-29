@@ -45,20 +45,6 @@ $(projectm):
 # 	Out-of-source build dir
 	cd dep && git submodule update --init
 
-# TSometimes there are issues with the latest version for projectm so we need to rollback to a stable version
-# By specifying the right commit in the next line we force using that specific one. 
-
-	cd dep/projectm && git checkout --force dbbbc3e591def6bc6dcc113670ca611427fa6629
-
-# I built my own api service but it is not part of ProjectM yet (I have send a PR)
-# So copy my files over the existing to make the api available. 
-# To Do: This is a bit risky, better would be adding my code instead of overwriting files.
-
-	cp src/dep/ProjectM.cpp dep/projectm/src/libprojectM
-	cp src/dep/projectM.h dep/projectm/src/libprojectM
-	cp src/dep/ProjectM.hpp dep/projectm/src/libprojectM
-	cp src/dep/ProjectMCWrapper.cpp dep/projectm/src/libprojectM
-
 # Start building
 	cd dep/projectm && mkdir -p build
 
