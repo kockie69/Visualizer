@@ -394,13 +394,14 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
     void drawLayer(const DrawArgs& args, int layer) override {
     if (layer == 1) {
       const int y = RACK_GRID_HEIGHT;
-      int x = renderer->getWindowWidth();
-
+      int x = renderer->getRenderWidth();
+      int x2 = renderer->getRenderWidth();
+      
       nvgDeleteImage(args.vg,img);
       img = nvgCreateImageRGBA(args.vg,x,y,0,renderer->getBuffer());
       std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
   
-      NVGpaint imgPaint = nvgImagePattern(args.vg, 0, 0, x, y, 0.0f, img, module->gradient);
+      NVGpaint imgPaint = nvgImagePattern(args.vg, 0, 0, x2-RACK_GRID_WIDTH, y, 0.0f, img, module->gradient);
 
       nvgSave(args.vg);
       nvgScale(args.vg, 1, -1); // flip
@@ -570,12 +571,12 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
 
 		panel = new BGPanel(nvgRGB(0, 0, 0));
 		panel->box.size = box.size;
-
+    panel->box.size.x = RACK_GRID_WIDTH;
 		addChild(panel);
 
     if (module) {
       // this is a "live" module in Rack
-      w = BaseProjectMWidget::create<EmbeddedProjectMWidget>(Vec(95, 0), asset::plugin(pluginInstance, "res/presets_projectM/"),module->presetIndex);
+      w = BaseProjectMWidget::create<EmbeddedProjectMWidget>(Vec(6*RACK_GRID_WIDTH, 0), asset::plugin(pluginInstance, "res/presets_projectM/"),module->presetIndex);
       w->module = module;
       w->box.size = Vec(RENDER_WIDTH,RACK_GRID_HEIGHT);
       addChild(w);
