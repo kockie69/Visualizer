@@ -395,7 +395,7 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
     if (layer == 1) {
       const int y = RACK_GRID_HEIGHT;
       int x = renderer->getRenderWidth();
-      int x2 = renderer->getRenderWidth();
+      int x2 = renderer->getWindowWidth();
       
       nvgDeleteImage(args.vg,img);
       img = nvgCreateImageRGBA(args.vg,x,y,0,renderer->getBuffer());
