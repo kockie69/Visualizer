@@ -25,14 +25,13 @@ The windowed version has similar functionalities as the embedded version, but a 
 The menu shown here offers different options that let you control the module. We will explain each option below.
 
 ### Cycle through presets
-Right clicking the module gives you the option to enable or disable Cycle through presets. If this is enabled the module will automatically jump to another preset. The time it stays with a preset can be set by the timer knob on the module.
+Right clicking the module gives you the option to enable or disable Cycle through presets. If this is enabled the module will automatically jump to another preset. The time it stays with a preset can be set by the timer knob on the module. 
 
 ### Hardcut Enabled
-If Hardcut is enabled switching presets won't be done fluidly but quit abrupt. When it is disabled the transfer between presets will go more fluidly which might result in nice additional effects.
+A hard cut is a beat-induced immediate transition to the next preset that might happen before the preset display duration is reached. Also see Hard Cut Duration and Hard Cut Sensitivity to fine-tune the behaviour.
 
 ### Aspectcorrection Enabled
-Enables or disables aspect ratio correction in presets that support it.
-This sets a flag presets can use to aspect-correct rendered shapes, which otherwise would be distorted if the window display isn't exactly square.
+Enables or disables aspect ratio correction in presets that support it. This sets a flag presets can use to aspect-correct rendered shapes, which otherwise would be distorted if the window display isn't exactly square. This is generally used to make shapes not appear stretched, e.g. circles or squares not being squished in one direction.
 
 ### Case sensitive Visual Preset Search
 This setting is used for the search option. If this is enabled the search will take place Case sensitive (so it will make differnce between lowercase and uppercase).
@@ -48,7 +47,16 @@ Below it one can see the Visual presets that are available. The list can be huge
 With the timer knob you can set the time that the preset will stay active when the menu option is set to cycle through presets. The time can vary between 0 and 300 seconds.
 
 ### Beat sensitivity
-This is a value that varies between 0 and 5 and can be controlled by the buttons on the left and right. Left to be used to lower the sensitivty and right to increase the value. Beat Sensitivity impacts how reactive your visualizations are to volume, bass, mid-range, and treble. Range: 0 - 5 (from "dead" to VERY reactive)
+This knob is to control the beat sensitivity thatvaries between 0 and 5. Beat Sensitivity impacts how reactive your visualizations are to volume, bass, mid-range, and treble. Range: 0 - 5 (from "dead" to VERY reactive). It is used by most presets to perform on-beat actions like pulsing or changing rotation.
+
+### Hard cut sensitivity
+Beat sensitivity value to perform a "hard cut". It will be performed only after the number of seconds set in Hard Cut Duration have passed. Only used if hard cuts and Cycle through presets are enabled.
+
+### Hard cut duration
+Minimum number of seconds before a "hard cut" is performed. Only used if hard cuts are enabled.
+
+### Gradient
+You can control the lightness and darkness of the preset by changing the gradient.
 
 ### Next
 There is a next button and a next input, and both have the same functionality. If next is triggered it depends on the setting of Cycle through presets what will happen. If it is enabled, a random preset will be shown next. If Cycle through presets is disabled the next preset in line will be shown.
@@ -59,7 +67,7 @@ Same as next, but instead of the next preset it will show the previous.
 ## Controlling the window
 
 ### Resizing the window
-If you put your mouse at the right end of the module you can drag the window and you can make the window bigger or smaller, depending on your requirements.
+If you put your mouse at the right end of the module you can drag the window and you can make the window bigger or smaller, depending on your requirements. It has been noticed that on some systems this is not working properly and may result in a messy screen. 
 
 ### Full Screen
 If you have the windowed version of the module active, clicking it and pressing the 'enter' key will make the window Full screen. By pressing the 'Esc' key you will get back to normal size
