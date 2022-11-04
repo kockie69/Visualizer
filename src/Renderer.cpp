@@ -9,7 +9,7 @@
 
 void ProjectMRenderer::init(mySettings const& s,int *xpos, int *ypos,int *width,int *height) {
   window = createWindow(xpos,ypos,width,height);
-  std::string url = s.preset_url;
+  std::string url = s.preset_path;
   renderThread = std::thread([this,s,url](){ this->renderLoop(s,url); });
 }
 
@@ -115,6 +115,12 @@ void ProjectMRenderer::setHardcutDuration(double d) {
   projectm_set_hard_cut_duration(pm,d);
 }
 
+void ProjectMRenderer::setSoftcutDuration(double d) {
+  if (!pm) return;
+  std::lock_guard<std::mutex> l(pm_m);
+  projectm_set_soft_cut_duration(pm,d);
+}
+
 void ProjectMRenderer::setHardcut(bool hardCut) {
   if (!pm) return;
   std::lock_guard<std::mutex> l(pm_m);
@@ -213,17 +219,18 @@ void ProjectMRenderer::renderLoopSetPreset(unsigned int i) {
 
 void ProjectMRenderer::CheckViewportSize(GLFWwindow* win)
 {
-    int renderWidth;
-    int renderHeight;
-    glfwGetWindowSize(win, &renderWidth, &renderHeight);
+    int _renderWidth;
+    int _renderHeight;
+    glfwGetWindowSize(win, &windowWidth, &windowHeight);
+    glfwGetFramebufferSize(win, &_renderWidth, &_renderHeight);
 
     if (renderWidth != _renderWidth || renderHeight != _renderHeight)
     {
-        projectm_set_window_size(pm, renderWidth, renderHeight);
-        _renderWidth = renderWidth;
-        _renderHeight = renderHeight;
+        //projectm_set_window_size(pm, _renderWidth, _renderHeight);
+        renderWidth = _renderWidth;
+        renderHeight = _renderHeight;
 
-        DEBUG("Resized rendering canvas to %d %d.", renderWidth, renderHeight);
+        //DEBUG("Resized rendering canvas to %d %d.", renderWidth, renderHeight);
     }
 }
 
@@ -238,7 +245,7 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
   
   // Initialize projectM
   projectm_settings *sp = projectm_alloc_settings();
-    sp->preset_url = (char *)url.c_str();
+    sp->preset_path = (char *)url.c_str();
     sp->window_width = s.window_width;
     sp->window_height = s.window_height;
     sp->fps =  s.fps;
@@ -278,7 +285,8 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
     setPresetTime(presetTime);
     setBeatSensitivity(beatSensitivity);
     setHardcutSensitivity(hardcutSensitivity);
-    setHardcutDuration(1.0);
+    setHardcutDuration(hardcutDuration);
+    setSoftcutDuration(softcutDuration);
     setAspectCorrection(aspectCorrection);
     setHardcut(hardCut);
 
@@ -312,19 +320,17 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
       	  std::lock_guard<std::mutex> l(pm_m);
 	        projectm_render_frame(pm);
         }
-        int width, height;
-        glfwGetFramebufferSize(this->window, &width, &height);
+        
         GLsizei nrChannels = 4;
-        GLsizei stride = nrChannels * width;
+        GLsizei stride = nrChannels * renderWidth;
         stride += (stride % 4) ? (4 - stride % 4) : 0;
-        GLsizei bufferSize = stride * height;
+        GLsizei bufferSize = stride * renderHeight;
 
         buffer.reserve(bufferSize);
 
         glPixelStorei(GL_PACK_ALIGNMENT, 4); 
-        glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer.data());
-
-        bufferWidth = width;
+        glReadnPixels(0, 0, renderWidth, renderHeight, GL_RGBA, GL_BYTE, bufferSize, buffer.data());
+        GLenum error = glGetError();
 
         glfwSwapBuffers(window);
       }
@@ -476,5 +482,9 @@ unsigned char* TextureRenderer::getBuffer() {
 }
 
 int TextureRenderer::getWindowWidth() {
-  return bufferWidth;
+  return windowWidth;
+}
+
+int TextureRenderer::getRenderWidth() {
+  return renderWidth;
 }

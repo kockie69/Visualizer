@@ -38,7 +38,7 @@ struct JWModuleResizeHandle : OpaqueWidget {
 
 		newBox.size.x += deltaX;
 		newBox.size.x = std::fmax(newBox.size.x, minWidth);
-		//newBox.size.x = std::round(newBox.size.x / RACK_GRID_WIDTH) * RACK_GRID_WIDTH
+		newBox.size.x = std::round(newBox.size.x / RACK_GRID_WIDTH) * RACK_GRID_WIDTH;
 
 		// Set box and test whether it's valid
 		mw->box = newBox;

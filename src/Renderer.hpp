@@ -46,12 +46,15 @@ protected:
 
 public:
   ProjectMRenderer() {}
+  int windowWidth{ 0 };
+  int renderWidth{ 0 };
   GLFWwindow* window;
   std::vector<unsigned char> buffer;
-  int bufferWidth = RENDER_WIDTH;
   double presetTime = 0;
   float beatSensitivity = 1;
   float hardcutSensitivity = 1;
+  double hardcutDuration = 0;
+  double softcutDuration = 0;
   bool firstBeat = true;
   bool aspectCorrection = true;
   bool nextPreset = false;
@@ -106,6 +109,8 @@ public:
   void setHardcutSensitivity(float);
 
   void setHardcutDuration(double);
+
+  void setSoftcutDuration(double);
   
   // Set the Hardcut
   void setHardcut(bool);
@@ -129,8 +134,8 @@ private:
   void renderLoopNextPreset();
   void renderLoop(mySettings s,std::string);
   void CheckViewportSize(GLFWwindow*);
-  int _renderWidth{ 0 };
-  int _renderHeight{ 0 };
+  int renderHeight{ 0 };
+  int windowHeight{ 0 };
   virtual GLFWwindow* createWindow(int*,int*,int*,int*) = 0;
 };
 
@@ -159,6 +164,7 @@ public:
   int getTextureID() const;
   unsigned char* getBuffer();
   int getWindowWidth();
+  int getRenderWidth();
 
 private:
   int texture;

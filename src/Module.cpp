@@ -11,23 +11,30 @@
 static const unsigned int kSampleWindow = 512;
 
 // Then do the knobs
-const float knobX1 = 27;
+const float knobX1 = 12;
+const float knobX2 = 30;
 
-const float knobY1 = 44;
-const float knobY2 = 90;
-const float knobY3 = 140;
+const float knobY1 = 32;
+const float knobY2 = 72;
+const float knobY3 = 121;
+const float knobY4 = 169;
+const float knobY5 = 220;
 
-const float buttonX1 = 41;
+const float buttonX1 = 26;
 
-const float buttonY1 = 255;
-const float buttonY2 = 285;
+const float buttonY1 = 278;
+const float buttonY2 = 306;
 
-const float jackX1 = 11;
-const float jackX2 = 27;
-const float jackX3 = 47;
+const float jackX1 = 14;
+const float jackX2 = 50;
 
-const float jackY1 = 217;
-const float jackY2 = 311;
+const float jackY1 = 74;
+const float jackY2 = 123;
+const float jackY3 = 172;
+const float jackY4 = 221;
+const float jackY5 = 266;
+const float jackY6 = 295;
+const float jackY7 = 327;
 
 struct ImageWidget : TransparentWidget
 {
@@ -74,12 +81,19 @@ struct LFMModule : Module {
     PARAM_TIMER,
     PARAM_BEAT_SENS,
     PARAM_HARD_SENS,
+    PARAM_HARD_DURATION,
+    PARAM_GRADIENT,
     NUM_PARAMS
   };
   enum InputIds {
     LEFT_INPUT, 
     RIGHT_INPUT,
     NEXT_PRESET_INPUT,
+    PREV_PRESET_INPUT,
+    BEAT_INPUT,
+    HARDCUT_INPUT,
+    HARDCUT_DURATION_INPUT,
+    GRADIENT_INPUT,
     NUM_INPUTS
   };
   enum OutputIds {
@@ -98,11 +112,15 @@ struct LFMModule : Module {
     configParam(PARAM_TIMER, 0.f, 300.f, 30.f, "Time till next preset"," Seconds");
     configParam(PARAM_BEAT_SENS, 0.f, 5.f, 1.f, "Beat sensitivity","");
     configParam(PARAM_HARD_SENS, 0.f, 5.f, 1.f, "Hardcut sensitivity","");
+    configParam(PARAM_HARD_DURATION, 0.f, 300.f, 30.f, "Hardcut duration"," Seconds");
+    configParam(PARAM_GRADIENT, 0.f, 30.f, 5.f, "Gradient"," ");
   }
 
   float presetTime = 0;
   float beatSensitivity = 1;
   float hardcutSensitivity = 1;
+  float hardcutDuration = 0;
+  float gradient = 1;
   bool aspectCorrection = true;
   int presetIndex = 0;
   bool displayPresetName = false;
@@ -118,7 +136,7 @@ struct LFMModule : Module {
   int windowedHeight = 480;
   bool hardCut = true;
   
-  dsp::SchmittTrigger nextInputTrigger;
+  dsp::SchmittTrigger nextInputTrigger,prevInputTrigger;
   dsp::BooleanTrigger nextTrigger,prevTrigger;
   float pcm_data[kSampleWindow];
 
@@ -135,12 +153,23 @@ struct LFMModule : Module {
 
     presetTime = params[PARAM_TIMER].getValue();
     beatSensitivity = params[PARAM_BEAT_SENS].getValue();
+    if (inputs[BEAT_INPUT].isConnected())
+      beatSensitivity+=inputs[BEAT_INPUT].getVoltage();
     hardcutSensitivity = params[PARAM_HARD_SENS].getValue();
+    if (inputs[HARDCUT_INPUT].isConnected())
+      hardcutSensitivity+=inputs[HARDCUT_INPUT].getVoltage();
+    hardcutDuration = params[PARAM_HARD_DURATION].getValue();
+    if (inputs[HARDCUT_DURATION_INPUT].isConnected())
+      hardcutDuration+=inputs[HARDCUT_DURATION_INPUT].getVoltage();
+    gradient = params[PARAM_GRADIENT].getValue();
+    if (inputs[GRADIENT_INPUT].isConnected())
+      gradient+=inputs[GRADIENT_INPUT].getVoltage();   
+    
     if (nextTrigger.process(params[PARAM_NEXT].getValue()) > 0.f || nextInputTrigger.process(rescale(inputs[NEXT_PRESET_INPUT].getVoltage(), 0.1f, 2.f, 0.f, 1.f))) {
       nextPreset=true;
 	  }
 
-    if (prevTrigger.process(params[PARAM_PREV].getValue()) > 0.f) {
+    if (prevTrigger.process(params[PARAM_PREV].getValue()) > 0.f || prevInputTrigger.process(rescale(inputs[PREV_PRESET_INPUT].getVoltage(), 0.1f, 2.f, 0.f, 1.f))) {
 		  prevPreset=true;
 	  }
     
@@ -246,6 +275,8 @@ struct BaseProjectMWidget : FramebufferWidget {
       getRenderer()->presetTime = module->presetTime;
       getRenderer()->beatSensitivity = module->beatSensitivity;
       getRenderer()->hardcutSensitivity = module->hardcutSensitivity;
+      getRenderer()->hardcutDuration = module->hardcutDuration;
+      //getRenderer()->softcutDuration = module->softcutDuration;
       getRenderer()->aspectCorrection = module->aspectCorrection;
       getRenderer()->hardCut = module->hardCut;
       module->presetIndex = getRenderer()->activePreset();
@@ -263,7 +294,6 @@ struct BaseProjectMWidget : FramebufferWidget {
       if (module->nextPreset) {
         module->nextPreset = false;
         if (!getRenderer()->isAutoplayEnabled())
-          //getRenderer()->selectNextPreset(module->hardCut);
           getRenderer()->nextPreset=true;
         else 
           getRenderer()->requestPresetID(kPresetIDRandom);
@@ -271,7 +301,6 @@ struct BaseProjectMWidget : FramebufferWidget {
       if (module->prevPreset) {
         module->prevPreset = false;
         if (!getRenderer()->isAutoplayEnabled())
-          //getRenderer()->selectPreviousPreset(module->hardCut);
           getRenderer()->prevPreset=true;
         else
           getRenderer()->requestPresetID(kPresetIDRandom);
@@ -295,8 +324,7 @@ struct BaseProjectMWidget : FramebufferWidget {
     // Window/rendering settings
     s.presetIndex = presetIndex;
     
-    s.preset_url = (char *)presetURL.c_str();
-    
+    s.preset_path = (char *)presetURL.c_str();
     s.window_width = RENDER_WIDTH;
     s.window_height = RACK_GRID_HEIGHT;
     s.fps =  60;
@@ -306,7 +334,7 @@ struct BaseProjectMWidget : FramebufferWidget {
 
     // Preset display settings
     s.preset_duration = 30;
-    s.soft_cut_duration = 10;
+    s.soft_cut_duration = 0;
     s.hard_cut_enabled = true;
     s.hard_cut_duration= 20;
     s.hard_cut_sensitivity =  0.5;
@@ -366,13 +394,14 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
     void drawLayer(const DrawArgs& args, int layer) override {
     if (layer == 1) {
       const int y = RACK_GRID_HEIGHT;
-      int x = renderer->getWindowWidth();
-
+      int x = renderer->getRenderWidth();
+      int x2 = renderer->getWindowWidth();
+      
       nvgDeleteImage(args.vg,img);
       img = nvgCreateImageRGBA(args.vg,x,y,0,renderer->getBuffer());
       std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
   
-      NVGpaint imgPaint = nvgImagePattern(args.vg, 0, 0, x, y, 0.0f, img, 1.0f);
+      NVGpaint imgPaint = nvgImagePattern(args.vg, 0, 0, x2-RACK_GRID_WIDTH, y, 0.0f, img, module->gradient);
 
       nvgSave(args.vg);
       nvgScale(args.vg, 1, -1); // flip
@@ -496,16 +525,29 @@ struct LFMModuleWidget : BaseLFMModuleWidget {
     
     setModule(module);
     setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/VisualizerWindow.svg")));
-    addParam(createParam<RPJKnob>(Vec(knobX1,knobY1), module, LFMModule::PARAM_TIMER));
+
+        
+    addParam(createParam<RPJKnob>(Vec(knobX2,knobY1), module, LFMModule::PARAM_TIMER));
     addParam(createParam<RPJKnob>(Vec(knobX1,knobY2), module, LFMModule::PARAM_BEAT_SENS));
+    addParam(createParam<RPJKnob>(Vec(knobX1,knobY3), module, LFMModule::PARAM_HARD_SENS));
 
     addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY1), module, LFMModule::PARAM_NEXT,LFMModule::NEXT_LIGHT));
 		addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY2), module, LFMModule::PARAM_PREV,LFMModule::PREV_LIGHT));
-    
-		addInput(createInput<PJ301MPort>(Vec(jackX1, jackY2), module, LFMModule::LEFT_INPUT));	
-		addInput(createInput<PJ301MPort>(Vec(jackX3, jackY2), module, LFMModule::RIGHT_INPUT));	
 
-    addInput(createInput<PJ301MPort>(Vec(30, jackY1), module, LFMModule::NEXT_PRESET_INPUT));
+   	addInput(createInput<PJ301MPort>(Vec(jackX2, jackY1), module, LFMModule::BEAT_INPUT));	
+		addInput(createInput<PJ301MPort>(Vec(jackX2, jackY2), module, LFMModule::HARDCUT_INPUT));	 
+
+    addInput(createInput<PJ301MPort>(Vec(jackX2, jackY5), module, LFMModule::NEXT_PRESET_INPUT));
+    addInput(createInput<PJ301MPort>(Vec(jackX2, jackY6), module, LFMModule::PREV_PRESET_INPUT));
+    
+    addInput(createInput<PJ301MPort>(Vec(jackX1, jackY7), module, LFMModule::LEFT_INPUT));	
+		addInput(createInput<PJ301MPort>(Vec(jackX2, jackY7), module, LFMModule::RIGHT_INPUT));
+
+    addParam(createParam<RPJKnob>(Vec(knobX1,knobY4), module, LFMModule::PARAM_HARD_DURATION));	
+    addParam(createParam<RPJKnob>(Vec(knobX1,knobY5), module, LFMModule::PARAM_GRADIENT));
+
+    addInput(createInput<PJ301MPort>(Vec(jackX2, jackY3), module, LFMModule::HARDCUT_DURATION_INPUT));
+    addInput(createInput<PJ301MPort>(Vec(jackX2, jackY4), module, LFMModule::GRADIENT_INPUT));
 
     //std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
     if (module) {
@@ -529,12 +571,12 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
 
 		panel = new BGPanel(nvgRGB(0, 0, 0));
 		panel->box.size = box.size;
-
+    panel->box.size.x = RACK_GRID_WIDTH;
 		addChild(panel);
 
     if (module) {
       // this is a "live" module in Rack
-      w = BaseProjectMWidget::create<EmbeddedProjectMWidget>(Vec(95, 0), asset::plugin(pluginInstance, "res/presets_projectM/"),module->presetIndex);
+      w = BaseProjectMWidget::create<EmbeddedProjectMWidget>(Vec(6*RACK_GRID_WIDTH, 0), asset::plugin(pluginInstance, "res/presets_projectM/"),module->presetIndex);
       w->module = module;
       w->box.size = Vec(RENDER_WIDTH,RACK_GRID_HEIGHT);
       addChild(w);
@@ -556,17 +598,27 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
 
 
         
-    addParam(createParam<RPJKnob>(Vec(knobX1,knobY1), module, LFMModule::PARAM_TIMER));
+    addParam(createParam<RPJKnob>(Vec(knobX2,knobY1), module, LFMModule::PARAM_TIMER));
     addParam(createParam<RPJKnob>(Vec(knobX1,knobY2), module, LFMModule::PARAM_BEAT_SENS));
     addParam(createParam<RPJKnob>(Vec(knobX1,knobY3), module, LFMModule::PARAM_HARD_SENS));
 
     addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY1), module, LFMModule::PARAM_NEXT,LFMModule::NEXT_LIGHT));
 		addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY2), module, LFMModule::PARAM_PREV,LFMModule::PREV_LIGHT));
-    
-		addInput(createInput<PJ301MPort>(Vec(jackX1, jackY2), module, LFMModule::LEFT_INPUT));	
-		addInput(createInput<PJ301MPort>(Vec(jackX3, jackY2), module, LFMModule::RIGHT_INPUT));	
 
-    addInput(createInput<PJ301MPort>(Vec(30, jackY1), module, LFMModule::NEXT_PRESET_INPUT));
+   	addInput(createInput<PJ301MPort>(Vec(jackX2, jackY1), module, LFMModule::BEAT_INPUT));	
+		addInput(createInput<PJ301MPort>(Vec(jackX2, jackY2), module, LFMModule::HARDCUT_INPUT));	 
+
+    addInput(createInput<PJ301MPort>(Vec(jackX2, jackY5), module, LFMModule::NEXT_PRESET_INPUT));
+    addInput(createInput<PJ301MPort>(Vec(jackX2, jackY6), module, LFMModule::PREV_PRESET_INPUT));
+    
+    addInput(createInput<PJ301MPort>(Vec(jackX1, jackY7), module, LFMModule::LEFT_INPUT));	
+		addInput(createInput<PJ301MPort>(Vec(jackX2, jackY7), module, LFMModule::RIGHT_INPUT));
+
+    addParam(createParam<RPJKnob>(Vec(knobX1,knobY4), module, LFMModule::PARAM_HARD_DURATION));	
+    addParam(createParam<RPJKnob>(Vec(knobX1,knobY5), module, LFMModule::PARAM_GRADIENT));
+
+    addInput(createInput<PJ301MPort>(Vec(jackX2, jackY3), module, LFMModule::HARDCUT_DURATION_INPUT));
+    addInput(createInput<PJ301MPort>(Vec(jackX2, jackY4), module, LFMModule::GRADIENT_INPUT));
   }
 
   void step() override {
