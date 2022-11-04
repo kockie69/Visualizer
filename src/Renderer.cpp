@@ -226,7 +226,7 @@ void ProjectMRenderer::CheckViewportSize(GLFWwindow* win)
 
     if (renderWidth != _renderWidth || renderHeight != _renderHeight)
     {
-        projectm_set_window_size(pm, _renderWidth, _renderHeight);
+        //projectm_set_window_size(pm, _renderWidth, _renderHeight);
         renderWidth = _renderWidth;
         renderHeight = _renderHeight;
 
