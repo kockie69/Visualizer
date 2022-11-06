@@ -329,7 +329,7 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
         buffer.reserve(bufferSize);
 
         glPixelStorei(GL_PACK_ALIGNMENT, 4); 
-        glReadnPixels(0, 0, renderWidth, renderHeight, GL_RGBA, GL_BYTE, bufferSize, buffer.data());
+        glReadPixels(0, 0, renderWidth, renderHeight, GL_RGBA, GL_BYTE, buffer.data());
         GLenum error = glGetError();
 
         glfwSwapBuffers(window);
