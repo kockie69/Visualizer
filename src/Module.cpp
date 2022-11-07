@@ -396,36 +396,39 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
       const int y = RACK_GRID_HEIGHT;
       int x = renderer->getRenderWidth();
       int x2 = renderer->getWindowWidth();
+      int b1 = renderer->getBufferSize();
       
-      nvgDeleteImage(args.vg,img);
-      img = nvgCreateImageRGBA(args.vg,x,y,0,renderer->getBuffer());
-      std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
-  
-      NVGpaint imgPaint = nvgImagePattern(args.vg, 0, 0, x2-RACK_GRID_WIDTH, y, 0.0f, img, module->gradient);
+      if (x == (b1/380/4)) {
+        nvgDeleteImage(args.vg,img);
+        img = nvgCreateImageRGBA(args.vg,x,y,0,renderer->getBuffer());
+        std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
+    
+        NVGpaint imgPaint = nvgImagePattern(args.vg, 0, 0, x2-RACK_GRID_WIDTH, y, 0.0f, img, module->gradient);
 
-      nvgSave(args.vg);
-      nvgScale(args.vg, 1, -1); // flip
-      nvgTranslate(args.vg,0, -y);
-      nvgBeginPath(args.vg);
-      // Box is positioned a bit to the left as we otherwise have a small black box on the left
-      // nvgRect(args.vg, -10, 0, x+20, y); 
-      nvgRect(args.vg, -10, 0, x, y);
-      nvgFillPaint(args.vg, imgPaint);
-      nvgFill(args.vg);
-      nvgRestore(args.vg);
-
-      if (module->displayPresetName) {
         nvgSave(args.vg);
-        nvgScissor(args.vg, 0, 0, x, y);
+        nvgScale(args.vg, 1, -1); // flip
+        nvgTranslate(args.vg,0, -y);
         nvgBeginPath(args.vg);
-        nvgFillColor(args.vg, nvgRGB(0xff, 0xff, 0xff));
-        nvgFontSize(args.vg, 14);
-        nvgFontFaceId(args.vg, font->handle);
-        nvgTextAlign(args.vg, NVG_ALIGN_BOTTOM);
-        nvgText(args.vg, 10, 20, getRenderer()->activePresetName().c_str(), nullptr);
+        // Box is positioned a bit to the left as we otherwise have a small black box on the left
+        // nvgRect(args.vg, -10, 0, x+20, y); 
+        nvgRect(args.vg, -10, 0, x, y);
+        nvgFillPaint(args.vg, imgPaint);
         nvgFill(args.vg);
-        nvgClosePath(args.vg);
         nvgRestore(args.vg);
+
+        if (module->displayPresetName) {
+          nvgSave(args.vg);
+          nvgScissor(args.vg, 0, 0, x, y);
+          nvgBeginPath(args.vg);
+          nvgFillColor(args.vg, nvgRGB(0xff, 0xff, 0xff));
+          nvgFontSize(args.vg, 14);
+          nvgFontFaceId(args.vg, font->handle);
+          nvgTextAlign(args.vg, NVG_ALIGN_BOTTOM);
+          nvgText(args.vg, 10, 20, getRenderer()->activePresetName().c_str(), nullptr);
+          nvgFill(args.vg);
+          nvgClosePath(args.vg);
+          nvgRestore(args.vg);
+        }
       }
     }
   }

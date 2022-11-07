@@ -227,6 +227,7 @@ void ProjectMRenderer::CheckViewportSize(GLFWwindow* win)
     if (renderWidth != _renderWidth || renderHeight != _renderHeight)
     {
         //projectm_set_window_size(pm, _renderWidth, _renderHeight);
+        projectm_set_window_size(pm, windowWidth, windowHeight);
         renderWidth = _renderWidth;
         renderHeight = _renderHeight;
 
@@ -279,7 +280,6 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
         }
       
     CheckViewportSize(window);
-      
         {
 
     setPresetTime(presetTime);
@@ -318,20 +318,22 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
       
         {
       	  std::lock_guard<std::mutex> l(pm_m);
+          //glViewport(0,0,renderWidth,renderHeight);
+
 	        projectm_render_frame(pm);
-        }
+        
         
         GLsizei nrChannels = 4;
         GLsizei stride = nrChannels * renderWidth;
         stride += (stride % 4) ? (4 - stride % 4) : 0;
-        GLsizei bufferSize = stride * renderHeight;
+        bufferSize = stride * renderHeight;
 
         buffer.reserve(bufferSize);
 
         glPixelStorei(GL_PACK_ALIGNMENT, 4); 
         glReadPixels(0, 0, renderWidth, renderHeight, GL_RGBA, GL_BYTE, buffer.data());
         GLenum error = glGetError();
-
+      }
         glfwSwapBuffers(window);
       }
       std::this_thread::sleep_for(std::chrono::microseconds(1000000/60));
@@ -487,4 +489,8 @@ int TextureRenderer::getWindowWidth() {
 
 int TextureRenderer::getRenderWidth() {
   return renderWidth;
+}
+
+int TextureRenderer::getBufferSize() {
+  return bufferSize;
 }

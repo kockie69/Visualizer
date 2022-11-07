@@ -9,7 +9,7 @@
 #include <thread>
 #include <mutex>
 
-static const int RENDER_WIDTH = RACK_GRID_WIDTH * 35;
+static const int RENDER_WIDTH = RACK_GRID_WIDTH * 34 + 5;;
 // Special values for preset requests
 static const int kPresetIDRandom = -1; // Switch to a random preset
 static const int kPresetIDKeep = -2; // Keep the current preset
@@ -46,6 +46,7 @@ protected:
 
 public:
   ProjectMRenderer() {}
+  GLsizei bufferSize;
   int windowWidth{ 0 };
   int renderWidth{ 0 };
   GLFWwindow* window;
@@ -165,6 +166,7 @@ public:
   unsigned char* getBuffer();
   int getWindowWidth();
   int getRenderWidth();
+  int getBufferSize();
 
 private:
   int texture;
