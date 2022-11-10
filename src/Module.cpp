@@ -579,7 +579,7 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
 
     if (module) {
       // this is a "live" module in Rack
-      w = BaseProjectMWidget::create<EmbeddedProjectMWidget>(Vec(6*RACK_GRID_WIDTH, 0), asset::plugin(pluginInstance, "res/presets_projectM/"),module->presetIndex);
+      w = BaseProjectMWidget::create<EmbeddedProjectMWidget>(Vec(6*RACK_GRID_WIDTH+4, 0), asset::plugin(pluginInstance, "res/presets_projectM/"),module->presetIndex);
       w->module = module;
       w->box.size = Vec(RENDER_WIDTH,RACK_GRID_HEIGHT);
       addChild(w);
@@ -625,11 +625,13 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
   }
 
   void step() override {
-		panel->box.size = box.size;
+    panel->box.size = box.size;
+#ifndef ARCH_MAC
     if (module) {
 		  rightHandle->box.pos.x = box.size.x - rightHandle->box.size.x;
       w->box.size = rightHandle->box.size;
     }
+#endif  
     ModuleWidget::step();
   }
 };
