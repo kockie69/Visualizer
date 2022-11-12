@@ -7,10 +7,10 @@
 #include <thread>
 #include <mutex>
 
-void ProjectMRenderer::init(mySettings const& s,int *xpos, int *ypos,int *width,int *height) {
+void ProjectMRenderer::init(mySettings const& s,int *xpos, int *ypos,int *width,int *height,bool windowed) {
   window = createWindow(xpos,ypos,width,height);
   std::string url = s.preset_path;
-  renderThread = std::thread([this,s,url](){ this->renderLoop(s,url); });
+  renderThread = std::thread([this,s,url,windowed](){ this->renderLoop(s,url,windowed); });
 }
 
 ProjectMRenderer::~ProjectMRenderer() {
@@ -238,7 +238,7 @@ void ProjectMRenderer::CheckViewportSize(GLFWwindow* win)
     }
 }
 
-void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
+void ProjectMRenderer::renderLoop(mySettings s,std::string url,bool windowed ) {
   if (!window) {
     setStatus(Status::FAILED);
     return;
@@ -286,7 +286,11 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
     GLuint FramebufferName = 0;
     GLuint texture = 0;
     glGenFramebuffers(1, &FramebufferName);
-    glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
+
+    if (windowed)
+      glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    else
+      glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
 
     glGenTextures(1, &texture);
 		glBindTexture(GL_TEXTURE_2D, texture);
