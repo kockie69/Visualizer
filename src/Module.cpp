@@ -400,10 +400,10 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
       
       if (x == (b1/380/4)) {
         nvgDeleteImage(args.vg,img);
-        img = nvgCreateImageRGBA(args.vg,x,y,0,renderer->getBuffer());
+        img = nvgCreateImageRGBA(args.vg,x2,y,0,renderer->getBuffer());
         std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
     
-        NVGpaint imgPaint = nvgImagePattern(args.vg, 0, 0, x2-RACK_GRID_WIDTH, y, 0.0f, img, module->gradient);
+        NVGpaint imgPaint = nvgImagePattern(args.vg, 0, 0, x2, y, 0.0f, img, module->gradient);
 
         nvgSave(args.vg);
         nvgScale(args.vg, 1, -1); // flip
@@ -411,7 +411,7 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
         nvgBeginPath(args.vg);
         // Box is positioned a bit to the left as we otherwise have a small black box on the left
         // nvgRect(args.vg, -10, 0, x+20, y); 
-        nvgRect(args.vg, -10, 0, x, y);
+        nvgRect(args.vg, 0, 0, x2, y);
         nvgFillPaint(args.vg, imgPaint);
         nvgFill(args.vg);
         nvgRestore(args.vg);
@@ -579,7 +579,7 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
 
     if (module) {
       // this is a "live" module in Rack
-      w = BaseProjectMWidget::create<EmbeddedProjectMWidget>(Vec(6*RACK_GRID_WIDTH+4, 0), asset::plugin(pluginInstance, "res/presets_projectM/"),module->presetIndex);
+      w = BaseProjectMWidget::create<EmbeddedProjectMWidget>(Vec(6*RACK_GRID_WIDTH-4, 0), asset::plugin(pluginInstance, "res/presets_projectM/"),module->presetIndex);
       w->module = module;
       w->box.size = Vec(RENDER_WIDTH,RACK_GRID_HEIGHT);
       addChild(w);
