@@ -250,15 +250,15 @@ struct BaseProjectMWidget : FramebufferWidget {
 
   BaseProjectMWidget() {}
 
-  void init(std::string presetURL,int presetIndex) {
-      getRenderer()->init(initSettings(presetURL,presetIndex),&module->windowedXpos,&module->windowedYpos,&module->windowedWidth,&module->windowedHeight);
+  void init(std::string presetURL,int presetIndex,bool windowed) {
+      getRenderer()->init(initSettings(presetURL,presetIndex),&module->windowedXpos,&module->windowedYpos,&module->windowedWidth,&module->windowedHeight,windowed);
   }
 
   template<typename T>
-  static BaseProjectMWidget* create(Vec pos, std::string presetURL,int presetIndex) {
+  static BaseProjectMWidget* create(Vec pos, std::string presetURL,int presetIndex,bool windowed) {
     BaseProjectMWidget* p = new T;
     p->box.pos = pos;
-    p->init(presetURL,presetIndex);
+    p->init(presetURL,presetIndex,windowed);
     return p;
   }
 
@@ -554,7 +554,7 @@ struct LFMModuleWidget : BaseLFMModuleWidget {
 
     //std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
     if (module) {
-      w = BaseProjectMWidget::create<WindowedProjectMWidget>(Vec(85, 20), asset::plugin(pluginInstance, "res/presets_projectM/"),module->presetIndex);
+      w = BaseProjectMWidget::create<WindowedProjectMWidget>(Vec(85, 20), asset::plugin(pluginInstance, "res/presets_projectM/"),module->presetIndex,true);
       w->module = module;
       w->box.size = Vec(RENDER_WIDTH,RACK_GRID_HEIGHT);
       //w->font = font;
@@ -579,7 +579,7 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
 
     if (module) {
       // this is a "live" module in Rack
-      w = BaseProjectMWidget::create<EmbeddedProjectMWidget>(Vec(6*RACK_GRID_WIDTH-4, 0), asset::plugin(pluginInstance, "res/presets_projectM/"),module->presetIndex);
+      w = BaseProjectMWidget::create<EmbeddedProjectMWidget>(Vec(6*RACK_GRID_WIDTH-4, 0), asset::plugin(pluginInstance, "res/presets_projectM/"),module->presetIndex,false);
       w->module = module;
       w->box.size = Vec(RENDER_WIDTH,RACK_GRID_HEIGHT);
       addChild(w);

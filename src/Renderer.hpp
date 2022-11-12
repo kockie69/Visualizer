@@ -65,7 +65,7 @@ public:
   // init creates the OpenGL context to render in, in the main thread,
   // then starts the rendering thread. This can't be done in the ctor
   // because creating the window calls out to virtual methods.
-  void init(mySettings const& s,int*,int*,int*,int*);
+  void init(mySettings const& s,int*,int*,int*,int*,bool);
 
   // The dtor signals the rendering thread to terminate, then waits
   // for it to do so. It then deletes the OpenGL context in the main
@@ -133,7 +133,7 @@ private:
   // the render thread.
   void renderLoopSetPreset(unsigned int i);
   void renderLoopNextPreset();
-  void renderLoop(mySettings s,std::string);
+  void renderLoop(mySettings s,std::string,bool);
   void CheckViewportSize(GLFWwindow*);
   int renderHeight{ 0 };
   int windowHeight{ 0 };
