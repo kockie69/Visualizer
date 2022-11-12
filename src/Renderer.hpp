@@ -38,6 +38,7 @@ private:
 
   mutable std::mutex pm_m;
   mutable std::mutex flags_m;
+
   double _sensitivity = 0;
 
 protected:
@@ -120,7 +121,6 @@ public:
   bool isRendering() const;
   virtual void showWindow(int* ,int*,int*,int* ) {};
 protected:
-  virtual void extraProjectMInitialization() {}
   static void logGLFWError(int errcode, const char* errmsg);
   void logContextInfo(std::string name, GLFWwindow* w) const;
 private:
@@ -162,17 +162,14 @@ private:
 class TextureRenderer : public ProjectMRenderer {
 public:
   virtual ~TextureRenderer() {}
-  int getTextureID() const;
   unsigned char* getBuffer();
   int getWindowWidth();
   int getRenderWidth();
   int getBufferSize();
 
 private:
-  int texture;
   GLFWwindow* createWindow(int*,int*,int*,int*) override;
   static void framebufferSizeCallback(GLFWwindow* win, int x, int y);
-  void extraProjectMInitialization() override;
 };
 
 #endif
