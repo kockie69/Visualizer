@@ -113,7 +113,7 @@ struct LFMModule : Module {
     configParam(PARAM_BEAT_SENS, 0.f, 5.f, 1.f, "Beat sensitivity","");
     configParam(PARAM_HARD_SENS, 0.f, 5.f, 1.f, "Hardcut sensitivity","");
     configParam(PARAM_HARD_DURATION, 0.f, 300.f, 30.f, "Hardcut duration"," Seconds");
-    configParam(PARAM_GRADIENT, 0.f, 30.f, 5.f, "Gradient"," ");
+    configParam(PARAM_GRADIENT, 0.f, 1.f, 0.5f, "Gradient"," ");
   }
 
   float presetTime = 0;
@@ -400,10 +400,10 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
       
       if (x == (b1/380/4)) {
         nvgDeleteImage(args.vg,img);
-        img = nvgCreateImageRGBA(args.vg,x2,y,0,renderer->getBuffer());
+        img = nvgCreateImageRGBA(args.vg,x,y,0,renderer->getBuffer());
         std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
     
-        NVGpaint imgPaint = nvgImagePattern(args.vg, 0, 0, x2, y, 0.0f, img, module->gradient);
+        NVGpaint imgPaint = nvgImagePattern(args.vg, 0, 0, x, y, 0.0f, img, module->gradient);
 
         nvgSave(args.vg);
         nvgScale(args.vg, 1, -1); // flip
