@@ -349,7 +349,7 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
 
           glPixelStorei(GL_PACK_ALIGNMENT, 4); 
 
-          glReadPixels(0, 0, renderWidth, renderHeight, GL_RGBA, GL_BYTE, buffer.data());
+          glReadPixels(0, 0, renderWidth, renderHeight, GL_RGBA, GL_UNSIGNED_BYTE, buffer.data());
       }
         glfwSwapBuffers(window);
       }

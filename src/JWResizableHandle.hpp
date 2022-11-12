@@ -42,12 +42,10 @@ struct JWModuleResizeHandle : OpaqueWidget {
 
 		// Set box and test whether it's valid
 		// When too large nanovg function will crash, so set limit of max size
-		if (newBox.size.x < 1023) {
 			mw->box = newBox;
 			if (!APP->scene->rack->requestModulePos(mw, newBox.pos)) {
 				mw->box = oldBox;
 			}
 			glfwSetWindowSize(window,mw->box.size.x-85,mw->box.size.y);
-		}
 	}
 };
