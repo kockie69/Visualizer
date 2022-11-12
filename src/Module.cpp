@@ -113,7 +113,7 @@ struct LFMModule : Module {
     configParam(PARAM_BEAT_SENS, 0.f, 5.f, 1.f, "Beat sensitivity","");
     configParam(PARAM_HARD_SENS, 0.f, 5.f, 1.f, "Hardcut sensitivity","");
     configParam(PARAM_HARD_DURATION, 0.f, 300.f, 30.f, "Hardcut duration"," Seconds");
-    configParam(PARAM_GRADIENT, 0.f, 1.f, 0.5f, "Gradient"," ");
+    configParam(PARAM_GRADIENT, 0.f, 5.f, 1.f, "Gradient"," ");
   }
 
   float presetTime = 0;
