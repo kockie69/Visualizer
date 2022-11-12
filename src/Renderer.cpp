@@ -275,14 +275,6 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url,bool windowed ) {
     setStatus(Status::RENDERING);
     renderLoopNextPreset();
     projectm_select_preset(pm,s.presetIndex,true);
-    while (true) {
-      {
-        // Did the main thread request that we exit?
-        if (getStatus() == Status::PLEASE_EXIT) {
-	  break;
-        }
-      
-    CheckViewportSize(window);
     GLuint FramebufferName = 0;
     GLuint texture = 0;
     glGenFramebuffers(1, &FramebufferName);
@@ -294,6 +286,16 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url,bool windowed ) {
 
     glGenTextures(1, &texture);
 		glBindTexture(GL_TEXTURE_2D, texture);
+    
+    while (true) {
+      {
+        // Did the main thread request that we exit?
+        if (getStatus() == Status::PLEASE_EXIT) {
+	  break;
+        }
+      
+    CheckViewportSize(window);
+
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, renderWidth,renderHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -301,7 +303,7 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url,bool windowed ) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glBindTexture(GL_TEXTURE_2D, 0);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture, 0);
-    //extraProjectMInitialization();
+
         {
 
     setPresetTime(presetTime);

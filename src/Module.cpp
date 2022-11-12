@@ -397,9 +397,9 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
       int x = renderer->getRenderWidth();
       int x2 = renderer->getWindowWidth();
       int b1 = renderer->getBufferSize();
-      
+      nvgDeleteImage(args.vg,img);
       if (x == (b1/380/4)) {
-        nvgDeleteImage(args.vg,img);
+
         img = nvgCreateImageRGBA(args.vg,x,y,0,renderer->getBuffer());
         std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
     
