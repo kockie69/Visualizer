@@ -41,10 +41,11 @@ struct JWModuleResizeHandle : OpaqueWidget {
 		newBox.size.x = std::round(newBox.size.x / RACK_GRID_WIDTH) * RACK_GRID_WIDTH;
 
 		// Set box and test whether it's valid
-		mw->box = newBox;
-		if (!APP->scene->rack->requestModulePos(mw, newBox.pos)) {
-			mw->box = oldBox;
-		}
-		glfwSetWindowSize(window,mw->box.size.x-85,mw->box.size.y);
+		// When too large nanovg function will crash, so set limit of max size
+			mw->box = newBox;
+			if (!APP->scene->rack->requestModulePos(mw, newBox.pos)) {
+				mw->box = oldBox;
+			}
+			glfwSetWindowSize(window,mw->box.size.x-85,mw->box.size.y);
 	}
 };

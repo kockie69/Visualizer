@@ -219,18 +219,21 @@ void ProjectMRenderer::renderLoopSetPreset(unsigned int i) {
 
 void ProjectMRenderer::CheckViewportSize(GLFWwindow* win)
 {
-    int _renderWidth;
-    int _renderHeight;
+    int _renderWidth=0;
+    int _renderHeight=0;
     glfwGetWindowSize(win, &windowWidth, &windowHeight);
+    int tmp1 = windowWidth;
+    int tmp2 = windowHeight;
+    
     glfwGetFramebufferSize(win, &_renderWidth, &_renderHeight);
-
     if (renderWidth != _renderWidth || renderHeight != _renderHeight)
     {
-        //projectm_set_window_size(pm, _renderWidth, _renderHeight);
-        projectm_set_window_size(pm, windowWidth, windowHeight);
+        {
+        projectm_set_window_size(pm, _renderWidth, _renderHeight);
+        //projectm_set_window_size(pm, _renderWidth+RACK_GRID_WIDTH, _renderHeight+20);
+        }
         renderWidth = _renderWidth;
         renderHeight = _renderHeight;
-
         //DEBUG("Resized rendering canvas to %d %d.", renderWidth, renderHeight);
     }
 }
@@ -265,8 +268,8 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
   {
     std::lock_guard<std::mutex> l(pm_m);
     //DEBUG("The preset path is %s", sp->preset_url);
-    pm = projectm_create_settings(sp, PROJECTM_FLAG_NONE);    
-    //extraProjectMInitialization();
+    pm = projectm_create_settings(sp, PROJECTM_FLAG_NONE);
+    CheckViewportSize(window);
   }
   if (pm) {
     setStatus(Status::RENDERING);
@@ -280,6 +283,21 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
         }
       
     CheckViewportSize(window);
+    GLuint FramebufferName = 0;
+    GLuint texture = 0;
+    glGenFramebuffers(1, &FramebufferName);
+    glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
+
+    glGenTextures(1, &texture);
+		glBindTexture(GL_TEXTURE_2D, texture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, renderWidth,renderHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glBindTexture(GL_TEXTURE_2D, 0);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture, 0);
+    //extraProjectMInitialization();
         {
 
     setPresetTime(presetTime);
@@ -321,21 +339,21 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url) {
           //glViewport(0,0,renderWidth,renderHeight);
 
 	        projectm_render_frame(pm);
-        
-        
-        GLsizei nrChannels = 4;
-        GLsizei stride = nrChannels * renderWidth;
-        stride += (stride % 4) ? (4 - stride % 4) : 0;
-        bufferSize = stride * renderHeight;
+              
+          GLsizei nrChannels = 4;
+          GLsizei stride = nrChannels * renderWidth;
+          stride += (stride % 4) ? (4 - stride % 4) : 0;
+          bufferSize = stride * renderHeight;
 
-        buffer.reserve(bufferSize);
+          buffer.reserve(bufferSize);
 
-        glPixelStorei(GL_PACK_ALIGNMENT, 4); 
-        glReadPixels(0, 0, renderWidth, renderHeight, GL_RGBA, GL_BYTE, buffer.data());
-        GLenum error = glGetError();
+          glPixelStorei(GL_PACK_ALIGNMENT, 4); 
+
+          glReadPixels(0, 0, renderWidth, renderHeight, GL_RGBA, GL_UNSIGNED_BYTE, buffer.data());
       }
         glfwSwapBuffers(window);
       }
+
       std::this_thread::sleep_for(std::chrono::microseconds(1000000/60));
     }
   }
@@ -470,17 +488,8 @@ GLFWwindow* TextureRenderer::createWindow(int *xpos,int *ypos,int *width,int *he
   return c;
 }
 
-void TextureRenderer::extraProjectMInitialization() {
-  if (pm)
-    texture = projectm_init_render_to_texture(pm);
-}
-
-int TextureRenderer::getTextureID() const {
-  return texture;
-}
-
 unsigned char* TextureRenderer::getBuffer() {
- return buffer.data();
+  return buffer.data();
 }
 
 int TextureRenderer::getWindowWidth() {
