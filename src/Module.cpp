@@ -546,10 +546,8 @@ struct LFMModuleWidget : BaseLFMModuleWidget {
 		addInput(createInput<PJ301MPort>(Vec(jackX2, jackY7), module, LFMModule::RIGHT_INPUT));
 
     addParam(createParam<RPJKnob>(Vec(knobX1,knobY4), module, LFMModule::PARAM_HARD_DURATION));	
-    addParam(createParam<RPJKnob>(Vec(knobX1,knobY5), module, LFMModule::PARAM_GRADIENT));
 
     addInput(createInput<PJ301MPort>(Vec(jackX2, jackY3), module, LFMModule::HARDCUT_DURATION_INPUT));
-    addInput(createInput<PJ301MPort>(Vec(jackX2, jackY4), module, LFMModule::GRADIENT_INPUT));
 
     //std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
     if (module) {
