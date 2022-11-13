@@ -399,7 +399,6 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
       int b1 = renderer->getBufferSize();
       nvgDeleteImage(args.vg,img);
       if (x == (b1/380/4)) {
-
         img = nvgCreateImageRGBA(args.vg,x,y,0,renderer->getBuffer());
         std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
     
@@ -626,12 +625,10 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
 
   void step() override {
     panel->box.size = box.size;
-#ifndef ARCH_MAC
     if (module) {
 		  rightHandle->box.pos.x = box.size.x - rightHandle->box.size.x;
       w->box.size = rightHandle->box.size;
     }
-#endif  
     ModuleWidget::step();
   }
 };
