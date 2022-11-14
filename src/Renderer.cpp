@@ -343,20 +343,20 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url,bool windowed ) {
       
         {
       	  std::lock_guard<std::mutex> l(pm_m);
-          //glViewport(0,0,renderWidth,renderHeight);
 
 	        projectm_render_frame(pm);
-              
-          GLsizei nrChannels = 4;
-          GLsizei stride = nrChannels * renderWidth;
-          stride += (stride % 4) ? (4 - stride % 4) : 0;
-          bufferSize = stride * renderHeight;
+          if (!windowed) {    
+            GLsizei nrChannels = 4;
+            GLsizei stride = nrChannels * renderWidth;
+            stride += (stride % 4) ? (4 - stride % 4) : 0;
+            bufferSize = stride * renderHeight;
 
-          buffer.reserve(bufferSize);
+            buffer.reserve(bufferSize);
 
-          glPixelStorei(GL_PACK_ALIGNMENT, 4); 
+            glPixelStorei(GL_PACK_ALIGNMENT, 4); 
 
-          glReadPixels(0, 0, renderWidth, renderHeight, GL_RGBA, GL_UNSIGNED_BYTE, buffer.data());
+            glReadPixels(0, 0, renderWidth, renderHeight, GL_RGBA, GL_UNSIGNED_BYTE, buffer.data());
+          }
       }
         glfwSwapBuffers(window);
       }
