@@ -12,7 +12,7 @@ static const unsigned int kSampleWindow = 512;
 
 // Then do the knobs
 const float knobX1 = 12;
-const float knobX2 = 30;
+const float knobX2 = 50;
 
 const float knobY1 = 32;
 const float knobY2 = 72;
@@ -36,8 +36,7 @@ const float jackY5 = 266;
 const float jackY6 = 295;
 const float jackY7 = 327;
 
-struct ImageWidget : TransparentWidget
-{
+struct ImageWidget : TransparentWidget {
   std::string image_file_path;
   float width;
   float height;
@@ -83,6 +82,9 @@ struct LFMModule : Module {
     PARAM_HARD_SENS,
     PARAM_HARD_DURATION,
     PARAM_GRADIENT,
+    PARAM_PRESETTYPE,
+    PARAM_ADDFAV,
+    PARAM_DELFAV,
     NUM_PARAMS
   };
   enum InputIds {
@@ -105,6 +107,11 @@ struct LFMModule : Module {
     NUM_LIGHTS
   };
 
+  enum Presets {
+    ALL,
+    FAVOURITES
+  };
+
   LFMModule() {
     config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
     configButton(PARAM_NEXT, "Next preset");
@@ -116,6 +123,8 @@ struct LFMModule : Module {
     configParam(PARAM_GRADIENT, 0.f, 5.f, 1.f, "Gradient"," ");
   }
 
+  std::vector<int> favourites;
+  Presets activePresets;
   float presetTime = 0;
   float beatSensitivity = 1;
   float hardcutSensitivity = 1;
@@ -123,6 +132,7 @@ struct LFMModule : Module {
   float gradient = 1;
   bool aspectCorrection = true;
   int presetIndex = 0;
+  int newPresetIndex = 0;
   bool displayPresetName = false;
   bool autoPlay = false;
   bool caseSensitive = false;
@@ -151,6 +161,10 @@ struct LFMModule : Module {
       full = true;
     }
 
+    if (params[PARAM_ADDFAV].getValue()==1 && params[PARAM_PRESETTYPE].getValue()==0 )
+      addPreset();
+    if (params[PARAM_DELFAV].getValue()==1 && params[PARAM_PRESETTYPE].getValue()==1 )
+      delPreset();  
     presetTime = params[PARAM_TIMER].getValue();
     beatSensitivity = params[PARAM_BEAT_SENS].getValue();
     if (inputs[BEAT_INPUT].isConnected())
@@ -166,15 +180,66 @@ struct LFMModule : Module {
       gradient+=inputs[GRADIENT_INPUT].getVoltage();   
     
     if (nextTrigger.process(params[PARAM_NEXT].getValue()) > 0.f || nextInputTrigger.process(rescale(inputs[NEXT_PRESET_INPUT].getVoltage(), 0.1f, 2.f, 0.f, 1.f))) {
-      nextPreset=true;
+      if (params[PARAM_PRESETTYPE].getValue()==0)
+        nextPreset=true;
+      else {
+        if (!favourites.empty())
+          nextFavourite();
+      }
 	  }
 
     if (prevTrigger.process(params[PARAM_PREV].getValue()) > 0.f || prevInputTrigger.process(rescale(inputs[PREV_PRESET_INPUT].getVoltage(), 0.1f, 2.f, 0.f, 1.f))) {
-		  prevPreset=true;
+      if (params[PARAM_PRESETTYPE].getValue()==0)
+        prevPreset=true;
+      else {
+        if (!favourites.empty())
+          prevFavourite();
+      }
 	  }
     
     lights[NEXT_LIGHT].setBrightness(nextPreset);
 	  lights[PREV_LIGHT].setBrightness(prevPreset);
+
+  }
+
+  void nextFavourite() {
+    auto it = std::find(favourites.begin(), favourites.end(), presetIndex);
+
+    if (it != favourites.end()) {
+     auto nx=std::next(it,1);
+     newPresetIndex=*nx;
+    }
+    else {
+    it = favourites.begin();
+      newPresetIndex = *it;
+    }
+  }
+
+  void prevFavourite() {
+    auto it = std::find(favourites.begin(), favourites.end(), presetIndex);
+
+    if (it != favourites.begin()) {
+      auto prev=std::next(it,-1);
+      newPresetIndex=*prev;
+    }
+    else {
+      it = favourites.end();
+      newPresetIndex=*it;
+    }
+  }
+
+  void addPreset() {
+    auto it = std::find(favourites.begin(), favourites.end(), presetIndex);
+
+    if (it == favourites.end())
+      favourites.push_back(presetIndex);
+  }
+
+  void delPreset() {
+    auto it = std::find(favourites.begin(), favourites.end(), presetIndex);
+
+    if (it != favourites.end())
+      favourites.erase(it);
 
   }
 
@@ -288,22 +353,28 @@ struct BaseProjectMWidget : FramebufferWidget {
         module->full = false;
       }
 
-     // If the module requests that we change the preset at random
-     // (i.e. the random button was clicked), tell the render thread to
-     // do so on the next pass.
-      if (module->nextPreset) {
-        module->nextPreset = false;
-        if (!getRenderer()->isAutoplayEnabled())
-          getRenderer()->nextPreset=true;
-        else 
-          getRenderer()->requestPresetID(kPresetIDRandom);
+      if (module->newPresetIndex!=0) {
+        getRenderer()->requestPresetID(module->newPresetIndex);
+        module->newPresetIndex=0;
       }
-      if (module->prevPreset) {
-        module->prevPreset = false;
-        if (!getRenderer()->isAutoplayEnabled())
-          getRenderer()->prevPreset=true;
-        else
-          getRenderer()->requestPresetID(kPresetIDRandom);
+      else {
+      // If the module requests that we change the preset at random
+      // (i.e. the random button was clicked), tell the render thread to
+      // do so on the next pass.
+        if (module->nextPreset) {
+          module->nextPreset = false;
+          if (!getRenderer()->isAutoplayEnabled())
+            getRenderer()->nextPreset=true;
+          else 
+            getRenderer()->requestPresetID(kPresetIDRandom);
+        }
+        if (module->prevPreset) {
+          module->prevPreset = false;
+          if (!getRenderer()->isAutoplayEnabled())
+            getRenderer()->prevPreset=true;
+          else
+            getRenderer()->requestPresetID(kPresetIDRandom);
+        }
       }
     }
   }
@@ -597,7 +668,9 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
     }
 
 
-        
+    addParam(createParam<ButtonBig>(Vec(7,40),module, LFMModule::PARAM_PRESETTYPE));
+    addParam(createParam<ButtonPlusBig>(Vec(7,55),module, LFMModule::PARAM_ADDFAV));
+    addParam(createParam<ButtonMinBig>(Vec(25,55),module, LFMModule::PARAM_DELFAV)); 
     addParam(createParam<RPJKnob>(Vec(knobX2,knobY1), module, LFMModule::PARAM_TIMER));
     addParam(createParam<RPJKnob>(Vec(knobX1,knobY2), module, LFMModule::PARAM_BEAT_SENS));
     addParam(createParam<RPJKnob>(Vec(knobX1,knobY3), module, LFMModule::PARAM_HARD_SENS));
