@@ -125,6 +125,8 @@ struct LFMModule : Module {
   int presetIndex = 0;
   bool displayPresetName = false;
   bool autoPlay = false;
+  bool alwaysOnTop = false;
+  bool noFrames = false;
   bool caseSensitive = false;
   unsigned int i = 0;
   bool full = false;
@@ -186,6 +188,8 @@ struct LFMModule : Module {
     json_object_set_new(rootJ, "CaseSensitiveSearch", json_boolean(caseSensitive));
     json_object_set_new(rootJ, "Aspectcorrection", json_boolean(aspectCorrection)); 
     json_object_set_new(rootJ, "Hardcut", json_boolean(hardCut));
+    json_object_set_new(rootJ, "AlwaysOnTop", json_boolean(alwaysOnTop));
+    json_object_set_new(rootJ, "NoFrames", json_boolean(noFrames));
     if (this->getModel()->getFullName() == "RPJ LFMFull") {
       json_object_set_new(rootJ, "windowedXpos", json_integer(windowedXpos));
       json_object_set_new(rootJ, "windowedYpos", json_integer(windowedYpos));
@@ -198,6 +202,8 @@ struct LFMModule : Module {
   void dataFromJson(json_t *rootJ) override {
 	  json_t *nActivePresetJ = json_object_get(rootJ, "ActivePreset");
     json_t *nDisplayPresetNameJ = json_object_get(rootJ, "DisplayPresetName");
+    json_t *nAlwaysOnTopJ = json_object_get(rootJ, "AlwaysOnTop");
+    json_t *nNoFramesJ = json_object_get(rootJ, "NoFrames");
     json_t *nAutoplayJ = json_object_get(rootJ, "Autoplay");
     json_t *nCSSJ = json_object_get(rootJ, "CaseSensitiveSearch");
     json_t *nAspectCorrectionJ = json_object_get(rootJ, "Aspectcorrection");
@@ -223,6 +229,12 @@ struct LFMModule : Module {
     }
     if (nDisplayPresetNameJ) {
 	    displayPresetName = json_boolean_value(nDisplayPresetNameJ);
+    }
+    if (nAlwaysOnTopJ) {
+	    alwaysOnTop = json_boolean_value(nAlwaysOnTopJ);
+    }
+    if (nNoFramesJ) {
+	    noFrames = json_boolean_value(nNoFramesJ);
     }
     if (nAutoplayJ) {
 	    autoPlay = json_boolean_value(nAutoplayJ);
@@ -250,15 +262,15 @@ struct BaseProjectMWidget : FramebufferWidget {
 
   BaseProjectMWidget() {}
 
-  void init(std::string presetURL,int presetIndex,bool windowed) {
-      getRenderer()->init(initSettings(presetURL,presetIndex),&module->windowedXpos,&module->windowedYpos,&module->windowedWidth,&module->windowedHeight,windowed);
+  void init(std::string presetURL,int presetIndex,bool windowed,bool alwaysOnTop,bool noFrames) {
+      getRenderer()->init(initSettings(presetURL,presetIndex),&module->windowedXpos,&module->windowedYpos,&module->windowedWidth,&module->windowedHeight,windowed,alwaysOnTop,noFrames);
   }
 
   template<typename T>
-  static BaseProjectMWidget* create(Vec pos, std::string presetURL,int presetIndex,bool windowed) {
+  static BaseProjectMWidget* create(Vec pos, std::string presetURL,int presetIndex,bool windowed,bool alwaysOnTop,bool noFrames) {
     BaseProjectMWidget* p = new T;
     p->box.pos = pos;
-    p->init(presetURL,presetIndex,windowed);
+    p->init(presetURL,presetIndex,windowed,alwaysOnTop,noFrames);
     return p;
   }
 
@@ -272,6 +284,8 @@ struct BaseProjectMWidget : FramebufferWidget {
   void step() override {
     dirty = true;
     if (module) {
+      getRenderer()->setNoFrames(module->noFrames);
+      getRenderer()->setAlwaysOnTop(module->alwaysOnTop);
       getRenderer()->presetTime = module->presetTime;
       getRenderer()->beatSensitivity = module->beatSensitivity;
       getRenderer()->hardcutSensitivity = module->hardcutSensitivity;
@@ -486,21 +500,20 @@ struct BaseLFMModuleWidget : ModuleWidget {
 
     menu->addChild(construct<MenuLabel>());
     menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Options"));
+    if (m->getModel()->name == "LFMFull" ) {
+      menu->addChild(createBoolPtrMenuItem("Window always on Top","", &m->alwaysOnTop));
+      menu->addChild(createBoolPtrMenuItem("No Frames","", &m->noFrames));
+    }
     menu->addChild(createBoolPtrMenuItem("Cycle through presets","", &m->autoPlay));
     if (m->getModel()->name == "LFMEmbedded" ) {
-      //DEBUG("Ok, embedded so we will add option to select a preset title");
       menu->addChild(createBoolPtrMenuItem("Show Preset Title","", &m->displayPresetName));
-      //DEBUG("Ok, we have added the option to select a preset title");
     }
     menu->addChild(createBoolPtrMenuItem("Hardcut enabled","", &m->hardCut));
     menu->addChild(createBoolPtrMenuItem("Aspectcorrection enabled","", &m->aspectCorrection));
     menu->addChild(createBoolPtrMenuItem("Case sensitive Visual Preset Search","", &m->caseSensitive));
     menu->addChild(construct<MenuLabel>());
-    //DEBUG("Ok, we now add the preset menu title");
     menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Visual Presets"));
-    //DEBUG("Ok, added menu title");
     
-    //DEBUG("Ok, we will now get the list of presets");
     auto holder = new rack::Widget;
     holder->box.size.x = 200;
     holder->box.size.y = 20;
@@ -513,8 +526,7 @@ struct BaseLFMModuleWidget : ModuleWidget {
     menu->addChild(holder);
 
     menu->addChild(construct<MenuLabel>());
-    //auto presets = w->getRenderer()->listPresets();
-    //DEBUG("Ok, we have the list of presets");
+
     auto presets = w->getRenderer()->listPresets();
     for (auto p : presets) 
       menu->addChild(SetPresetMenuItem::construct(p.second, p.first, w,textfield));
@@ -551,7 +563,7 @@ struct LFMModuleWidget : BaseLFMModuleWidget {
 
     //std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
     if (module) {
-      w = BaseProjectMWidget::create<WindowedProjectMWidget>(Vec(85, 20), asset::plugin(pluginInstance, "res/presets_projectM/"),module->presetIndex,true);
+      w = BaseProjectMWidget::create<WindowedProjectMWidget>(Vec(85, 20), asset::plugin(pluginInstance, "res/presets_projectM/"),module->presetIndex,true,module->alwaysOnTop,module->noFrames);
       w->module = module;
       w->box.size = Vec(RENDER_WIDTH,RACK_GRID_HEIGHT);
       //w->font = font;
@@ -576,7 +588,7 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
 
     if (module) {
       // this is a "live" module in Rack
-      w = BaseProjectMWidget::create<EmbeddedProjectMWidget>(Vec(6*RACK_GRID_WIDTH-4, 0), asset::plugin(pluginInstance, "res/presets_projectM/"),module->presetIndex,false);
+      w = BaseProjectMWidget::create<EmbeddedProjectMWidget>(Vec(6*RACK_GRID_WIDTH-4, 0), asset::plugin(pluginInstance, "res/presets_projectM/"),module->presetIndex,false,module->alwaysOnTop,module->noFrames);
       w->module = module;
       w->box.size = Vec(RENDER_WIDTH,RACK_GRID_HEIGHT);
       addChild(w);

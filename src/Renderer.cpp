@@ -7,8 +7,8 @@
 #include <thread>
 #include <mutex>
 
-void ProjectMRenderer::init(mySettings const& s,int *xpos, int *ypos,int *width,int *height,bool windowed) {
-  window = createWindow(xpos,ypos,width,height);
+void ProjectMRenderer::init(mySettings const& s,int *xpos, int *ypos,int *width,int *height,bool windowed,bool alwaysOnTop,bool noFrames) {
+  window = createWindow(xpos,ypos,width,height,alwaysOnTop,noFrames);
   std::string url = s.preset_path;
   renderThread = std::thread([this,s,url,windowed](){ this->renderLoop(s,url,windowed); });
 }
@@ -21,6 +21,14 @@ ProjectMRenderer::~ProjectMRenderer() {
   // Destroy the window in the main thread, because it's not legal
   // to do so in other threads.
   glfwDestroyWindow(window);
+}
+
+void ProjectMRenderer::setNoFrames(bool noFrames) {
+  glfwSetWindowAttrib(window,GLFW_DECORATED,!noFrames);
+}
+
+void ProjectMRenderer::setAlwaysOnTop(bool alwaysOnTop) {
+  glfwSetWindowAttrib(window,GLFW_FLOATING,alwaysOnTop);
 }
 
 void ProjectMRenderer::addPCMData(float* data, unsigned int nsamples) {
@@ -385,7 +393,7 @@ void ProjectMRenderer::logGLFWError(int errcode, const char* errmsg) {
   //DEBUG("GLFW error %s: %s", std::to_string(errcode).c_str(), errmsg);
 }
 
-GLFWwindow* WindowedRenderer::createWindow(int *xpos,int *ypos,int *width,int *height) {
+GLFWwindow* WindowedRenderer::createWindow(int *xpos,int *ypos,int *width,int *height,bool alwaysOnTop,bool noFrames) {
   glfwSetErrorCallback(logGLFWError);
   logContextInfo("gWindow", APP->window->win);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -393,6 +401,10 @@ GLFWwindow* WindowedRenderer::createWindow(int *xpos,int *ypos,int *width,int *h
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
   glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
+  if (alwaysOnTop)
+    glfwWindowHint(GLFW_FLOATING, GLFW_TRUE);
+  if (noFrames)
+    glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
   glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
 
   
@@ -450,7 +462,6 @@ void WindowedRenderer::keyCallback(GLFWwindow* win, int key, int scancode, int a
       } else {
 	glfwSetWindowMonitor(win, nullptr, r->last_xpos, r->last_ypos, r->last_width, r->last_height, GLFW_DONT_CARE);
       }
-
     }
     break;
   case GLFW_KEY_ESCAPE:
@@ -472,7 +483,7 @@ void WindowedRenderer::keyCallback(GLFWwindow* win, int key, int scancode, int a
   }
 }
 
-GLFWwindow* TextureRenderer::createWindow(int *xpos,int *ypos,int *width,int *height) {
+GLFWwindow* TextureRenderer::createWindow(int *xpos,int *ypos,int *width,int *height,bool unused1,bool unused2) {
   glfwSetErrorCallback(logGLFWError);
   logContextInfo("gWindow", APP->window->win);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
