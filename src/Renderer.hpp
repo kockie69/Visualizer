@@ -47,6 +47,13 @@ protected:
 
 public:
   ProjectMRenderer() {}
+  int buttonEvent;
+  int cp_x;
+  int cp_y;
+  int offset_cpx;
+  int offset_cpy;
+  int w_posx;
+  int w_posy;
   GLsizei bufferSize;
   int windowWidth{ 0 };
   int renderWidth{ 0 };
@@ -155,6 +162,8 @@ private:
   static void keyCallback(GLFWwindow* win, int key, int scancode, int action, int mods);
   static void window_pos_callback(GLFWwindow*, int, int);
   static void window_size_callback(GLFWwindow*, int, int);
+  static void mouse_button_callback(GLFWwindow*, int, int, int);
+  static void cursor_position_callback(GLFWwindow*, double, double);
   int *xPos;
   int *yPos;
   int *winWidth;
