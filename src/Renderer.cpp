@@ -300,7 +300,14 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url,bool windowed ) {
         if (getStatus() == Status::PLEASE_EXIT) {
 	  break;
         }
-      
+    if(buttonEvent == 1){
+            glfwGetWindowPos(window, &w_posx, &w_posy);
+            glfwSetWindowPos(window, w_posx + offset_cpx, w_posy + offset_cpy);
+            offset_cpx = 0;
+            offset_cpy = 0;
+            cp_x += offset_cpx;
+            cp_y += offset_cpy;
+    }  
     CheckViewportSize(window);
 
 		glBindTexture(GL_TEXTURE_2D, texture);
@@ -418,8 +425,34 @@ GLFWwindow* WindowedRenderer::createWindow(int *xpos,int *ypos,int *width,int *h
   glfwSetKeyCallback(c, keyCallback);
   glfwSetWindowPosCallback(c, window_pos_callback);
   glfwSetWindowSizeCallback(c, window_size_callback);
+  glfwSetMouseButtonCallback(c, mouse_button_callback);
+  glfwSetCursorPosCallback(c, cursor_position_callback);
   glfwSetWindowTitle(c, u8"LowFatMilk");
   return c;
+}
+
+void WindowedRenderer::cursor_position_callback(GLFWwindow* win, double x, double y){
+    WindowedRenderer* r = reinterpret_cast<WindowedRenderer*>(glfwGetWindowUserPointer(win));
+    if (r->buttonEvent == 1) {
+        r->offset_cpx = x - r->cp_x;
+        r->offset_cpy = y - r->cp_y;
+    }
+}
+
+void WindowedRenderer::mouse_button_callback(GLFWwindow* win, int button, int action, int mods){
+  WindowedRenderer* r = reinterpret_cast<WindowedRenderer*>(glfwGetWindowUserPointer(win));
+  if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS){
+    r->buttonEvent = 1;
+    double x, y;
+    glfwGetCursorPos(win, &x, &y);
+    r->cp_x = floor(x);
+    r->cp_y= floor(y);
+  }
+  if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE){
+      r->buttonEvent = 0;
+      r->cp_x = 0;
+      r->cp_y = 0;
+  }
 }
 
 void WindowedRenderer::window_size_callback(GLFWwindow* win, int width, int height) {
