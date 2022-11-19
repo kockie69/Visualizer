@@ -50,8 +50,8 @@ public:
   int buttonEvent;
   int cp_x;
   int cp_y;
-  int offset_cpx;
-  int offset_cpy;
+  int offset_cpx=0;
+  int offset_cpy=0;
   int w_posx;
   int w_posy;
   GLsizei bufferSize;
