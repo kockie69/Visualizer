@@ -71,6 +71,14 @@ public:
   bool hardCut = true;
   void setNoFrames(bool);
   void setAlwaysOnTop(bool);
+  int *xPos;
+  int *yPos;
+  int *winWidth;
+  int *winHeight;
+  static void window_pos_callback(GLFWwindow*, int, int);
+  static void window_size_callback(GLFWwindow*, int, int);
+  static void mouse_button_callback(GLFWwindow*, int, int, int);
+  static void cursor_position_callback(GLFWwindow*, double, double);
   // init creates the OpenGL context to render in, in the main thread,
   // then starts the rendering thread. This can't be done in the ctor
   // because creating the window calls out to virtual methods.
@@ -160,14 +168,6 @@ private:
   int last_xpos, last_ypos, last_width, last_height;
   static void framebufferSizeCallback(GLFWwindow* win, int x, int y);
   static void keyCallback(GLFWwindow* win, int key, int scancode, int action, int mods);
-  static void window_pos_callback(GLFWwindow*, int, int);
-  static void window_size_callback(GLFWwindow*, int, int);
-  static void mouse_button_callback(GLFWwindow*, int, int, int);
-  static void cursor_position_callback(GLFWwindow*, double, double);
-  int *xPos;
-  int *yPos;
-  int *winWidth;
-  int *winHeight;
 };
 
 class TextureRenderer : public ProjectMRenderer {
