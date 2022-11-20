@@ -24,7 +24,56 @@ ProjectMRenderer::~ProjectMRenderer() {
 }
 
 void ProjectMRenderer::setNoFrames(bool noFrames) {
-  glfwSetWindowAttrib(window,GLFW_DECORATED,!noFrames);
+  if (noFrames) {
+    glfwSetWindowAttrib(window,GLFW_DECORATED,!noFrames);
+    glfwSetWindowPosCallback(window, window_pos_callback);
+    glfwSetWindowSizeCallback(window, window_size_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetCursorPosCallback(window, cursor_position_callback);
+  }
+  else {
+    glfwSetWindowAttrib(window,GLFW_DECORATED,!noFrames);
+    glfwSetWindowPosCallback(window, NULL);
+    glfwSetWindowSizeCallback(window, NULL);
+    glfwSetMouseButtonCallback(window, NULL);
+    glfwSetCursorPosCallback(window, NULL);
+  }
+}
+
+void ProjectMRenderer::cursor_position_callback(GLFWwindow* win, double x, double y){
+    ProjectMRenderer* r = reinterpret_cast<ProjectMRenderer*>(glfwGetWindowUserPointer(win));
+    if (r->buttonEvent == 1) {
+        r->offset_cpx = x - r->cp_x;
+        r->offset_cpy = y - r->cp_y;
+    }
+}
+
+void ProjectMRenderer::mouse_button_callback(GLFWwindow* win, int button, int action, int mods){
+  ProjectMRenderer* r = reinterpret_cast<ProjectMRenderer*>(glfwGetWindowUserPointer(win));
+  if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS){
+    r->buttonEvent = 1;
+    double x, y;
+    glfwGetCursorPos(win, &x, &y);
+    r->cp_x = floor(x);
+    r->cp_y= floor(y);
+  }
+  if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE){
+      r->buttonEvent = 0;
+      r->cp_x = 0;
+      r->cp_y = 0;
+  }
+}
+
+void ProjectMRenderer::window_size_callback(GLFWwindow* win, int width, int height) {
+  ProjectMRenderer* r = reinterpret_cast<ProjectMRenderer*>(glfwGetWindowUserPointer(win));
+  *(r->winWidth)=width;
+  *(r->winHeight)=height;
+}
+
+void ProjectMRenderer::window_pos_callback(GLFWwindow* win, int xpos, int ypos) {
+  ProjectMRenderer* r = reinterpret_cast<ProjectMRenderer*>(glfwGetWindowUserPointer(win));
+  *(r->xPos)=xpos;
+  *(r->yPos)=ypos;
 }
 
 void ProjectMRenderer::setAlwaysOnTop(bool alwaysOnTop) {
@@ -423,49 +472,16 @@ GLFWwindow* WindowedRenderer::createWindow(int *xpos,int *ypos,int *width,int *h
   glfwSetWindowUserPointer(c, reinterpret_cast<void*>(this));
   glfwSetWindowCloseCallback(c, [](GLFWwindow* w) { glfwIconifyWindow(w); });
   glfwSetKeyCallback(c, keyCallback);
-  glfwSetWindowPosCallback(c, window_pos_callback);
-  glfwSetWindowSizeCallback(c, window_size_callback);
-  glfwSetMouseButtonCallback(c, mouse_button_callback);
-  glfwSetCursorPosCallback(c, cursor_position_callback);
+  if (noFrames) {
+    glfwSetWindowPosCallback(c, window_pos_callback);
+    glfwSetWindowSizeCallback(c, window_size_callback);
+    glfwSetMouseButtonCallback(c, mouse_button_callback);
+    glfwSetCursorPosCallback(c, cursor_position_callback);
+  }
   glfwSetWindowTitle(c, u8"LowFatMilk");
   return c;
 }
 
-void WindowedRenderer::cursor_position_callback(GLFWwindow* win, double x, double y){
-    WindowedRenderer* r = reinterpret_cast<WindowedRenderer*>(glfwGetWindowUserPointer(win));
-    if (r->buttonEvent == 1) {
-        r->offset_cpx = x - r->cp_x;
-        r->offset_cpy = y - r->cp_y;
-    }
-}
-
-void WindowedRenderer::mouse_button_callback(GLFWwindow* win, int button, int action, int mods){
-  WindowedRenderer* r = reinterpret_cast<WindowedRenderer*>(glfwGetWindowUserPointer(win));
-  if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS){
-    r->buttonEvent = 1;
-    double x, y;
-    glfwGetCursorPos(win, &x, &y);
-    r->cp_x = floor(x);
-    r->cp_y= floor(y);
-  }
-  if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE){
-      r->buttonEvent = 0;
-      r->cp_x = 0;
-      r->cp_y = 0;
-  }
-}
-
-void WindowedRenderer::window_size_callback(GLFWwindow* win, int width, int height) {
-  WindowedRenderer* r = reinterpret_cast<WindowedRenderer*>(glfwGetWindowUserPointer(win));
-  *(r->winWidth)=width;
-  *(r->winHeight)=height;
-}
-
-void WindowedRenderer::window_pos_callback(GLFWwindow* win, int xpos, int ypos) {
-  WindowedRenderer* r = reinterpret_cast<WindowedRenderer*>(glfwGetWindowUserPointer(win));
-  *(r->xPos)=xpos;
-  *(r->yPos)=ypos;
-}
 
 void WindowedRenderer::showWindow(int *xpos, int *ypos, int *width, int *height) {
   xPos = xpos;
