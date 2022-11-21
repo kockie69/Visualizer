@@ -469,7 +469,7 @@ GLFWwindow* WindowedRenderer::createWindow(int *xpos,int *ypos,int *width,int *h
   if (!c) {
     return nullptr;
   }
-  glfwSetWindowUserPointer(c, reinterpret_cast<void*>(this));
+  glfwSetWindowUserPointer(c, reinterpret_cast<WindowedRenderer*>(this));
   glfwSetWindowCloseCallback(c, [](GLFWwindow* w) { glfwIconifyWindow(w); });
   glfwSetKeyCallback(c, keyCallback);
   if (noFrames) {
@@ -550,7 +550,7 @@ GLFWwindow* TextureRenderer::createWindow(int *xpos,int *ypos,int *width,int *he
   if (!c) {
     return nullptr;
   }
-  glfwSetWindowUserPointer(c, reinterpret_cast<void*>(this));
+  glfwSetWindowUserPointer(c, reinterpret_cast<TextureRenderer*>(this));
   logContextInfo("LFM context", c);
   return c;
 }
