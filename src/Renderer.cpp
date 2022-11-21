@@ -456,6 +456,7 @@ GLFWwindow* WindowedRenderer::createWindow(int *xpos,int *ypos,int *width,int *h
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+  glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE);
   glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
   if (alwaysOnTop)
     glfwWindowHint(GLFW_FLOATING, GLFW_TRUE);
@@ -503,13 +504,13 @@ void WindowedRenderer::keyCallback(GLFWwindow* win, int key, int scancode, int a
     {
       const GLFWmonitor* current_monitor = glfwGetWindowMonitor(win);
       if (!current_monitor) {
-	GLFWmonitor* best_monitor = glfwWindowGetNearestMonitor(win);
-	const GLFWvidmode* mode = glfwGetVideoMode(best_monitor);
-	glfwGetWindowPos(win, &r->last_xpos, &r->last_ypos);
-	glfwGetWindowSize(win, &r->last_width, &r->last_height);
-	glfwSetWindowMonitor(win, best_monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+	      GLFWmonitor* best_monitor = glfwWindowGetNearestMonitor(win);
+	      const GLFWvidmode* mode = glfwGetVideoMode(best_monitor);
+	      glfwGetWindowPos(win, &r->last_xpos, &r->last_ypos);
+	      glfwGetWindowSize(win, &r->last_width, &r->last_height);
+	      glfwSetWindowMonitor(win, best_monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
       } else {
-	glfwSetWindowMonitor(win, nullptr, r->last_xpos, r->last_ypos, r->last_width, r->last_height, GLFW_DONT_CARE);
+	      glfwSetWindowMonitor(win, nullptr, r->last_xpos, r->last_ypos, r->last_width, r->last_height, GLFW_DONT_CARE);
       }
     }
     break;
@@ -518,11 +519,11 @@ void WindowedRenderer::keyCallback(GLFWwindow* win, int key, int scancode, int a
     {
       const GLFWmonitor* monitor = glfwGetWindowMonitor(win);
       if (!monitor) {
-	glfwIconifyWindow(win);
-      } else {
-	glfwSetWindowMonitor(win, nullptr, r->last_xpos, r->last_ypos, r->last_width, r->last_height, GLFW_DONT_CARE);
+	      glfwIconifyWindow(win);
+      } else {        
+	      glfwSetWindowMonitor(win, nullptr, r->last_xpos, r->last_ypos, r->last_width, r->last_height, GLFW_DONT_CARE);
       }
-    }
+    }    
     break;
   case GLFW_KEY_R:
     r->requestPresetID(kPresetIDRandom);
