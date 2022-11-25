@@ -502,7 +502,9 @@ struct BaseLFMModuleWidget : ModuleWidget {
     menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Options"));
     if (m->getModel()->name == "LFMFull" ) {
       menu->addChild(createBoolPtrMenuItem("Window always on Top","", &m->alwaysOnTop));
+#ifndef ARCH_MAC
       menu->addChild(createBoolPtrMenuItem("No Frames","", &m->noFrames));
+#endif    
     }
     menu->addChild(createBoolPtrMenuItem("Cycle through presets","", &m->autoPlay));
     if (m->getModel()->name == "LFMEmbedded" ) {
