@@ -1,3 +1,4 @@
 [submodule "dep/projectm"]
 	path = dep/projectm
-	url = https://github.com/projectM-visualizer/projectm.git
+	url = https://github.com/jimallman/projectm.git
+	branch = dynamic-q-variables
