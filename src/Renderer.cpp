@@ -21,6 +21,7 @@ ProjectMRenderer::~ProjectMRenderer() {
   // Destroy the window in the main thread, because it's not legal
   // to do so in other threads.
   glfwDestroyWindow(window);
+  // TODO: Clear the Extender module, if found
 }
 
 void ProjectMRenderer::setNoFrames(bool noFrames) {
@@ -271,6 +272,8 @@ void ProjectMRenderer::renderLoopSetPreset(unsigned int i) {
     projectm_select_preset(pm,i,true);
     while (projectm_get_error_loading_current_preset(pm))
       projectm_select_preset(pm,i,true);
+      // TODO: Stop outbound Q vars, and load/display Q vars from new preset?
+      DEBUG("Q vars found:\n%s", projectm_get_preset_qvars(pm));
   }
 }
 
