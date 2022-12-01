@@ -35,6 +35,13 @@ void ProjectMRenderer::requestPresetID(int id) {
   requestedPresetID = id;
 }
 
+// Requests that projectM changes the preset at the next opportunity
+void ProjectMRenderer::requestPresetName(std::string preset_name, bool hard_cut) {
+  std::lock_guard<std::mutex> l(pm_m);
+  projectm_select_preset_by_name(pm, preset_name.c_str(), hard_cut);
+}
+
+
 // Requests that projectM changes the autoplay status
 void ProjectMRenderer::requestToggleAutoplay() {
   std::lock_guard<std::mutex> l(flags_m);
