@@ -12,7 +12,7 @@ static const unsigned int kSampleWindow = 512;
 
 // Then do the knobs
 const float knobX1 = 12;
-const float knobX2 = 50;
+const float knobX2 = 48;
 
 const float knobY1 = 32;
 const float knobY2 = 72;
@@ -136,6 +136,7 @@ struct LFMModule : Module {
   int presetIndex = 0;
   int newPresetIndex = 0;
   std::string newPresetName = "";
+  std::string activePresetName = "";
   bool displayPresetName = false;
   bool autoPlay = false;
   bool caseSensitive = false;
@@ -209,39 +210,55 @@ struct LFMModule : Module {
 
     auto it = lists.begin();
     int i=0;
-    while (it != lists.end() || lists[i].data()->c_str() != activeListName) {
-      it++;
-      i++;
+    while (it != lists.end()) {
+      if (strcmp(lists[i].data()->c_str() ,activeListName.c_str()) != 0) {
+        it++;
+        i++;
+      }
+      else {
+        return(i);
+      }
     }
-    return(i);  
+    return(0);  
   }
 
   void nextFavourite() {
-   /* int index = getListIndex();
-    auto it = std::find(lists[index].begin(), lists[index].end(), newPresetName);
-
-    if (it != lists[index].end()) {
-     auto nx=std::next(it,1);
-     newPresetName=*nx;
+    int index = getListIndex();
+    auto it = std::find(lists[index].begin(), lists[index].end(), activePresetName);
+    if (it != lists[index].end()) { // Found the title
+      it++;
+      if (it != lists[index].end()) {
+        newPresetName = *it;
+      }
+      else {
+      it = lists[index].begin()+1;
+      newPresetName = *it;
+      }
     }
     else {
-    it = lists[index].begin();
+      it = lists[index].begin()+1;
       newPresetName = *it;
-    }*/
+    }
   }
 
   void prevFavourite() {
- /*   int index = getListIndex();
-    auto it = std::find(lists[index].begin(), lists[index]end(), presetIndex);
-
-    if (it != lists.begin()) {
-      auto prev=std::next(it,-1);
-      newPresetName=*prev;
+    int index = getListIndex();
+    auto it = std::find(lists[index].begin(), lists[index].end(), activePresetName);
+    if (it != lists[index].end()) { // Found the title
+      it--;
+      if (it != lists[index].begin()) {
+        newPresetName=*it;
+      }
+      else {
+        it = lists[index].end();
+        it--;
+        newPresetName=*it;
+      }
     }
     else {
-      it = lists.end();
-      newPresetName=*it;
-    }*/
+        it = lists[index].end();
+        newPresetName=*it;
+    }
   }
 
 void onAdd(const rack::engine::Module::AddEvent& e) override {
@@ -404,6 +421,7 @@ struct BaseProjectMWidget : FramebufferWidget {
   void step() override {
     dirty = true;
     if (module) {
+      module->activePresetName = getRenderer()->activePresetName().c_str();
       getRenderer()->presetTime = module->presetTime;
       getRenderer()->beatSensitivity = module->beatSensitivity;
       getRenderer()->hardcutSensitivity = module->hardcutSensitivity;
@@ -411,6 +429,10 @@ struct BaseProjectMWidget : FramebufferWidget {
       //getRenderer()->softcutDuration = module->softcutDuration;
       getRenderer()->aspectCorrection = module->aspectCorrection;
       getRenderer()->hardCut = module->hardCut;
+      if (module->newPresetName != "") {
+        getRenderer()->setRequestPresetName(module->newPresetName);
+        module->newPresetName="";
+      }
       module->presetIndex = getRenderer()->activePreset();
       if (module->autoPlay != getRenderer()->isAutoplayEnabled())
         getRenderer()->requestToggleAutoplay();
@@ -704,7 +726,9 @@ struct LFMModuleWidget : BaseLFMModuleWidget {
     setModule(module);
     setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/VisualizerWindow.svg")));
 
-        
+    addParam(createParam<ButtonBig>(Vec(17,40),module, LFMModule::PARAM_PRESETTYPE));
+    addParam(createParam<ButtonPlusBig>(Vec(7,55),module, LFMModule::PARAM_ADDFAV));
+    addParam(createParam<ButtonMinBig>(Vec(25,55),module, LFMModule::PARAM_DELFAV));     
     addParam(createParam<RPJKnob>(Vec(knobX2,knobY1), module, LFMModule::PARAM_TIMER));
     addParam(createParam<RPJKnob>(Vec(knobX1,knobY2), module, LFMModule::PARAM_BEAT_SENS));
     addParam(createParam<RPJKnob>(Vec(knobX1,knobY3), module, LFMModule::PARAM_HARD_SENS));
@@ -773,7 +797,7 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
     }
 
 
-    addParam(createParam<ButtonBig>(Vec(7,40),module, LFMModule::PARAM_PRESETTYPE));
+    addParam(createParam<ButtonBig>(Vec(17,40),module, LFMModule::PARAM_PRESETTYPE));
     addParam(createParam<ButtonPlusBig>(Vec(7,55),module, LFMModule::PARAM_ADDFAV));
     addParam(createParam<ButtonMinBig>(Vec(25,55),module, LFMModule::PARAM_DELFAV)); 
     addParam(createParam<RPJKnob>(Vec(knobX2,knobY1), module, LFMModule::PARAM_TIMER));

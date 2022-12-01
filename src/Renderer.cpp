@@ -41,6 +41,11 @@ void ProjectMRenderer::requestPresetName(std::string preset_name, bool hard_cut)
   projectm_select_preset_by_name(pm, preset_name.c_str(), hard_cut);
 }
 
+// Requests that projectM changes the preset at the next opportunity
+void ProjectMRenderer::setRequestPresetName(std::string preset_name) {
+  newPresetName = preset_name;
+}
+
 
 // Requests that projectM changes the autoplay status
 void ProjectMRenderer::requestToggleAutoplay() {
@@ -322,6 +327,10 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url,bool windowed ) {
     setAspectCorrection(aspectCorrection);
     setHardcut(hardCut);
 
+    if (newPresetName != "") {
+      requestPresetName(newPresetName,hardCut);
+      newPresetName = "";
+    }
     if (nextPreset) {
       selectNextPreset(projectm_get_hard_cut_enabled(pm));
 
