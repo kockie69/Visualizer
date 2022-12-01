@@ -1,4 +1,4 @@
-[submodule "dep/projectm"]
+[submodule "projectM"]
 	path = dep/projectm
-	url = https://github.com/jimallman/projectm.git
+	url = git@github.com:jimallman/projectm.git
 	branch = dynamic-q-variables
