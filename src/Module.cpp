@@ -123,8 +123,10 @@ struct LFMModule : Module {
     configParam(PARAM_GRADIENT, 0.f, 5.f, 1.f, "Gradient"," ");
   }
 
-  std::vector<int> favourites;
+  //std::vector<int> favourites;
+  std::vector<std::vector<std::string>> lists = {};
   Presets activePresets;
+  std::string activeListName="default";
   float presetTime = 0;
   float beatSensitivity = 1;
   float hardcutSensitivity = 1;
@@ -133,6 +135,7 @@ struct LFMModule : Module {
   bool aspectCorrection = true;
   int presetIndex = 0;
   int newPresetIndex = 0;
+  std::string newPresetName = "";
   bool displayPresetName = false;
   bool autoPlay = false;
   bool caseSensitive = false;
@@ -183,7 +186,7 @@ struct LFMModule : Module {
       if (params[PARAM_PRESETTYPE].getValue()==0)
         nextPreset=true;
       else {
-        if (!favourites.empty())
+        if (!lists[getListIndex()].empty())
           nextFavourite();
       }
 	  }
@@ -192,7 +195,7 @@ struct LFMModule : Module {
       if (params[PARAM_PRESETTYPE].getValue()==0)
         prevPreset=true;
       else {
-        if (!favourites.empty())
+        if (!lists[getListIndex()].empty())
           prevFavourite();
       }
 	  }
@@ -202,44 +205,103 @@ struct LFMModule : Module {
 
   }
 
-  void nextFavourite() {
-    auto it = std::find(favourites.begin(), favourites.end(), presetIndex);
+  int getListIndex(void) {
 
-    if (it != favourites.end()) {
+    auto it = lists.begin();
+    int i=0;
+    while (it != lists.end() || lists[i].data()->c_str() != activeListName) {
+      it++;
+      i++;
+    }
+    return(i);  
+  }
+
+  void nextFavourite() {
+   /* int index = getListIndex();
+    auto it = std::find(lists[index].begin(), lists[index].end(), newPresetName);
+
+    if (it != lists[index].end()) {
      auto nx=std::next(it,1);
-     newPresetIndex=*nx;
+     newPresetName=*nx;
     }
     else {
-    it = favourites.begin();
-      newPresetIndex = *it;
-    }
+    it = lists[index].begin();
+      newPresetName = *it;
+    }*/
   }
 
   void prevFavourite() {
-    auto it = std::find(favourites.begin(), favourites.end(), presetIndex);
+ /*   int index = getListIndex();
+    auto it = std::find(lists[index].begin(), lists[index]end(), presetIndex);
 
-    if (it != favourites.begin()) {
+    if (it != lists.begin()) {
       auto prev=std::next(it,-1);
-      newPresetIndex=*prev;
+      newPresetName=*prev;
     }
     else {
-      it = favourites.end();
-      newPresetIndex=*it;
-    }
+      it = lists.end();
+      newPresetName=*it;
+    }*/
   }
 
-  void addPreset() {
-    auto it = std::find(favourites.begin(), favourites.end(), presetIndex);
+void onAdd(const rack::engine::Module::AddEvent& e) override {
+	std::string configPath = asset::user("LFM.json");
+	FILE* file = std::fopen(configPath.c_str(), "r");
 
-    if (it == favourites.end())
-      favourites.push_back(presetIndex);
+	//	throw Exception("Could not open autosave patch %s", configPath.c_str());
+    if (file) {
+        INFO("Loading config file %s", configPath.c_str());
+	    json_error_t error;
+	    json_t* rootJ = json_loadf(file, 0, &error);
+        
+	    if (!rootJ) {
+	        throw Exception("Failed to load config. JSON parsing error at %s %d:%d %s", error.source, error.line, error.column, error.text);
+            fclose(file);
+        }
+        json_t *nListsJ = json_object_get(rootJ, "lists");
+	    if (nListsJ) {
+            size_t nrLists = json_array_size(nListsJ);
+            for (int i=0;i<(int)nrLists;i++){
+                json_t* list = json_array_get(nListsJ,i);
+                if (list) {
+                  json_t *nNameJ = json_object_get(list, "name");
+                  if (nNameJ) {
+                    std::vector<std::string> tmp_vec;
+                    tmp_vec.push_back(static_cast<std::string>(json_string_value(nNameJ)));
+                    
+                    json_t *nPresetsJ = json_object_get(list, "presets");
+                    if (nPresetsJ) {
+                      size_t nrPresets = json_array_size(nPresetsJ);
+                      for (int j=0;j<(int)nrPresets;j++){
+                        json_t* nPresetJ = json_array_get(nPresetsJ,j);
+                        tmp_vec.push_back(static_cast<std::string>(json_string_value(nPresetJ)));
+                      }
+                      lists.push_back(tmp_vec);
+                    }
+                  }
+                }
+            }
+            fclose(file);
+            json_decref(nListsJ);
+        }
+    }
+    else
+        INFO("Config file %s does not exist, using default settings", configPath.c_str());
+    Module::onAdd(e);
+}
+
+  void addPreset() {
+  //  auto it = std::find(favourites.begin(), favourites.end(), presetIndex);
+
+  //  if (it == favourites.end())
+  //    favourites.push_back(presetName);
   }
 
   void delPreset() {
-    auto it = std::find(favourites.begin(), favourites.end(), presetIndex);
+  //  auto it = std::find(favourites.begin(), favourites.end(), presetIndex);
 
-    if (it != favourites.end())
-      favourites.erase(it);
+  //  if (it != favourites.end())
+  //    favourites.erase(it);
 
   }
 
@@ -251,6 +313,7 @@ struct LFMModule : Module {
     json_object_set_new(rootJ, "CaseSensitiveSearch", json_boolean(caseSensitive));
     json_object_set_new(rootJ, "Aspectcorrection", json_boolean(aspectCorrection)); 
     json_object_set_new(rootJ, "Hardcut", json_boolean(hardCut));
+    json_object_set_new(rootJ, "ListName", json_string(activeListName.c_str()));
     if (this->getModel()->getFullName() == "RPJ LFMFull") {
       json_object_set_new(rootJ, "windowedXpos", json_integer(windowedXpos));
       json_object_set_new(rootJ, "windowedYpos", json_integer(windowedYpos));
@@ -271,6 +334,7 @@ struct LFMModule : Module {
     json_t *nWindowedYposJ = json_object_get(rootJ, "windowedYpos");
     json_t *nWindowedWidthJ = json_object_get(rootJ, "windowedWidth");
     json_t *nWindowedHeightJ = json_object_get(rootJ, "windowedHeight");
+    json_t *nListNameJ = json_object_get(rootJ, "ListName");
     if (nWindowedWidthJ) {
 	    windowedWidth = json_integer_value(nWindowedWidthJ);
     }
@@ -300,6 +364,9 @@ struct LFMModule : Module {
     }
     if (nHardcutJ) {
 	    hardCut = json_boolean_value(nHardcutJ);
+    }
+    if (nListNameJ) {
+      activeListName = json_string_value(nListNameJ);
     }
   }
 };
@@ -352,7 +419,6 @@ struct BaseProjectMWidget : FramebufferWidget {
         getRenderer()->addPCMData(module->pcm_data, kSampleWindow/2);
         module->full = false;
       }
-
       if (module->newPresetIndex!=0) {
         getRenderer()->requestPresetID(module->newPresetIndex);
         module->newPresetIndex=0;
@@ -504,6 +570,34 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
   }
 };
 
+struct SetListMenuItem : MenuItem {
+  unsigned int presetId;
+  TextField* textfield;
+  std::string *activeListName;
+
+  void onAction(const ActionEvent& e) override {
+    *activeListName = &text[0];
+  }
+  
+  void step() override {
+    std::string _text;
+    std::string _textfield;
+    _text = text;
+    _textfield = textfield->getText();
+    rightText = ( text == *(activeListName) ) ? "<<" : "";
+    MenuItem::step();
+  }
+
+  static SetListMenuItem* construct(std::string label, std::string *listname, TextField* t) {
+    SetListMenuItem* m = new SetListMenuItem;
+
+    m->text = label;
+    m->textfield = t;
+    m->activeListName = listname;
+    return m;
+  }
+};
+
 struct SetPresetMenuItem : MenuItem {
   BaseProjectMWidget* w;
   unsigned int presetId;
@@ -536,6 +630,8 @@ struct SetPresetMenuItem : MenuItem {
     MenuItem::step();
   }
 
+
+
   static SetPresetMenuItem* construct(std::string label, unsigned int i, BaseProjectMWidget* w,TextField* t) {
     SetPresetMenuItem* m = new SetPresetMenuItem;
 
@@ -566,6 +662,16 @@ struct BaseLFMModuleWidget : ModuleWidget {
     menu->addChild(createBoolPtrMenuItem("Hardcut enabled","", &m->hardCut));
     menu->addChild(createBoolPtrMenuItem("Aspectcorrection enabled","", &m->aspectCorrection));
     menu->addChild(createBoolPtrMenuItem("Case sensitive Visual Preset Search","", &m->caseSensitive));
+    
+    menu->addChild(construct<MenuLabel>());
+    //DEBUG("Ok, we now add the preset menu title");
+    menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Preset Lists"));
+    auto lists = m->lists;
+    auto txtfield = new rack::TextField;
+    menu->addChild(SetListMenuItem::construct("default",&m->activeListName,txtfield));
+    for (auto l : lists) 
+      menu->addChild(SetListMenuItem::construct(l.begin()->data(),&m->activeListName,txtfield));
+  
     menu->addChild(construct<MenuLabel>());
     //DEBUG("Ok, we now add the preset menu title");
     menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Visual Presets"));
@@ -584,7 +690,6 @@ struct BaseLFMModuleWidget : ModuleWidget {
     menu->addChild(holder);
 
     menu->addChild(construct<MenuLabel>());
-    //auto presets = w->getRenderer()->listPresets();
     //DEBUG("Ok, we have the list of presets");
     auto presets = w->getRenderer()->listPresets();
     for (auto p : presets) 

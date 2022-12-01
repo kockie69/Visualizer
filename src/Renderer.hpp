@@ -78,6 +78,9 @@ public:
   // Requests that projectM changes the preset at the next opportunity
   void requestPresetID(int id);
 
+   // Requests that projectM changes the preset at the next opportunity
+  void requestPresetName(std::string,bool);
+
   // Requests that projectM changes the autoplay status
   void requestToggleAutoplay();
 
