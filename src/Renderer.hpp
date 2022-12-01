@@ -47,6 +47,7 @@ protected:
 
 public:
   ProjectMRenderer() {}
+  std::string newPresetName = "";
   GLsizei bufferSize;
   int windowWidth{ 0 };
   int renderWidth{ 0 };
@@ -77,6 +78,8 @@ public:
 
   // Requests that projectM changes the preset at the next opportunity
   void requestPresetID(int id);
+
+  void setRequestPresetName(std::string);
 
    // Requests that projectM changes the preset at the next opportunity
   void requestPresetName(std::string,bool);
