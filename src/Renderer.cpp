@@ -272,8 +272,13 @@ void ProjectMRenderer::renderLoopSetPreset(unsigned int i) {
     projectm_select_preset(pm,i,true);
     while (projectm_get_error_loading_current_preset(pm))
       projectm_select_preset(pm,i,true);
-      // TODO: Stop outbound Q vars, and load/display Q vars from new preset?
-      DEBUG("Q vars found:\n%s", projectm_get_preset_qvars(pm));
+      // TODO: Stop any outbound Q vars in transit
+      // Load/display Q vars from the new preset
+      DEBUG("List of %d Q vars found!\n%s", projectm_get_preset_qvars(pm).size());
+      /* TODO: Walk the list and generate our module's desired display text for each, e.g.
+           Q3  --  (0.0)
+          Q17  stickiness  (1.250)
+      */
   }
 }
 
