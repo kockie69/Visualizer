@@ -278,13 +278,20 @@ void ProjectMRenderer::renderLoopSetPreset(unsigned int i) {
   }
   // TODO: Stop any outbound Q vars in transit
   // Load/display Q vars from the new preset
-  DEBUG("TEST*TEST*TEST*\n");
   std::vector<qvar_info> q_vars = projectm_get_preset_qvars(pm);
   DEBUG("List of %d Q vars found!\n", int(q_vars.size()));
   /* TODO: Walk the list and generate our module's desired display text for each, e.g.
        Q3  --  (0.0)
       Q17  stickiness  (1.250)
   */
+  for (auto & a_var : q_vars) {
+    //DEBUG("   %s  --  %s  (%f)", a_var.q_name, (char *)(a_var.alt_names), (char *)(a_var.value));
+    std::string default_q__name = "--";
+    DEBUG("   %s  %s  (%f)",
+          a_var.q_name.c_str(),
+          (strlen(a_var.alt_names.c_str()) > 0) ? a_var.alt_names.c_str() : default_q__name.c_str(),
+          a_var.value);
+  }
 }
 
 void ProjectMRenderer::CheckViewportSize(GLFWwindow* win)
