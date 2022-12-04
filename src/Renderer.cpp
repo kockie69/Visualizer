@@ -27,7 +27,7 @@ ProjectMRenderer::~ProjectMRenderer() {
 void ProjectMRenderer::reportPresetQvars() const {
   // Load/display Q vars from the active preset
   std::vector<qvar_info> q_vars = projectm_get_preset_qvars(pm);
-  DEBUG("List of %d Q vars found!\n", int(q_vars.size()));
+  DEBUG("\nList of %d Q vars found in preset '%s'!", int(q_vars.size()), activePresetName());
   /* TODO: Walk the list and generate our module's desired display text for each, e.g.
        Q3  --  (0.0)
       Q17  stickiness  (1.250)
@@ -40,6 +40,7 @@ void ProjectMRenderer::reportPresetQvars() const {
           (strlen(a_var.alt_names.c_str()) > 0) ? a_var.alt_names.c_str() : default_q__name.c_str(),
           a_var.value);
   }
+  DEBUG("\n");
 }
 
 void ProjectMRenderer::setNoFrames(bool noFrames) {
