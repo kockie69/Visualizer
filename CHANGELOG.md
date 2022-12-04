@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.7]
+## Added
+- Playlists can be saved
+- You can add presets to existing lists
+- You can delete presets from existing lists
+
 ## [2.1.6]
 ## Added
 - Hardcut functionality added by adding a knob and cv
