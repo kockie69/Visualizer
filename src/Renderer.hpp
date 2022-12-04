@@ -89,6 +89,9 @@ public:
   // thread.
   virtual ~ProjectMRenderer();
 
+  // Read and report preset Q-vars
+  void reportPresetQvars() const;
+
   // Sends PCM data to projectM
   void addPCMData(float* data, unsigned int nsamples);
 

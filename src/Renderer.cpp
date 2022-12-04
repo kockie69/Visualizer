@@ -24,6 +24,24 @@ ProjectMRenderer::~ProjectMRenderer() {
   // TODO: Clear the Extender module, if found
 }
 
+void ProjectMRenderer::reportPresetQvars() const {
+  // Load/display Q vars from the active preset
+  std::vector<qvar_info> q_vars = projectm_get_preset_qvars(pm);
+  DEBUG("List of %d Q vars found!\n", int(q_vars.size()));
+  /* TODO: Walk the list and generate our module's desired display text for each, e.g.
+       Q3  --  (0.0)
+      Q17  stickiness  (1.250)
+  */
+  for (auto & a_var : q_vars) {
+    //DEBUG("   %s  --  %s  (%f)", a_var.q_name, (char *)(a_var.alt_names), (char *)(a_var.value));
+    std::string default_q__name = "--";
+    DEBUG("   %s  %s  (%f)",
+          a_var.q_name.c_str(),
+          (strlen(a_var.alt_names.c_str()) > 0) ? a_var.alt_names.c_str() : default_q__name.c_str(),
+          a_var.value);
+  }
+}
+
 void ProjectMRenderer::setNoFrames(bool noFrames) {
   if (noFrames) {
     glfwSetWindowAttrib(window,GLFW_DECORATED,!noFrames);
@@ -112,6 +130,8 @@ void ProjectMRenderer::selectPreviousPreset(bool hard_cut) const {
   if (!pm) return;
   projectm_select_previous_preset(pm,hard_cut);
   //projectm_lock_preset(pm,true); 
+  DEBUG("vvvv Q-vars (selectPreviousPreset) vvvv");
+  reportPresetQvars();
 }
 
 // Switches to the next preset in the current playlist.
@@ -120,6 +140,8 @@ void ProjectMRenderer::selectNextPreset(bool hard_cut) const {
   if (!pm) return;
   projectm_select_next_preset(pm,hard_cut);
   //projectm_lock_preset(pm,true);
+  DEBUG("vvvv Q-vars (selectNextPreset) vvvv");
+  reportPresetQvars();
 }
 
 // ID of the current preset in projectM's list
@@ -261,37 +283,23 @@ void ProjectMRenderer::renderLoopNextPreset() {
         projectm_select_preset(pm,rand() % n,true);
     }
   }
+  DEBUG("vvvv Q-vars (renderLoopNextPreset) vvvv");
+  reportPresetQvars();
 }
 
 // Switch to the indicated preset. This should be called only from
 // the render thread.
 void ProjectMRenderer::renderLoopSetPreset(unsigned int i) {
+  // TODO: Stop any outbound Q vars in transit?
   std::lock_guard<std::mutex> l(pm_m);
   unsigned int n = projectm_get_playlist_size(pm);
   if (n && i < n) {
     projectm_select_preset(pm,i,true);
     while (projectm_get_error_loading_current_preset(pm))
       projectm_select_preset(pm,i,true);
-      // TODO: Stop any outbound Q vars in transit
-      // Load/display Q vars from the new preset
-      DEBUG("...waiting to select...");
   }
-  // TODO: Stop any outbound Q vars in transit
-  // Load/display Q vars from the new preset
-  std::vector<qvar_info> q_vars = projectm_get_preset_qvars(pm);
-  DEBUG("List of %d Q vars found!\n", int(q_vars.size()));
-  /* TODO: Walk the list and generate our module's desired display text for each, e.g.
-       Q3  --  (0.0)
-      Q17  stickiness  (1.250)
-  */
-  for (auto & a_var : q_vars) {
-    //DEBUG("   %s  --  %s  (%f)", a_var.q_name, (char *)(a_var.alt_names), (char *)(a_var.value));
-    std::string default_q__name = "--";
-    DEBUG("   %s  %s  (%f)",
-          a_var.q_name.c_str(),
-          (strlen(a_var.alt_names.c_str()) > 0) ? a_var.alt_names.c_str() : default_q__name.c_str(),
-          a_var.value);
-  }
+  DEBUG("vvvv Q-vars (renderLoopSetPreset) vvvv");
+  reportPresetQvars();
 }
 
 void ProjectMRenderer::CheckViewportSize(GLFWwindow* win)
