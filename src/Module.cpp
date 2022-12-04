@@ -151,7 +151,7 @@ struct LFMModule : Module {
   bool hardCut = true;
   
   dsp::SchmittTrigger nextInputTrigger,prevInputTrigger;
-  dsp::BooleanTrigger nextTrigger,prevTrigger;
+  dsp::BooleanTrigger nextTrigger,prevTrigger,addTrigger,delTrigger;
   float pcm_data[kSampleWindow];
 
   void step() override {
@@ -165,9 +165,9 @@ struct LFMModule : Module {
       full = true;
     }
 
-    if (params[PARAM_ADDFAV].getValue()==1 && params[PARAM_PRESETTYPE].getValue()==0 )
+    if (addTrigger.process(params[PARAM_ADDFAV].getValue()) > 0.f && params[PARAM_PRESETTYPE].getValue()==0 )
       addPreset();
-    if (params[PARAM_DELFAV].getValue()==1 && params[PARAM_PRESETTYPE].getValue()==1 )
+    if (delTrigger.process(params[PARAM_DELFAV].getValue()) > 0.f  && params[PARAM_PRESETTYPE].getValue()==1 )
       delPreset();  
     presetTime = params[PARAM_TIMER].getValue();
     beatSensitivity = params[PARAM_BEAT_SENS].getValue();
@@ -219,45 +219,49 @@ struct LFMModule : Module {
         return(i);
       }
     }
-    return(0);  
+    return(-1);  
   }
 
   void nextFavourite() {
     int index = getListIndex();
-    auto it = std::find(lists[index].begin(), lists[index].end(), activePresetName);
-    if (it != lists[index].end()) { // Found the title
-      it++;
-      if (it != lists[index].end()) {
+    if (index != -1) {
+      auto it = std::find(lists[index].begin(), lists[index].end(), activePresetName);
+      if (it != lists[index].end()) { // Found the title
+        it++;
+        if (it != lists[index].end()) {
+          newPresetName = *it;
+        }
+        else {
+        it = lists[index].begin()+1;
         newPresetName = *it;
+        }
       }
       else {
-      it = lists[index].begin()+1;
-      newPresetName = *it;
+        it = lists[index].begin()+1;
+        newPresetName = *it;
       }
-    }
-    else {
-      it = lists[index].begin()+1;
-      newPresetName = *it;
     }
   }
 
   void prevFavourite() {
     int index = getListIndex();
-    auto it = std::find(lists[index].begin(), lists[index].end(), activePresetName);
-    if (it != lists[index].end()) { // Found the title
-      it--;
-      if (it != lists[index].begin()) {
-        newPresetName=*it;
+    if (index != -1) {
+      auto it = std::find(lists[index].begin(), lists[index].end(), activePresetName);
+      if (it != lists[index].end()) { // Found the title
+        it--;
+        if (it != lists[index].begin()) {
+          newPresetName=*it;
+        }
+        else {
+          it = lists[index].end();
+          it--;
+          newPresetName=*it;
+        }
       }
       else {
-        it = lists[index].end();
-        it--;
-        newPresetName=*it;
+          it = lists[index].end();
+          newPresetName=*it;
       }
-    }
-    else {
-        it = lists[index].end();
-        newPresetName=*it;
     }
   }
 
@@ -307,19 +311,64 @@ void onAdd(const rack::engine::Module::AddEvent& e) override {
     Module::onAdd(e);
 }
 
-  void addPreset() {
-  //  auto it = std::find(favourites.begin(), favourites.end(), presetIndex);
+void saveLists() {
+	std::string configPath = asset::user("LFM.json");
+	FILE* file = std::fopen(configPath.c_str(), "w");
 
-  //  if (it == favourites.end())
-  //    favourites.push_back(presetName);
+		//throw Exception("Could not open autosave patch %s", configPath.c_str());
+    if (file) {
+      INFO("Writing to config file %s", configPath.c_str());
+      
+      auto it = lists.begin();
+      int i = 0;
+      json_t *theJson=json_object();
+      json_t *theLists=json_array();
+      while (it != lists.end()) {
+        json_t *theList=json_object();
+        std::string value;
+        auto it2 = lists[i].begin();
+        int j=0;
+        // First string is the name of the list
+        json_t *thePresets=json_array();
+        while (it2 != lists[i].end()) {
+          if (it2 != lists[i].begin())
+            json_array_append(thePresets,json_string(it2->data()));
+          else
+            json_object_set_new(theList, "name", json_string(it[0].data()->c_str()));
+          j++;
+          it2++;
+        }
+      json_object_set(theList, "presets", thePresets);
+      json_array_append(theLists,theList);
+      i++;
+      it++;
+      }
+      json_object_set_new(theJson, "lists", theLists);
+	    int error = json_dumpf(theJson,file, 0);
+      if (error) {
+	        throw Exception("Failed to write lists. JSON parsing error");
+      }
+      fclose(file);
+    }
+    else
+       INFO("Config file %s does not exist, using default settings", configPath.c_str());
+}
+
+  void addPreset() {
+    int index = getListIndex();
+
+    if (index!=-1)
+      lists[index].push_back(activePresetName);
   }
 
   void delPreset() {
-  //  auto it = std::find(favourites.begin(), favourites.end(), presetIndex);
-
-  //  if (it != favourites.end())
-  //    favourites.erase(it);
-
+    int index = getListIndex();
+    if (index != -1) {
+      auto it = std::find(lists[index].begin(), lists[index].end(), activePresetName);
+      if (it != lists[index].end()) { // Found the title
+        lists[index].erase(it);
+      }
+    }
   }
 
   json_t *dataToJson() override {
@@ -693,7 +742,9 @@ struct BaseLFMModuleWidget : ModuleWidget {
     menu->addChild(SetListMenuItem::construct("default",&m->activeListName,txtfield));
     for (auto l : lists) 
       menu->addChild(SetListMenuItem::construct(l.begin()->data(),&m->activeListName,txtfield));
-  
+    menu->addChild(construct<MenuLabel>());
+    menu->addChild(createMenuItem("Save Preset Lists","", [=]() {m->saveLists();}));
+
     menu->addChild(construct<MenuLabel>());
     //DEBUG("Ok, we now add the preset menu title");
     menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Visual Presets"));
