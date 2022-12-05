@@ -47,9 +47,19 @@ protected:
 
 public:
   ProjectMRenderer() {}
+
   //bool switching = false;
   //bool switchPreset=false;
   std::string newPresetName = "";
+
+  int buttonEvent;
+  int cp_x;
+  int cp_y;
+  int offset_cpx=0;
+  int offset_cpy=0;
+  int w_posx;
+  int w_posy;
+
   GLsizei bufferSize;
   int windowWidth{ 0 };
   int renderWidth{ 0 };
@@ -65,10 +75,20 @@ public:
   bool nextPreset = false;
   bool prevPreset = false;
   bool hardCut = true;
+  void setNoFrames(bool);
+  void setAlwaysOnTop(bool);
+  int *xPos;
+  int *yPos;
+  int *winWidth;
+  int *winHeight;
+  static void window_pos_callback(GLFWwindow*, int, int);
+  static void window_size_callback(GLFWwindow*, int, int);
+  static void mouse_button_callback(GLFWwindow*, int, int, int);
+  static void cursor_position_callback(GLFWwindow*, double, double);
   // init creates the OpenGL context to render in, in the main thread,
   // then starts the rendering thread. This can't be done in the ctor
   // because creating the window calls out to virtual methods.
-  void init(mySettings const& s,int*,int*,int*,int*,bool);
+  void init(mySettings const& s,int*,int*,int*,int*,bool,bool,bool);
 
   // The dtor signals the rendering thread to terminate, then waits
   // for it to do so. It then deletes the OpenGL context in the main
@@ -150,7 +170,7 @@ private:
   void CheckViewportSize(GLFWwindow*);
   int renderHeight{ 0 };
   int windowHeight{ 0 };
-  virtual GLFWwindow* createWindow(int*,int*,int*,int*) = 0;
+  virtual GLFWwindow* createWindow(int*,int*,int*,int*,bool,bool) = 0;
 };
 
 class WindowedRenderer : public ProjectMRenderer {
@@ -160,16 +180,10 @@ public:
   void showWindow(int* ,int*,int*,int* ) override;
 private:
   void setPosition(int,int);
-  GLFWwindow* createWindow(int*,int*,int*,int*) override;
+  GLFWwindow* createWindow(int*,int*,int*,int*,bool,bool) override;
   int last_xpos, last_ypos, last_width, last_height;
   static void framebufferSizeCallback(GLFWwindow* win, int x, int y);
   static void keyCallback(GLFWwindow* win, int key, int scancode, int action, int mods);
-  static void window_pos_callback(GLFWwindow*, int, int);
-  static void window_size_callback(GLFWwindow*, int, int);
-  int *xPos;
-  int *yPos;
-  int *winWidth;
-  int *winHeight;
 };
 
 class TextureRenderer : public ProjectMRenderer {
@@ -181,7 +195,7 @@ public:
   int getBufferSize();
 
 private:
-  GLFWwindow* createWindow(int*,int*,int*,int*) override;
+  GLFWwindow* createWindow(int*,int*,int*,int*,bool,bool) override;
   static void framebufferSizeCallback(GLFWwindow* win, int x, int y);
 };
 

@@ -7,8 +7,8 @@
 #include <thread>
 #include <mutex>
 
-void ProjectMRenderer::init(mySettings const& s,int *xpos, int *ypos,int *width,int *height,bool windowed) {
-  window = createWindow(xpos,ypos,width,height);
+void ProjectMRenderer::init(mySettings const& s,int *xpos, int *ypos,int *width,int *height,bool windowed,bool alwaysOnTop,bool noFrames) {
+  window = createWindow(xpos,ypos,width,height,alwaysOnTop,noFrames);
   std::string url = s.preset_path;
   renderThread = std::thread([this,s,url,windowed](){ this->renderLoop(s,url,windowed); });
 }
@@ -21,6 +21,63 @@ ProjectMRenderer::~ProjectMRenderer() {
   // Destroy the window in the main thread, because it's not legal
   // to do so in other threads.
   glfwDestroyWindow(window);
+}
+
+void ProjectMRenderer::setNoFrames(bool noFrames) {
+  if (noFrames) {
+    glfwSetWindowAttrib(window,GLFW_DECORATED,!noFrames);
+    glfwSetWindowPosCallback(window, window_pos_callback);
+    glfwSetWindowSizeCallback(window, window_size_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetCursorPosCallback(window, cursor_position_callback);
+  }
+  else {
+    glfwSetWindowAttrib(window,GLFW_DECORATED,!noFrames);
+    glfwSetWindowPosCallback(window, NULL);
+    glfwSetWindowSizeCallback(window, NULL);
+    glfwSetMouseButtonCallback(window, NULL);
+    glfwSetCursorPosCallback(window, NULL);
+  }
+}
+
+void ProjectMRenderer::cursor_position_callback(GLFWwindow* win, double x, double y){
+    ProjectMRenderer* r = reinterpret_cast<ProjectMRenderer*>(glfwGetWindowUserPointer(win));
+    if (r->buttonEvent == 1) {
+        r->offset_cpx = x - r->cp_x;
+        r->offset_cpy = y - r->cp_y;
+    }
+}
+
+void ProjectMRenderer::mouse_button_callback(GLFWwindow* win, int button, int action, int mods){
+  ProjectMRenderer* r = reinterpret_cast<ProjectMRenderer*>(glfwGetWindowUserPointer(win));
+  if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS){
+    r->buttonEvent = 1;
+    double x, y;
+    glfwGetCursorPos(win, &x, &y);
+    r->cp_x = floor(x);
+    r->cp_y= floor(y);
+  }
+  if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE){
+      r->buttonEvent = 0;
+      r->cp_x = 0;
+      r->cp_y = 0;
+  }
+}
+
+void ProjectMRenderer::window_size_callback(GLFWwindow* win, int width, int height) {
+  ProjectMRenderer* r = reinterpret_cast<ProjectMRenderer*>(glfwGetWindowUserPointer(win));
+  *(r->winWidth)=width;
+  *(r->winHeight)=height;
+}
+
+void ProjectMRenderer::window_pos_callback(GLFWwindow* win, int xpos, int ypos) {
+  ProjectMRenderer* r = reinterpret_cast<ProjectMRenderer*>(glfwGetWindowUserPointer(win));
+  *(r->xPos)=xpos;
+  *(r->yPos)=ypos;
+}
+
+void ProjectMRenderer::setAlwaysOnTop(bool alwaysOnTop) {
+  glfwSetWindowAttrib(window,GLFW_FLOATING,alwaysOnTop);
 }
 
 void ProjectMRenderer::addPCMData(float* data, unsigned int nsamples) {
@@ -330,7 +387,14 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url,bool windowed ) {
         if (getStatus() == Status::PLEASE_EXIT) {
 	  break;
         }
-      
+    if(buttonEvent == 1){
+            glfwGetWindowPos(window, &w_posx, &w_posy);
+            glfwSetWindowPos(window, w_posx + offset_cpx, w_posy + offset_cpy);
+            offset_cpx = 0;
+            offset_cpy = 0;
+            cp_x += offset_cpx;
+            cp_y += offset_cpy;
+    }  
     CheckViewportSize(window);
 
 		glBindTexture(GL_TEXTURE_2D, texture);
@@ -427,14 +491,19 @@ void ProjectMRenderer::logGLFWError(int errcode, const char* errmsg) {
   //DEBUG("GLFW error %s: %s", std::to_string(errcode).c_str(), errmsg);
 }
 
-GLFWwindow* WindowedRenderer::createWindow(int *xpos,int *ypos,int *width,int *height) {
+GLFWwindow* WindowedRenderer::createWindow(int *xpos,int *ypos,int *width,int *height,bool alwaysOnTop,bool noFrames) {
   glfwSetErrorCallback(logGLFWError);
   logContextInfo("gWindow", APP->window->win);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+  glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE);
   glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
+  if (alwaysOnTop)
+    glfwWindowHint(GLFW_FLOATING, GLFW_TRUE);
+  if (noFrames)
+    glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
   glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
 
   
@@ -443,26 +512,19 @@ GLFWwindow* WindowedRenderer::createWindow(int *xpos,int *ypos,int *width,int *h
   if (!c) {
     return nullptr;
   }
-  glfwSetWindowUserPointer(c, reinterpret_cast<void*>(this));
+  glfwSetWindowUserPointer(c, reinterpret_cast<WindowedRenderer*>(this));
   glfwSetWindowCloseCallback(c, [](GLFWwindow* w) { glfwIconifyWindow(w); });
   glfwSetKeyCallback(c, keyCallback);
-  glfwSetWindowPosCallback(c, window_pos_callback);
-  glfwSetWindowSizeCallback(c, window_size_callback);
+  if (noFrames) {
+    glfwSetWindowPosCallback(c, window_pos_callback);
+    glfwSetWindowSizeCallback(c, window_size_callback);
+    glfwSetMouseButtonCallback(c, mouse_button_callback);
+    glfwSetCursorPosCallback(c, cursor_position_callback);
+  }
   glfwSetWindowTitle(c, u8"LowFatMilk");
   return c;
 }
 
-void WindowedRenderer::window_size_callback(GLFWwindow* win, int width, int height) {
-  WindowedRenderer* r = reinterpret_cast<WindowedRenderer*>(glfwGetWindowUserPointer(win));
-  *(r->winWidth)=width;
-  *(r->winHeight)=height;
-}
-
-void WindowedRenderer::window_pos_callback(GLFWwindow* win, int xpos, int ypos) {
-  WindowedRenderer* r = reinterpret_cast<WindowedRenderer*>(glfwGetWindowUserPointer(win));
-  *(r->xPos)=xpos;
-  *(r->yPos)=ypos;
-}
 
 void WindowedRenderer::showWindow(int *xpos, int *ypos, int *width, int *height) {
   xPos = xpos;
@@ -484,15 +546,14 @@ void WindowedRenderer::keyCallback(GLFWwindow* win, int key, int scancode, int a
     {
       const GLFWmonitor* current_monitor = glfwGetWindowMonitor(win);
       if (!current_monitor) {
-	GLFWmonitor* best_monitor = glfwWindowGetNearestMonitor(win);
-	const GLFWvidmode* mode = glfwGetVideoMode(best_monitor);
-	glfwGetWindowPos(win, &r->last_xpos, &r->last_ypos);
-	glfwGetWindowSize(win, &r->last_width, &r->last_height);
-	glfwSetWindowMonitor(win, best_monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+	      GLFWmonitor* best_monitor = glfwWindowGetNearestMonitor(win);
+	      const GLFWvidmode* mode = glfwGetVideoMode(best_monitor);
+	      glfwGetWindowPos(win, &r->last_xpos, &r->last_ypos);
+	      glfwGetWindowSize(win, &r->last_width, &r->last_height);
+	      glfwSetWindowMonitor(win, best_monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
       } else {
-	glfwSetWindowMonitor(win, nullptr, r->last_xpos, r->last_ypos, r->last_width, r->last_height, GLFW_DONT_CARE);
+	      glfwSetWindowMonitor(win, nullptr, r->last_xpos, r->last_ypos, r->last_width, r->last_height, GLFW_DONT_CARE);
       }
-
     }
     break;
   case GLFW_KEY_ESCAPE:
@@ -500,11 +561,11 @@ void WindowedRenderer::keyCallback(GLFWwindow* win, int key, int scancode, int a
     {
       const GLFWmonitor* monitor = glfwGetWindowMonitor(win);
       if (!monitor) {
-	glfwIconifyWindow(win);
-      } else {
-	glfwSetWindowMonitor(win, nullptr, r->last_xpos, r->last_ypos, r->last_width, r->last_height, GLFW_DONT_CARE);
+	      glfwIconifyWindow(win);
+      } else {        
+	      glfwSetWindowMonitor(win, nullptr, r->last_xpos, r->last_ypos, r->last_width, r->last_height, GLFW_DONT_CARE);
       }
-    }
+    }    
     break;
   case GLFW_KEY_R:
     r->requestPresetID(kPresetIDRandom);
@@ -514,7 +575,7 @@ void WindowedRenderer::keyCallback(GLFWwindow* win, int key, int scancode, int a
   }
 }
 
-GLFWwindow* TextureRenderer::createWindow(int *xpos,int *ypos,int *width,int *height) {
+GLFWwindow* TextureRenderer::createWindow(int *xpos,int *ypos,int *width,int *height,bool unused1,bool unused2) {
   glfwSetErrorCallback(logGLFWError);
   logContextInfo("gWindow", APP->window->win);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -532,7 +593,7 @@ GLFWwindow* TextureRenderer::createWindow(int *xpos,int *ypos,int *width,int *he
   if (!c) {
     return nullptr;
   }
-  glfwSetWindowUserPointer(c, reinterpret_cast<void*>(this));
+  glfwSetWindowUserPointer(c, reinterpret_cast<TextureRenderer*>(this));
   logContextInfo("LFM context", c);
   return c;
 }
