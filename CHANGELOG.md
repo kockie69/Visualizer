@@ -12,10 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - You can delete presets from existing lists
 
 ## [2.1.6]
+## Fixed
+- Resizing on Linux now works
+- Some presets were not rendering
 ## Added
 - Hardcut functionality added by adding a knob and cv
 - Beat sensitivity is now a knob and has cv
 - We now have triggering for both previous and next preset
+- Added 10000 new presets
 
 ## [2.1.5]
 ## Fixed
