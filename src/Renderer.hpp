@@ -47,6 +47,8 @@ protected:
 
 public:
   ProjectMRenderer() {}
+  //bool switching = false;
+  //bool switchPreset=false;
   std::string newPresetName = "";
   GLsizei bufferSize;
   int windowWidth{ 0 };
@@ -75,6 +77,9 @@ public:
 
   // Sends PCM data to projectM
   void addPCMData(float* data, unsigned int nsamples);
+
+  bool getSwitchPreset();
+  void setSwitchPreset(bool);
 
   // Requests that projectM changes the preset at the next opportunity
   void requestPresetID(int id);
@@ -122,6 +127,8 @@ public:
   
   // Set the Hardcut
   void setHardcut(bool);
+
+  //static void PresetSwitchedEvent(bool, unsigned int, void*);
 
   // True if the renderer is currently able to render projectM images
   bool isRendering() const;

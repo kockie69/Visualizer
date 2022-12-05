@@ -141,6 +141,31 @@ void ProjectMRenderer::setHardcut(bool hardCut) {
     projectm_set_hard_cut_enabled(pm,hardCut);
 }
 
+//bool ProjectMRenderer::getSwitchPreset() {
+//  return switchPreset;
+//}
+
+//void ProjectMRenderer::setSwitchPreset(bool b) {
+//  switchPreset=b;
+//}
+
+//void ProjectMRenderer::PresetSwitchedEvent(bool isHardCut, unsigned int index, void* context)
+//{
+    //auto that = reinterpret_cast<ProjectMRenderer*>(context);
+    //if (!that->switching) {
+    //  that->switchPreset = true;
+    //  that->switching = true;
+    //}
+    //that->switching = false;
+    //auto presetName = projectm_get_preset_name(that->_projectMHandle, index);
+    //SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Displaying preset: %s\n", presetName);
+
+    //std::string newTitle = "projectM ➫ " + std::string(presetName);
+    //projectm_free_string(presetName);
+
+    //that->_sdlRenderingWindow.SetTitle(newTitle);
+//}
+
 // Returns a list of all presets currently loaded by projectM
 std::list<std::pair<unsigned int, std::string> > ProjectMRenderer::listPresets() const {
   std::list<std::pair<unsigned int, std::string> > presets;
@@ -285,6 +310,7 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url,bool windowed ) {
   }
   if (pm) {
     setStatus(Status::RENDERING);
+    //projectm_set_preset_switched_event_callback(pm, &ProjectMRenderer::PresetSwitchedEvent,static_cast<void*>(this));
     renderLoopNextPreset();
     projectm_select_preset(pm,s.presetIndex,true);
     GLuint FramebufferName = 0;

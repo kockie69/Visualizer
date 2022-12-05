@@ -321,6 +321,10 @@ struct LFMModule : Module {
         i++;
       }
     }
+    if (params[LFMModule::PARAM_PRESETTYPE].getValue()!=0) {
+      newPresetName=lists.begin()->data();
+      autoPlay=false;
+    }
   }
 };
 
@@ -377,6 +381,10 @@ struct BaseProjectMWidget : FramebufferWidget {
         getRenderer()->addPCMData(module->pcm_data, kSampleWindow/2);
         module->full = false;
       }
+      //if (getRenderer()->getSwitchPreset()) {
+      //  module->nextPreset=true;
+      //  getRenderer()->setSwitchPreset(false);
+      //}
       if (module->newPresetIndex!=0) {
         getRenderer()->requestPresetID(module->newPresetIndex);
         module->newPresetIndex=0;
