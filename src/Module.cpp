@@ -12,7 +12,7 @@ static const unsigned int kSampleWindow = 512;
 
 // Then do the knobs
 const float knobX1 = 12;
-const float knobX2 = 30;
+const float knobX2 = 48;
 
 const float knobY1 = 32;
 const float knobY2 = 72;
@@ -36,8 +36,7 @@ const float jackY5 = 266;
 const float jackY6 = 295;
 const float jackY7 = 327;
 
-struct ImageWidget : TransparentWidget
-{
+struct ImageWidget : TransparentWidget {
   std::string image_file_path;
   float width;
   float height;
@@ -83,6 +82,9 @@ struct LFMModule : Module {
     PARAM_HARD_SENS,
     PARAM_HARD_DURATION,
     PARAM_GRADIENT,
+    PARAM_PRESETTYPE,
+    PARAM_ADDFAV,
+    PARAM_DELFAV,
     NUM_PARAMS
   };
   enum InputIds {
@@ -116,6 +118,7 @@ struct LFMModule : Module {
     configParam(PARAM_GRADIENT, 0.f, 5.f, 1.f, "Gradient"," ");
   }
 
+  std::vector<std::string> lists = {};
   float presetTime = 0;
   float beatSensitivity = 1;
   float hardcutSensitivity = 1;
@@ -123,6 +126,9 @@ struct LFMModule : Module {
   float gradient = 1;
   bool aspectCorrection = true;
   int presetIndex = 0;
+  int newPresetIndex = 0;
+  std::string newPresetName = "";
+  std::string activePresetName = "";
   bool displayPresetName = false;
   bool autoPlay = false;
   bool alwaysOnTop = false;
@@ -139,7 +145,7 @@ struct LFMModule : Module {
   bool hardCut = true;
   
   dsp::SchmittTrigger nextInputTrigger,prevInputTrigger;
-  dsp::BooleanTrigger nextTrigger,prevTrigger;
+  dsp::BooleanTrigger nextTrigger,prevTrigger,addTrigger,delTrigger,presetTrigger;
   float pcm_data[kSampleWindow];
 
   void step() override {
@@ -152,7 +158,16 @@ struct LFMModule : Module {
       i = 0;
       full = true;
     }
-
+    if (presetTrigger.process(params[PARAM_PRESETTYPE].getValue())) {
+      if (!lists.empty()) {
+        newPresetName=lists.begin()->data();
+        autoPlay=false;
+      }
+    }
+    if (addTrigger.process(params[PARAM_ADDFAV].getValue()) > 0.f && params[PARAM_PRESETTYPE].getValue()==0 )
+      addPreset();
+    if (delTrigger.process(params[PARAM_DELFAV].getValue()) > 0.f  && params[PARAM_PRESETTYPE].getValue()==1 )
+      delPreset();  
     presetTime = params[PARAM_TIMER].getValue();
     beatSensitivity = params[PARAM_BEAT_SENS].getValue();
     if (inputs[BEAT_INPUT].isConnected())
@@ -168,16 +183,70 @@ struct LFMModule : Module {
       gradient+=inputs[GRADIENT_INPUT].getVoltage();   
     
     if (nextTrigger.process(params[PARAM_NEXT].getValue()) > 0.f || nextInputTrigger.process(rescale(inputs[NEXT_PRESET_INPUT].getVoltage(), 0.1f, 2.f, 0.f, 1.f))) {
-      nextPreset=true;
+      if (params[PARAM_PRESETTYPE].getValue()==0)
+        nextPreset=true;
+      else {
+        if (!lists.empty())
+          nextFavourite();
+      }
 	  }
 
     if (prevTrigger.process(params[PARAM_PREV].getValue()) > 0.f || prevInputTrigger.process(rescale(inputs[PREV_PRESET_INPUT].getVoltage(), 0.1f, 2.f, 0.f, 1.f))) {
-		  prevPreset=true;
+      if (params[PARAM_PRESETTYPE].getValue()==0)
+        prevPreset=true;
+      else {
+        if (!lists.empty())
+          prevFavourite();
+      }
 	  }
     
     lights[NEXT_LIGHT].setBrightness(nextPreset);
 	  lights[PREV_LIGHT].setBrightness(prevPreset);
 
+  }
+
+  void nextFavourite() {
+    auto it = std::find(lists.begin(), lists.end(), activePresetName);
+    if (it != lists.end()) { // Found the title
+      it++;
+      if (it != lists.end()) {
+        newPresetName = *it;
+      }
+      else {
+        it = lists.begin();
+        newPresetName = *it;
+      }
+    }
+  }
+
+  void prevFavourite() {
+
+    auto it = std::find(lists.begin(), lists.end(), activePresetName);
+    if (it != lists.end()) { // Found the title
+      if (it != lists.begin()) {
+        it--;
+        newPresetName=*it;
+      }
+      else {
+        it = lists.end();
+        it--;
+        newPresetName=*it;
+      }
+    }
+  }
+
+  void addPreset() {
+    auto it = std::find(lists.begin(), lists.end(), activePresetName);
+    if (it == lists.end())  // Did not find the title
+      lists.push_back(activePresetName);
+  }
+
+  void delPreset() {
+    auto it = std::find(lists.begin(), lists.end(), activePresetName);
+    if (it != lists.end()) // Found the title
+      lists.erase(it);
+    if (!lists.empty())
+      newPresetName = lists.begin()->data();
   }
 
   json_t *dataToJson() override {
@@ -188,8 +257,18 @@ struct LFMModule : Module {
     json_object_set_new(rootJ, "CaseSensitiveSearch", json_boolean(caseSensitive));
     json_object_set_new(rootJ, "Aspectcorrection", json_boolean(aspectCorrection)); 
     json_object_set_new(rootJ, "Hardcut", json_boolean(hardCut));
+
+    auto it = lists.begin();
+    json_t *listArray=json_array();
+    while (it != lists.end()) {
+      json_array_append(listArray,json_string(it->data()));
+      it++;
+    }
+    json_object_set_new(rootJ, "List", listArray);
+
     json_object_set_new(rootJ, "AlwaysOnTop", json_boolean(alwaysOnTop));
     json_object_set_new(rootJ, "NoFrames", json_boolean(noFrames));
+
     if (this->getModel()->getFullName() == "RPJ LFMFull") {
       json_object_set_new(rootJ, "windowedXpos", json_integer(windowedXpos));
       json_object_set_new(rootJ, "windowedYpos", json_integer(windowedYpos));
@@ -212,6 +291,7 @@ struct LFMModule : Module {
     json_t *nWindowedYposJ = json_object_get(rootJ, "windowedYpos");
     json_t *nWindowedWidthJ = json_object_get(rootJ, "windowedWidth");
     json_t *nWindowedHeightJ = json_object_get(rootJ, "windowedHeight");
+    json_t *nListJ = json_object_get(rootJ,"List");
     if (nWindowedWidthJ) {
 	    windowedWidth = json_integer_value(nWindowedWidthJ);
     }
@@ -247,6 +327,18 @@ struct LFMModule : Module {
     }
     if (nHardcutJ) {
 	    hardCut = json_boolean_value(nHardcutJ);
+    }
+    if (nListJ) {
+      lists.clear();
+      int i=0;
+      while (i!=(int)json_array_size(nListJ)) {
+        lists.push_back(json_string_value(json_array_get(nListJ,i)));
+        i++;
+      }
+    }
+    if (params[LFMModule::PARAM_PRESETTYPE].getValue()!=0) {
+      newPresetName=lists.begin()->data();
+      autoPlay=false;
     }
   }
 };
@@ -284,8 +376,12 @@ struct BaseProjectMWidget : FramebufferWidget {
   void step() override {
     dirty = true;
     if (module) {
+
+      module->activePresetName = getRenderer()->activePresetName().c_str();
+
       getRenderer()->setNoFrames(module->noFrames);
       getRenderer()->setAlwaysOnTop(module->alwaysOnTop);
+
       getRenderer()->presetTime = module->presetTime;
       getRenderer()->beatSensitivity = module->beatSensitivity;
       getRenderer()->hardcutSensitivity = module->hardcutSensitivity;
@@ -293,6 +389,10 @@ struct BaseProjectMWidget : FramebufferWidget {
       //getRenderer()->softcutDuration = module->softcutDuration;
       getRenderer()->aspectCorrection = module->aspectCorrection;
       getRenderer()->hardCut = module->hardCut;
+      if (module->newPresetName != "") {
+        getRenderer()->setRequestPresetName(module->newPresetName);
+        module->newPresetName="";
+      }
       module->presetIndex = getRenderer()->activePreset();
       if (module->autoPlay != getRenderer()->isAutoplayEnabled())
         getRenderer()->requestToggleAutoplay();
@@ -301,23 +401,32 @@ struct BaseProjectMWidget : FramebufferWidget {
         getRenderer()->addPCMData(module->pcm_data, kSampleWindow/2);
         module->full = false;
       }
-
-     // If the module requests that we change the preset at random
-     // (i.e. the random button was clicked), tell the render thread to
-     // do so on the next pass.
-      if (module->nextPreset) {
-        module->nextPreset = false;
-        if (!getRenderer()->isAutoplayEnabled())
-          getRenderer()->nextPreset=true;
-        else 
-          getRenderer()->requestPresetID(kPresetIDRandom);
+      //if (getRenderer()->getSwitchPreset()) {
+      //  module->nextPreset=true;
+      //  getRenderer()->setSwitchPreset(false);
+      //}
+      if (module->newPresetIndex!=0) {
+        getRenderer()->requestPresetID(module->newPresetIndex);
+        module->newPresetIndex=0;
       }
-      if (module->prevPreset) {
-        module->prevPreset = false;
-        if (!getRenderer()->isAutoplayEnabled())
-          getRenderer()->prevPreset=true;
-        else
-          getRenderer()->requestPresetID(kPresetIDRandom);
+      else {
+      // If the module requests that we change the preset at random
+      // (i.e. the random button was clicked), tell the render thread to
+      // do so on the next pass.
+        if (module->nextPreset) {
+          module->nextPreset = false;
+          if (!getRenderer()->isAutoplayEnabled())
+            getRenderer()->nextPreset=true;
+          else 
+            getRenderer()->requestPresetID(kPresetIDRandom);
+        }
+        if (module->prevPreset) {
+          module->prevPreset = false;
+          if (!getRenderer()->isAutoplayEnabled())
+            getRenderer()->prevPreset=true;
+          else
+            getRenderer()->requestPresetID(kPresetIDRandom);
+        }
       }
     }
   }
@@ -479,6 +588,19 @@ struct SetPresetMenuItem : MenuItem {
     MenuItem::step();
   }
 
+template <typename T>
+ui::MenuItem* myCreateBoolPtrMenuItem(std::string text, std::string rightText, T* ptr) {
+	return createBoolMenuItem(text, rightText,
+		[=]() {
+			return ptr ? *ptr : false;
+		},
+		[=](T val) {
+			if (ptr)
+				*ptr = val;
+		}
+	);
+}
+
   static SetPresetMenuItem* construct(std::string label, unsigned int i, BaseProjectMWidget* w,TextField* t) {
     SetPresetMenuItem* m = new SetPresetMenuItem;
 
@@ -494,12 +616,67 @@ struct SetPresetMenuItem : MenuItem {
 struct BaseLFMModuleWidget : ModuleWidget {
   BaseProjectMWidget* w;
 
+  template <class TMenuItem = ui::MenuItem>
+  ui::MenuItem* myCreateBoolMenuItem(std::string text, std::string rightText, std::function<bool()> getter, std::function<void(bool state)> setter, bool disabled = false, bool alwaysConsume = false) {
+    struct Item : TMenuItem {
+      std::string rightTextPrefix;
+      std::function<bool()> getter;
+      std::function<void(size_t)> setter;
+      bool alwaysConsume;
+
+      void step() override {
+        this->rightText = rightTextPrefix;
+        if (getter()) {
+          if (!rightTextPrefix.empty())
+            this->rightText += "  ";
+          this->rightText += CHECKMARK_STRING;
+        }
+        TMenuItem::step();
+      }
+      void onAction(const event::Action& e) override {
+        setter(!getter());
+        if (alwaysConsume)
+          e.consume(this);
+      }
+    };
+
+    Item* item = createMenuItem<Item>(text);
+    item->rightTextPrefix = rightText;
+    item->getter = getter;
+    item->setter = setter;
+    item->disabled = true;
+    item->alwaysConsume = alwaysConsume;
+    return item;
+  }
+
+  template <typename T>
+  ui::MenuItem* myCreateBoolPtrMenuItem(std::string text, std::string rightText, T* ptr) {
+    return myCreateBoolMenuItem(text, rightText,
+      [=]() {
+        return ptr ? *ptr : false;
+      },
+      [=](T val) {
+        if (ptr)
+          *ptr = val;
+      }
+    );
+  }
+
+
   void appendContextMenu(Menu* menu) override {
     LFMModule* m = dynamic_cast<LFMModule*>(module);
     assert(m);
 
+    // General module settings
     menu->addChild(construct<MenuLabel>());
     menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Options"));
+
+    if (!m->params[LFMModule::PARAM_PRESETTYPE].getValue())
+      menu->addChild(createBoolPtrMenuItem("Cycle through presets","", &m->autoPlay));
+    else
+      menu->addChild(myCreateBoolPtrMenuItem("Cycle through presets","", &m->autoPlay));
+ 
+
     if (m->getModel()->name == "LFMFull" ) {
       menu->addChild(createBoolPtrMenuItem("Window always on Top","", &m->alwaysOnTop));
 #ifndef ARCH_MAC
@@ -507,15 +684,18 @@ struct BaseLFMModuleWidget : ModuleWidget {
 #endif    
     }
     menu->addChild(createBoolPtrMenuItem("Cycle through presets","", &m->autoPlay));
+
     if (m->getModel()->name == "LFMEmbedded" ) {
       menu->addChild(createBoolPtrMenuItem("Show Preset Title","", &m->displayPresetName));
     }
     menu->addChild(createBoolPtrMenuItem("Hardcut enabled","", &m->hardCut));
     menu->addChild(createBoolPtrMenuItem("Aspectcorrection enabled","", &m->aspectCorrection));
     menu->addChild(createBoolPtrMenuItem("Case sensitive Visual Preset Search","", &m->caseSensitive));
+
+    // Menu items to deal with presets
     menu->addChild(construct<MenuLabel>());
     menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Visual Presets"));
-    
+
     auto holder = new rack::Widget;
     holder->box.size.x = 200;
     holder->box.size.y = 20;
@@ -542,7 +722,9 @@ struct LFMModuleWidget : BaseLFMModuleWidget {
     setModule(module);
     setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/VisualizerWindow.svg")));
 
-        
+    addParam(createParam<ButtonBig>(Vec(17,40),module, LFMModule::PARAM_PRESETTYPE));
+    addParam(createParam<ButtonPlusBig>(Vec(7,55),module, LFMModule::PARAM_ADDFAV));
+    addParam(createParam<ButtonMinBig>(Vec(25,55),module, LFMModule::PARAM_DELFAV));     
     addParam(createParam<RPJKnob>(Vec(knobX2,knobY1), module, LFMModule::PARAM_TIMER));
     addParam(createParam<RPJKnob>(Vec(knobX1,knobY2), module, LFMModule::PARAM_BEAT_SENS));
     addParam(createParam<RPJKnob>(Vec(knobX1,knobY3), module, LFMModule::PARAM_HARD_SENS));
@@ -611,7 +793,9 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
     }
 
 
-        
+    addParam(createParam<ButtonBig>(Vec(17,40),module, LFMModule::PARAM_PRESETTYPE));
+    addParam(createParam<ButtonPlusBig>(Vec(7,55),module, LFMModule::PARAM_ADDFAV));
+    addParam(createParam<ButtonMinBig>(Vec(25,55),module, LFMModule::PARAM_DELFAV)); 
     addParam(createParam<RPJKnob>(Vec(knobX2,knobY1), module, LFMModule::PARAM_TIMER));
     addParam(createParam<RPJKnob>(Vec(knobX1,knobY2), module, LFMModule::PARAM_BEAT_SENS));
     addParam(createParam<RPJKnob>(Vec(knobX1,knobY3), module, LFMModule::PARAM_HARD_SENS));
