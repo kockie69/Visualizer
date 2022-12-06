@@ -341,8 +341,12 @@ struct LFMModule : Module {
       autoPlay=false;
     }
   }
-};
 
+
+  void clearList() {
+      lists.clear();
+  }
+};
 
 struct BaseProjectMWidget : FramebufferWidget {
 
@@ -662,7 +666,6 @@ struct BaseLFMModuleWidget : ModuleWidget {
     );
   }
 
-
   void appendContextMenu(Menu* menu) override {
     LFMModule* m = dynamic_cast<LFMModule*>(module);
     assert(m);
@@ -683,7 +686,6 @@ struct BaseLFMModuleWidget : ModuleWidget {
       menu->addChild(createBoolPtrMenuItem("No Frames","", &m->noFrames));
 #endif    
     }
-    menu->addChild(createBoolPtrMenuItem("Cycle through presets","", &m->autoPlay));
 
     if (m->getModel()->name == "LFMEmbedded" ) {
       menu->addChild(createBoolPtrMenuItem("Show Preset Title","", &m->displayPresetName));
@@ -691,6 +693,10 @@ struct BaseLFMModuleWidget : ModuleWidget {
     menu->addChild(createBoolPtrMenuItem("Hardcut enabled","", &m->hardCut));
     menu->addChild(createBoolPtrMenuItem("Aspectcorrection enabled","", &m->aspectCorrection));
     menu->addChild(createBoolPtrMenuItem("Case sensitive Visual Preset Search","", &m->caseSensitive));
+
+    menu->addChild(construct<MenuLabel>());
+    menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Preset List Options"));
+    menu->addChild(createMenuItem("Clear List", "", [=]() {m->clearList();}));
 
     // Menu items to deal with presets
     menu->addChild(construct<MenuLabel>());
