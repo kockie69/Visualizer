@@ -17,7 +17,7 @@ struct ButtonBigSwitch : SvgSwitch  {
 
 struct ButtonBig : SvgSwitch  {
 	ButtonBig() {
-		momentary=true;
+		//momentary=true;
 		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/buttons/ButtonLarge_0.svg")));
 		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/buttons/ButtonLarge_1.svg")));
 	}

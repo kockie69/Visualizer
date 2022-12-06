@@ -7,7 +7,7 @@
    viewBox="0 0 203.2 128.5"
    version="1.1"
    id="svg849"
-   inkscape:version="1.1.1 (3bf5ae0d25, 2021-09-20)"
+   inkscape:version="1.2.1 (1:1.2.1+202210291243+9c6d41e410)"
    sodipodi:docname="Visualizer.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -25,15 +25,17 @@
      inkscape:document-units="mm"
      showgrid="false"
      inkscape:zoom="1.1575153"
-     inkscape:cx="456.14948"
-     inkscape:cy="266.51916"
-     inkscape:window-width="1920"
-     inkscape:window-height="991"
-     inkscape:window-x="-9"
-     inkscape:window-y="-9"
+     inkscape:cx="317.05844"
+     inkscape:cy="267.38307"
+     inkscape:window-width="2486"
+     inkscape:window-height="1376"
+     inkscape:window-x="74"
+     inkscape:window-y="27"
      inkscape:window-maximized="1"
      inkscape:current-layer="layer1"
-     width="157.48mm" />
+     width="157.48mm"
+     inkscape:showpageshadow="2"
+     inkscape:deskcolor="#d1d1d1" />
   <defs
      id="defs846">
     <linearGradient
@@ -668,7 +670,7 @@
     <g
        id="g434752-6-9"
        style="display:inline"
-       transform="translate(-26.922268,-136.26793)">
+       transform="translate(-20.864981,-136.26793)">
       <ellipse
          fill="url(#SVGID_1_)"
          cx="41.924015"
@@ -1194,7 +1196,7 @@
        aria-label="TIMER"
        id="text3051"
        style="font-weight:bold;font-size:2.82222px;line-height:1.25;font-family:Roboto;-inkscape-font-specification:'Roboto, Bold';fill:#ffffff;stroke-width:0.264583"
-       transform="translate(-2.0113518,-37.453243)">
+       transform="translate(4.0459353,-37.453243)">
       <path
          d="m 14.489881,58.901792 h -0.614605 v 1.671561 h -0.413411 v -1.671561 h -0.606337 v -0.334863 h 1.634353 z"
          style="font-size:2.82222px"

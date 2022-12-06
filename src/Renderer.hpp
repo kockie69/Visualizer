@@ -47,6 +47,11 @@ protected:
 
 public:
   ProjectMRenderer() {}
+
+  //bool switching = false;
+  //bool switchPreset=false;
+  std::string newPresetName = "";
+
   int buttonEvent;
   int cp_x;
   int cp_y;
@@ -54,6 +59,7 @@ public:
   int offset_cpy=0;
   int w_posx;
   int w_posy;
+
   GLsizei bufferSize;
   int windowWidth{ 0 };
   int renderWidth{ 0 };
@@ -92,8 +98,16 @@ public:
   // Sends PCM data to projectM
   void addPCMData(float* data, unsigned int nsamples);
 
+  bool getSwitchPreset();
+  void setSwitchPreset(bool);
+
   // Requests that projectM changes the preset at the next opportunity
   void requestPresetID(int id);
+
+  void setRequestPresetName(std::string);
+
+   // Requests that projectM changes the preset at the next opportunity
+  void requestPresetName(std::string,bool);
 
   // Requests that projectM changes the autoplay status
   void requestToggleAutoplay();
@@ -133,6 +147,8 @@ public:
   
   // Set the Hardcut
   void setHardcut(bool);
+
+  //static void PresetSwitchedEvent(bool, unsigned int, void*);
 
   // True if the renderer is currently able to render projectM images
   bool isRendering() const;

@@ -26,7 +26,7 @@
      showgrid="false"
      inkscape:zoom="1.1575153"
      inkscape:cx="394.8112"
-     inkscape:cy="267.38307"
+     inkscape:cy="268.24699"
      inkscape:window-width="2486"
      inkscape:window-height="1376"
      inkscape:window-x="74"
@@ -709,7 +709,7 @@
     <g
        id="g434752-6-9"
        style="display:inline"
-       transform="translate(-27.241425,-136.16833)">
+       transform="translate(-21.184138,-136.16833)">
       <ellipse
          fill="url(#SVGID_1_)"
          cx="41.924015"
@@ -1130,7 +1130,7 @@
        aria-label="TIMER"
        id="text3051"
        style="font-weight:bold;font-size:2.82222px;line-height:1.25;font-family:Roboto;-inkscape-font-specification:'Roboto, Bold';fill:#ffffff;stroke-width:0.264583"
-       transform="translate(-2.3305086,-37.353642)">
+       transform="translate(3.7267784,-37.353642)">
       <path
          d="m 14.489881,58.901792 h -0.614605 v 1.671561 h -0.413411 v -1.671561 h -0.606337 v -0.334863 h 1.634353 z"
          style="font-size:2.82222px"
