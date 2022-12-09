@@ -23,9 +23,9 @@ CXXFLAGS +=
 
 ifdef ARCH_WIN
 	LDFLAGS += -lopengl32
-	projectm := dep/lib/liblibprojectM.a
+	projectm := src/lib/liblibprojectM.a
 else	
-	projectm := dep/lib/libprojectM.a
+	projectm := src/lib/libprojectM.a
 endif
 
 # Add .cpp files to the build
@@ -54,11 +54,11 @@ $(projectm):
 # An additional lib needs to be added for the build of projectm, so sed to the rescue
 ifdef ARCH_WIN
 	cp src/dep/CMakeLists.txt dep/projectm
-	cd dep/projectm/build && cmake -G "Ninja" -DCMAKE_LIBRARY_PATH=dep/lib -DENABLE_OPENMP="OFF" -DCMAKE_BUILD_TYPE=Release -DENABLE_THREADING="OFF" -DENABLE_SDL="OFF" -DCMAKE_INSTALL_PREFIX=../../../dep/ ..
+	cd dep/projectm/build && cmake -G "Ninja" -DCMAKE_LIBRARY_PATH=dep/lib -DENABLE_OPENMP="OFF" -DCMAKE_BUILD_TYPE=Release -DENABLE_THREADING="OFF" -DENABLE_SDL="OFF" -DCMAKE_INSTALL_PREFIX=../../../src/ ..
 	cp $(RACK_DIR)/libRack.dll.a dep/
 	sed -i 's/CMAKE_CXX_STANDARD_LIBRARIES:STRING=/CMAKE_CXX_STANDARD_LIBRARIES:STRING= ..\/..\/..\/dep\/libRack.dll.a -lpsapi /g' dep/projectm/build/CMakeCache.txt; 
 else
-	cd dep/projectm/build && cmake -DCMAKE_LIBRARY_PATH=dep/lib -DENABLE_OPENMP="OFF" -DCMAKE_BUILD_TYPE=Release -DENABLE_THREADING="OFF" -DENABLE_SDL="OFF" -DCMAKE_INSTALL_PREFIX=../../../dep/ ..
+	cd dep/projectm/build && cmake -DCMAKE_LIBRARY_PATH=dep/lib -DENABLE_OPENMP="OFF" -DCMAKE_BUILD_TYPE=Release -DENABLE_THREADING="OFF" -DENABLE_SDL="OFF" -DCMAKE_INSTALL_PREFIX=../../../src/ ..
 endif
 	
 	cd dep/projectm/build && cmake --build .
