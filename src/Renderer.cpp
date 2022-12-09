@@ -7,6 +7,23 @@
 #include <thread>
 #include <mutex>
 
+// Create ModulePresetPathItems for each patch in a directory.
+void ProjectMRenderer::loadPresetItems(std::string presetDir) {
+
+	if (system::isDirectory(presetDir)) {
+		// Note: This is not cached, so opening this each time might have a bit of latency.
+		std::vector<std::string> entries = system::getEntries(presetDir,5);
+		std::sort(entries.begin(), entries.end());
+		for (std::string path : entries) {
+			//std::string name = system::getStem(path);
+			if (!system::isDirectory(path)) {
+				//std::string name = system::getStem(path);
+        fullList.push_back(path);
+		  }
+	  } 
+  }
+}
+
 void ProjectMRenderer::init(mySettings const& s,int *xpos, int *ypos,int *width,int *height,bool windowed,bool alwaysOnTop,bool noFrames) {
   window = createWindow(xpos,ypos,width,height,alwaysOnTop,noFrames);
   std::string url = s.preset_path;
@@ -89,13 +106,21 @@ void ProjectMRenderer::addPCMData(float* data, unsigned int nsamples) {
 // Requests that projectM changes the preset at the next opportunity
 void ProjectMRenderer::requestPresetID(int id) {
   std::lock_guard<std::mutex> l(flags_m);
-  requestedPresetID = id;
+  if (id==-1) {
+    if (fullList.size()) 
+      newPresetName=fullList[rand() % fullList.size()].data();
+  }
+  else
+    newPresetName=fullList[id].data();
 }
 
 // Requests that projectM changes the preset at the next opportunity
 void ProjectMRenderer::requestPresetName(std::string preset_name, bool hard_cut) {
   std::lock_guard<std::mutex> l(pm_m);
-  projectm_select_preset_by_name(pm, preset_name.c_str(), hard_cut);
+  if (pm) {
+    projectm_load_preset_file(pm,preset_name.c_str(),!hard_cut);
+    presetNameActive = preset_name;
+  }
 }
 
 // Requests that projectM changes the preset at the next opportunity
@@ -118,19 +143,36 @@ bool ProjectMRenderer::isAutoplayEnabled() const {
 }
 
 // Switches to the previous preset in the current playlist.
-void ProjectMRenderer::selectPreviousPreset(bool hard_cut) const {
+void ProjectMRenderer::selectPreviousPreset(bool hard_cut) {
   std::lock_guard<std::mutex> l(pm_m);
   if (!pm) return;
-  projectm_select_previous_preset(pm,hard_cut);
-  //projectm_lock_preset(pm,true); 
+  auto it = std::find(fullList.begin(),fullList.end(),presetNameActive);
+  if (it != fullList.end()) { // Found the title
+    it--;
+    newPresetName=*it;
+  }
+  else {
+    it = fullList.end();
+    it--;
+    newPresetName=*it;
+  }
 }
 
 // Switches to the next preset in the current playlist.
-void ProjectMRenderer::selectNextPreset(bool hard_cut) const {
+void ProjectMRenderer::selectNextPreset(bool hard_cut) {
   std::lock_guard<std::mutex> l(pm_m);
   if (!pm) return;
-  projectm_select_next_preset(pm,hard_cut);
-  //projectm_lock_preset(pm,true);
+  auto it = std::find(fullList.begin(), fullList.end(), presetNameActive);
+    if (it != fullList.end()) { // Found the title
+      it++;
+      if (it != fullList.end()) {
+        newPresetName = *it;
+      }
+      else {
+        it = fullList.begin();
+        newPresetName = *it;
+      }
+    }
 }
 
 // ID of the current preset in projectM's list
@@ -138,20 +180,14 @@ unsigned int ProjectMRenderer::activePreset() const {
   unsigned int presetIdx;
   std::lock_guard<std::mutex> l(pm_m);
   if (!pm) return 0;
-  projectm_get_selected_preset_index(pm,&presetIdx);
+    //Fix
+  //projectm_get_selected_preset_index(pm,&presetIdx);
   return presetIdx;
 }
 
 // Name of the preset projectM is currently displaying
-std::string ProjectMRenderer::activePresetName() const {
-  unsigned int presetIdx;
-  std::unique_lock<std::mutex> l(pm_m);
-  if (!pm) return "";
-  if (projectm_get_selected_preset_index(pm,&presetIdx)) {
-    l.unlock();
-    return projectm_get_preset_name(pm,presetIdx);
-  }
-  return "";
+std::string ProjectMRenderer::activePresetName() {
+  return presetNameActive;
 }
 
 void ProjectMRenderer::setPresetTime(double time) {
@@ -206,9 +242,9 @@ void ProjectMRenderer::setHardcut(bool hardCut) {
 //  switchPreset=b;
 //}
 
-//void ProjectMRenderer::PresetSwitchedEvent(bool isHardCut, unsigned int index, void* context)
-//{
-    //auto that = reinterpret_cast<ProjectMRenderer*>(context);
+void ProjectMRenderer::PresetSwitchedEvent(bool isHardCut, void* context)
+{
+    auto that = reinterpret_cast<ProjectMRenderer*>(context);
     //if (!that->switching) {
     //  that->switchPreset = true;
     //  that->switching = true;
@@ -221,7 +257,13 @@ void ProjectMRenderer::setHardcut(bool hardCut) {
     //projectm_free_string(presetName);
 
     //that->_sdlRenderingWindow.SetTitle(newTitle);
-//}
+}
+
+void ProjectMRenderer::PresetSwitchedErrorEvent(const char* preset_filename,const char* message, void* user_data)
+{
+    auto that = reinterpret_cast<ProjectMRenderer*>(user_data);
+}
+
 
 // Returns a list of all presets currently loaded by projectM
 std::list<std::pair<unsigned int, std::string> > ProjectMRenderer::listPresets() const {
@@ -229,11 +271,8 @@ std::list<std::pair<unsigned int, std::string> > ProjectMRenderer::listPresets()
   
   //DEBUG("Ok, lets check the number of presets found");
   unsigned int n;
-  {
-    std::lock_guard<std::mutex> l(pm_m);
-    if (!pm) return presets;
-      n = projectm_get_playlist_size(pm);
-  }
+  n = fullList.size();
+
   //DEBUG("The number of presets found is %d", n);
   if (!n) {
     return presets;
@@ -241,8 +280,8 @@ std::list<std::pair<unsigned int, std::string> > ProjectMRenderer::listPresets()
   for (unsigned int i = 0; i < n; ++i){
     std::string s;
     {
-      std::lock_guard<std::mutex> l(pm_m);
-      s = projectm_get_preset_name(pm,i);
+      //std::lock_guard<std::mutex> l(pm_m);
+      s = fullList[i];
     }
     presets.push_back(std::make_pair(i, std::string(s)));
   }
@@ -290,11 +329,13 @@ void ProjectMRenderer::renderSetAutoplay(bool enable) {
 void ProjectMRenderer::renderLoopNextPreset() {
   if (pm) {
     std::lock_guard<std::mutex> l(pm_m);
-    unsigned int n = projectm_get_playlist_size(pm);
+    
+    unsigned int n = fullList.size();
     if (n) {
-      projectm_select_preset(pm,rand() % n,true);
-      while (projectm_get_error_loading_current_preset(pm))
-        projectm_select_preset(pm,rand() % n,true);
+      int index = rand() % n;
+      newPresetName = fullList[index].data();
+      //while (projectm_get_error_loading_current_preset(pm))
+      //  projectm_load_preset_file(pm,fullList[rand() % n].c_str(),hardCut);
     }
   }
 }
@@ -303,12 +344,13 @@ void ProjectMRenderer::renderLoopNextPreset() {
 // the render thread.
 void ProjectMRenderer::renderLoopSetPreset(unsigned int i) {
   std::lock_guard<std::mutex> l(pm_m);
-  unsigned int n = projectm_get_playlist_size(pm);
-  if (n && i < n) {
-    projectm_select_preset(pm,i,true);
-    while (projectm_get_error_loading_current_preset(pm))
-      projectm_select_preset(pm,i,true);
-  }
+  //Fix
+  //unsigned int n = projectm_get_playlist_size(pm);
+  //if (n && i < n) {
+  //  projectm_select_preset(pm,i,true);
+  //  while (projectm_get_error_loading_current_preset(pm))
+  //    projectm_select_preset(pm,i,true);
+  //}
 }
 
 void ProjectMRenderer::CheckViewportSize(GLFWwindow* win)
@@ -343,7 +385,7 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url,bool windowed ) {
   
   // Initialize projectM
   projectm_settings *sp = projectm_alloc_settings();
-    sp->preset_path = (char *)url.c_str();
+    //sp->preset_path = (char *)url.c_str();
     sp->window_width = s.window_width;
     sp->window_height = s.window_height;
     sp->fps =  s.fps;
@@ -358,18 +400,20 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url,bool windowed ) {
     sp->hard_cut_duration= s.hard_cut_duration;
     sp->hard_cut_sensitivity =  s.hard_cut_sensitivity;
     sp->beat_sensitivity = s.beat_sensitivity;
-    sp->shuffle_enabled = s.shuffle_enabled;
+    //sp->shuffle_enabled = s.shuffle_enabled;
+    loadPresetItems((char *)url.c_str());
   {
     std::lock_guard<std::mutex> l(pm_m);
     //DEBUG("The preset path is %s", sp->preset_url);
-    pm = projectm_create_settings(sp, PROJECTM_FLAG_NONE);
+    pm = projectm_create_settings(sp);
     CheckViewportSize(window);
   }
   if (pm) {
     setStatus(Status::RENDERING);
-    //projectm_set_preset_switched_event_callback(pm, &ProjectMRenderer::PresetSwitchedEvent,static_cast<void*>(this));
+    projectm_set_preset_switch_requested_event_callback(pm, &ProjectMRenderer::PresetSwitchedEvent,static_cast<void*>(this));
+    projectm_set_preset_switch_failed_event_callback(pm, &ProjectMRenderer::PresetSwitchedErrorEvent,static_cast<void*>(this));                                                
     renderLoopNextPreset();
-    projectm_select_preset(pm,s.presetIndex,true);
+    requestPresetName(newPresetName,hardCut);
     GLuint FramebufferName = 0;
     GLuint texture = 0;
     glGenFramebuffers(1, &FramebufferName);

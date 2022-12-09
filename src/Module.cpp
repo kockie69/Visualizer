@@ -125,8 +125,6 @@ struct LFMModule : Module {
   float hardcutDuration = 0;
   float gradient = 1;
   bool aspectCorrection = true;
-  int presetIndex = 0;
-  int newPresetIndex = 0;
   std::string newPresetName = "";
   std::string activePresetName = "";
   bool displayPresetName = false;
@@ -251,7 +249,7 @@ struct LFMModule : Module {
 
   json_t *dataToJson() override {
 	  json_t *rootJ=json_object();
-	  json_object_set_new(rootJ, "ActivePreset", json_integer(presetIndex));
+	  json_object_set_new(rootJ, "ActivePreset", json_string(activePresetName.c_str()));
     json_object_set_new(rootJ, "DisplayPresetName", json_boolean(displayPresetName));
     json_object_set_new(rootJ, "Autoplay", json_boolean(autoPlay));
     json_object_set_new(rootJ, "CaseSensitiveSearch", json_boolean(caseSensitive));
@@ -305,7 +303,7 @@ struct LFMModule : Module {
 	    windowedYpos = json_integer_value(nWindowedYposJ);
     } 
 	  if (nActivePresetJ) {
-	    presetIndex = json_integer_value(nActivePresetJ);
+	    activePresetName = json_string_value(nActivePresetJ);
     }
     if (nDisplayPresetNameJ) {
 	    displayPresetName = json_boolean_value(nDisplayPresetNameJ);
@@ -337,8 +335,8 @@ struct LFMModule : Module {
       }
     }
     if (params[LFMModule::PARAM_PRESETTYPE].getValue()!=0) {
-      newPresetName=lists.begin()->data();
-      autoPlay=false;
+      if (!lists.empty())
+        newPresetName=lists.begin()->data();
     }
   }
 
@@ -358,15 +356,15 @@ struct BaseProjectMWidget : FramebufferWidget {
 
   BaseProjectMWidget() {}
 
-  void init(std::string presetURL,int presetIndex,bool windowed,bool alwaysOnTop,bool noFrames) {
-      getRenderer()->init(initSettings(presetURL,presetIndex),&module->windowedXpos,&module->windowedYpos,&module->windowedWidth,&module->windowedHeight,windowed,alwaysOnTop,noFrames);
+  void init(std::string presetURL,std::string presetName,bool windowed,bool alwaysOnTop,bool noFrames) {
+      getRenderer()->init(initSettings(presetURL,presetName),&module->windowedXpos,&module->windowedYpos,&module->windowedWidth,&module->windowedHeight,windowed,alwaysOnTop,noFrames);
   }
 
   template<typename T>
-  static BaseProjectMWidget* create(Vec pos, std::string presetURL,int presetIndex,bool windowed,bool alwaysOnTop,bool noFrames) {
+  static BaseProjectMWidget* create(Vec pos, std::string presetURL,std::string presetName,bool windowed,bool alwaysOnTop,bool noFrames) {
     BaseProjectMWidget* p = new T;
     p->box.pos = pos;
-    p->init(presetURL,presetIndex,windowed,alwaysOnTop,noFrames);
+    p->init(presetURL,presetName,windowed,alwaysOnTop,noFrames);
     return p;
   }
 
@@ -390,14 +388,12 @@ struct BaseProjectMWidget : FramebufferWidget {
       getRenderer()->beatSensitivity = module->beatSensitivity;
       getRenderer()->hardcutSensitivity = module->hardcutSensitivity;
       getRenderer()->hardcutDuration = module->hardcutDuration;
-      //getRenderer()->softcutDuration = module->softcutDuration;
       getRenderer()->aspectCorrection = module->aspectCorrection;
       getRenderer()->hardCut = module->hardCut;
       if (module->newPresetName != "") {
         getRenderer()->setRequestPresetName(module->newPresetName);
         module->newPresetName="";
       }
-      module->presetIndex = getRenderer()->activePreset();
       if (module->autoPlay != getRenderer()->isAutoplayEnabled())
         getRenderer()->requestToggleAutoplay();
         
@@ -405,32 +401,23 @@ struct BaseProjectMWidget : FramebufferWidget {
         getRenderer()->addPCMData(module->pcm_data, kSampleWindow/2);
         module->full = false;
       }
-      //if (getRenderer()->getSwitchPreset()) {
-      //  module->nextPreset=true;
-      //  getRenderer()->setSwitchPreset(false);
-      //}
-      if (module->newPresetIndex!=0) {
-        getRenderer()->requestPresetID(module->newPresetIndex);
-        module->newPresetIndex=0;
-      }
-      else {
+
       // If the module requests that we change the preset at random
       // (i.e. the random button was clicked), tell the render thread to
       // do so on the next pass.
-        if (module->nextPreset) {
-          module->nextPreset = false;
-          if (!getRenderer()->isAutoplayEnabled())
-            getRenderer()->nextPreset=true;
-          else 
-            getRenderer()->requestPresetID(kPresetIDRandom);
-        }
-        if (module->prevPreset) {
-          module->prevPreset = false;
-          if (!getRenderer()->isAutoplayEnabled())
-            getRenderer()->prevPreset=true;
-          else
-            getRenderer()->requestPresetID(kPresetIDRandom);
-        }
+      if (module->nextPreset) {
+        module->nextPreset = false;
+        if (!getRenderer()->isAutoplayEnabled())
+          getRenderer()->nextPreset=true;
+        else 
+          getRenderer()->requestPresetID(kPresetIDRandom);
+      }
+      if (module->prevPreset) {
+        module->prevPreset = false;
+        if (!getRenderer()->isAutoplayEnabled())
+          getRenderer()->prevPreset=true;
+        else
+          getRenderer()->requestPresetID(kPresetIDRandom);
       }
     }
   }
@@ -445,11 +432,11 @@ struct BaseProjectMWidget : FramebufferWidget {
   // object.  This is needed because we must initialize this->settings
   // before starting this->renderThread, and that has to be done in
   // ProjectMWidget's ctor init list.
-  mySettings initSettings(std::string presetURL,int presetIndex) const {
+  mySettings initSettings(std::string presetURL,std::string presetName) const {
     mySettings s;
 
     // Window/rendering settings
-    s.presetIndex = presetIndex;
+    s.presetName = presetName;
     
     s.preset_path = (char *)presetURL.c_str();
     s.window_width = RENDER_WIDTH;
@@ -466,7 +453,7 @@ struct BaseProjectMWidget : FramebufferWidget {
     s.hard_cut_duration= 20;
     s.hard_cut_sensitivity =  0.5;
     s.beat_sensitivity = 1;
-    s.shuffle_enabled = false;
+    //s.shuffle_enabled = false;
 
     // Unsupported settings
     //s.softCutRatingsEnabled = false;
@@ -497,7 +484,7 @@ struct WindowedProjectMWidget : BaseProjectMWidget {
       if (!getRenderer()->isRendering()) {
         nvgText(args.vg, 5, -5, "Unable to initialize rendering. See log for details.", nullptr);
       } else {
-        nvgText(args.vg, 5, -5, getRenderer()->activePresetName().c_str(), nullptr);
+        nvgText(args.vg, 5, -5, system::getStem(getRenderer()->activePresetName().c_str()).c_str(), nullptr);
       }
       nvgFill(args.vg);
       nvgClosePath(args.vg);
@@ -550,7 +537,7 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
           nvgFontSize(args.vg, 14);
           nvgFontFaceId(args.vg, font->handle);
           nvgTextAlign(args.vg, NVG_ALIGN_BOTTOM);
-          nvgText(args.vg, 10, 20, getRenderer()->activePresetName().c_str(), nullptr);
+          nvgText(args.vg, 10, 20, system::getStem(getRenderer()->activePresetName().c_str()).c_str(), nullptr);
           nvgFill(args.vg);
           nvgClosePath(args.vg);
           nvgRestore(args.vg);
@@ -562,11 +549,11 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
 
 struct SetPresetMenuItem : MenuItem {
   BaseProjectMWidget* w;
-  unsigned int presetId;
+  std::string presetName;
   TextField* textfield;
 
   void onAction(const ActionEvent& e) override {
-    w->getRenderer()->requestPresetID(presetId);
+    w->getRenderer()->requestPresetName(presetName,w->module->hardCut);
   }
 
   void step() override {
@@ -588,7 +575,7 @@ struct SetPresetMenuItem : MenuItem {
       else
         visible=false;
     }
-    rightText = (w->getRenderer()->activePreset() == presetId) ? "<<" : "";
+    rightText = (w->getRenderer()->activePresetName() == presetName) ? "<<" : "";
     MenuItem::step();
   }
 
@@ -605,12 +592,12 @@ ui::MenuItem* myCreateBoolPtrMenuItem(std::string text, std::string rightText, T
 	);
 }
 
-  static SetPresetMenuItem* construct(std::string label, unsigned int i, BaseProjectMWidget* w,TextField* t) {
+  static SetPresetMenuItem* construct(std::string label, BaseProjectMWidget* w,TextField* t) {
     SetPresetMenuItem* m = new SetPresetMenuItem;
 
     m->w = w;
-    m->presetId = i;
-    m->text = label;
+    m->presetName = label;
+    m->text = system::getStem(label);
     m->textfield = t;
 
     return m;
@@ -717,7 +704,7 @@ struct BaseLFMModuleWidget : ModuleWidget {
 
     auto presets = w->getRenderer()->listPresets();
     for (auto p : presets) 
-      menu->addChild(SetPresetMenuItem::construct(p.second, p.first, w,textfield));
+      menu->addChild(SetPresetMenuItem::construct( p.second, w,textfield));
   }
 };
 
@@ -753,7 +740,7 @@ struct LFMModuleWidget : BaseLFMModuleWidget {
 
     //std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
     if (module) {
-      w = BaseProjectMWidget::create<WindowedProjectMWidget>(Vec(85, 20), asset::plugin(pluginInstance, "res/presets_projectM/"),module->presetIndex,true,module->alwaysOnTop,module->noFrames);
+      w = BaseProjectMWidget::create<WindowedProjectMWidget>(Vec(85, 20), asset::plugin(pluginInstance, "res/presets_projectM/"),module->activePresetName,true,module->alwaysOnTop,module->noFrames);
       w->module = module;
       w->box.size = Vec(RENDER_WIDTH,RACK_GRID_HEIGHT);
       //w->font = font;
@@ -778,7 +765,7 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
 
     if (module) {
       // this is a "live" module in Rack
-      w = BaseProjectMWidget::create<EmbeddedProjectMWidget>(Vec(6*RACK_GRID_WIDTH-4, 0), asset::plugin(pluginInstance, "res/presets_projectM/"),module->presetIndex,false,module->alwaysOnTop,module->noFrames);
+      w = BaseProjectMWidget::create<EmbeddedProjectMWidget>(Vec(6*RACK_GRID_WIDTH-4, 0), asset::plugin(pluginInstance, "res/presets_projectM/"),module->activePresetName,false,module->alwaysOnTop,module->noFrames);
       w->module = module;
       w->box.size = Vec(RENDER_WIDTH,RACK_GRID_HEIGHT);
       addChild(w);
