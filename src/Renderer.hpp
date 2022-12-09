@@ -15,7 +15,8 @@ static const int kPresetIDRandom = -1; // Switch to a random preset
 static const int kPresetIDKeep = -2; // Keep the current preset
 
 struct mySettings : projectm_settings {
-  int presetIndex;
+  std::string presetName;
+  char* preset_path;
 };
 
 class ProjectMRenderer {
@@ -47,7 +48,8 @@ protected:
 
 public:
   ProjectMRenderer() {}
-
+  std::vector<std::string> fullList = {};
+  std::string presetNameActive = "";
   //bool switching = false;
   //bool switchPreset=false;
   std::string newPresetName = "";
@@ -101,6 +103,10 @@ public:
   bool getSwitchPreset();
   void setSwitchPreset(bool);
 
+  void loadPresetItems(std::string);
+
+  static void PresetSwitchedErrorEvent(const char*, const char*, void*);
+                                                    
   // Requests that projectM changes the preset at the next opportunity
   void requestPresetID(int id);
 
@@ -119,13 +125,13 @@ public:
   unsigned int activePreset() const;
 
   // Switches to the previous preset in the current playlist.
-  void selectPreviousPreset(bool hard_cut) const;
+  void selectPreviousPreset(bool hard_cut);
 
   // Switches to the next preset in the current playlist.
-  void selectNextPreset(bool hard_cut) const;
+  void selectNextPreset(bool hard_cut);
 
   // Name of the preset projectM is currently displaying
-  std::string activePresetName() const;
+  std::string activePresetName();
 
   // Returns a list of all presets currently loaded by projectM
   std::list<std::pair<unsigned int, std::string> > listPresets() const;
@@ -148,7 +154,7 @@ public:
   // Set the Hardcut
   void setHardcut(bool);
 
-  //static void PresetSwitchedEvent(bool, unsigned int, void*);
+  static void PresetSwitchedEvent(bool, void*);
 
   // True if the renderer is currently able to render projectM images
   bool isRendering() const;
