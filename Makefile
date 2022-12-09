@@ -33,7 +33,8 @@ SOURCES += $(wildcard src/*.cpp)
 
 # Add files to the ZIP package when running `make dist`
 # The compiled plugin and "plugin.json" are automatically added.
-DISTRIBUTABLES += $(wildcard LICENSE*) res 
+DISTRIBUTABLES += $(wildcard LICENSE*) res presets
+# DISTRIBUTABLES += $(wildcard LICENSE*) presets
 
 # Build the static library into your plugin.dll/dylib/so
 OBJECTS += $(projectm)
@@ -43,7 +44,8 @@ DEPS += $(projectm)
 
 $(projectm):
 # 	Out-of-source build dir
-	cd dep && git submodule update --init
+#	cd dep && git submodule update --init
+	cd dep && git submodule update --remote
 
 # Start building
 	cd dep/projectm && mkdir -p build
