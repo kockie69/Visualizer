@@ -2,7 +2,7 @@ name: Build VCV Rack Plugin
 on: [workflow_dispatch,push,pull_request]
 
 env:
-  rack-sdk-version: 2.1.2
+  rack-sdk-version: 2.2.1
   BUILD_TYPE: Release
 
 #defaults:
@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        #os: [ubuntu-latest, macos-latest, windows-latest]       
+        arch: [win-x64,lin-x64,mac-x64,mac-arm64]     
         include:
             - os: ubuntu-latest
               name: Linux
@@ -28,6 +28,12 @@ jobs:
             - os: macos-latest
               name: Mac
               arch: mac
+              compiler: cc
+              install-dependencies: |
+                brew install mesa
+            - os: macos-latest
+              name: Mac-arm
+              arch: mac-arm64
               compiler: cc
               install-dependencies: |
                 brew install mesa
