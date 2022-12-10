@@ -14,7 +14,7 @@ endif
 #	LDFLAGS += ./dep/lib/Linux/libprojectM.so
 #endif
 
-FLAGS += -I./src/include
+FLAGS += -I./src/include -ID:/a/Visualizer/Visualizer/src/include/
 CFLAGS += /mingw64/include/
 CXXFLAGS += 
 
@@ -22,7 +22,7 @@ CXXFLAGS +=
 # Static libraries are fine, but they should be added to this plugin's build system.
 
 ifdef ARCH_WIN
-	LDFLAGS += -lopengl32 -llibprojectM
+	LDFLAGS += -lopengl32
 	projectm := src/lib/liblibprojectM.a
 else	
 	projectm := src/lib/libprojectM.a
@@ -45,7 +45,7 @@ DEPS += $(projectm)
 $(projectm):
 # 	Out-of-source build dir
 	cd dep && git submodule update --init
-#	cd dep && git submodule update --remote
+	cd dep && git submodule update --remote
 
 # Start building
 	cd dep/projectm && mkdir -p build
