@@ -3,7 +3,7 @@
 #define RENDERER_HPP
 
 #include "GLFW/glfw3.h"
-#include  "include/libprojectM/projectM.h"
+#include  "libprojectM/projectM.h"
 
 #include <list>
 #include <thread>
