@@ -24,10 +24,18 @@ ProjectMRenderer::~ProjectMRenderer() {
   // TODO: Clear the Extender module, if found
 }
 
-void ProjectMRenderer::reportPresetQvars() const {
+void ProjectMRenderer::reportPresetQvars(bool hard_cut) const {
   // Load/display Q vars from the active preset
-  std::vector<qvar_info> q_vars = projectm_get_preset_qvars(pm);
-  DEBUG("\nList of %d Q vars found in preset '%s'!", int(q_vars.size()), activePresetName());
+  std::vector<qvar_info> q_vars;
+  DEBUG("\nBEFORE-2\n");
+  ///std::unique_lock<std::mutex> l(pm_m);
+  ///std::lock_guard<std::mutex> l(pm_m);
+  q_vars = projectm_get_preset_qvars(pm, hard_cut);
+  DEBUG("\nMIDDLE-2\n");
+  ///CRASHES! std::string presetName = activePresetName();
+  ///DEBUG("\nMIDDLE-3, presetName=%s\n", presetName.c_str());
+  ///DEBUG("List of %d Q vars found in preset '%s'!", int(q_vars.size()), presetName.c_str());
+  DEBUG("List of %d Q vars found in this preset:", int(q_vars.size()));
   /* TODO: Walk the list and generate our module's desired display text for each, e.g.
        Q3  --  (0.0)
       Q17  stickiness  (1.250)
@@ -131,8 +139,8 @@ void ProjectMRenderer::selectPreviousPreset(bool hard_cut) const {
   if (!pm) return;
   projectm_select_previous_preset(pm,hard_cut);
   //projectm_lock_preset(pm,true); 
-  DEBUG("vvvv Q-vars (selectPreviousPreset) vvvv");
-  reportPresetQvars();
+  DEBUG("vvvv Q-vars (selectPreviousPreset) [hard_cut=%s] vvvv", (hard_cut ? "TRUE" : "FALSE"));
+  reportPresetQvars(hard_cut);
 }
 
 // Switches to the next preset in the current playlist.
@@ -141,8 +149,8 @@ void ProjectMRenderer::selectNextPreset(bool hard_cut) const {
   if (!pm) return;
   projectm_select_next_preset(pm,hard_cut);
   //projectm_lock_preset(pm,true);
-  DEBUG("vvvv Q-vars (selectNextPreset) vvvv");
-  reportPresetQvars();
+  DEBUG("vvvv Q-vars (selectNextPreset) [hard_cut=%s] vvvv", (hard_cut ? "TRUE" : "FALSE"));
+  reportPresetQvars(hard_cut);
 }
 
 // ID of the current preset in projectM's list
@@ -284,8 +292,8 @@ void ProjectMRenderer::renderLoopNextPreset() {
         projectm_select_preset(pm,rand() % n,true);
     }
   }
-  DEBUG("vvvv Q-vars (renderLoopNextPreset) vvvv");
-  reportPresetQvars();
+  DEBUG("vvvv Q-vars (renderLoopNextPreset) [hard_cut=%s-ALWAYS] vvvv", (true ? "TRUE" : "FALSE"));
+  reportPresetQvars(true);
 }
 
 // Switch to the indicated preset. This should be called only from
@@ -299,8 +307,8 @@ void ProjectMRenderer::renderLoopSetPreset(unsigned int i) {
     while (projectm_get_error_loading_current_preset(pm))
       projectm_select_preset(pm,i,true);
   }
-  DEBUG("vvvv Q-vars (renderLoopSetPreset) vvvv");
-  reportPresetQvars();
+  DEBUG("vvvv Q-vars (renderLoopSetPreset) [hard_cut=%s-ALWAYS] vvvv", (true ? "TRUE" : "FALSE"));
+  reportPresetQvars(true);
 }
 
 void ProjectMRenderer::CheckViewportSize(GLFWwindow* win)
