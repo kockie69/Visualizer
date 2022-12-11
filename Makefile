@@ -45,7 +45,7 @@ DEPS += $(projectm)
 $(projectm):
 # 	Out-of-source build dir
 	cd dep && git submodule update --init
-#	cd dep && git submodule update --remote
+	cd dep && git submodule update --remote
 
 # Start building
 	cd dep/projectm && mkdir -p build
