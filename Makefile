@@ -23,7 +23,7 @@ CXXFLAGS +=
 
 ifdef ARCH_WIN
 	LDFLAGS += -lopengl32
-	projectm := D:/a/Visualizer/Visualizer/src/lib/liblibprojectM.a/src/lib/liblibprojectM.a
+	projectm := D:/a/Visualizer/Visualizer/src/lib/liblibprojectM.a
 else	
 	projectm := src/lib/libprojectM.a
 endif
