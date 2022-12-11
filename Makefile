@@ -7,7 +7,7 @@ include $(RACK_DIR)/arch.mk
 # FLAGS will be passed to both the C and C++ compiler
 
 ifdef ARCH_WIN
-	FLAGS += -ID:/a/Visualizer/Visualizer/src/include/ -D_USE_MATH_DEFINES -DprojectM_main_EXPORTS 
+	FLAGS += -ID:/a/Visualizer/Visualizer/src/include/ -D_USE_MATH_DEFINES -DprojectM_api_EXPORTS 
 endif
 
 #ifdef ARCH_LIN
