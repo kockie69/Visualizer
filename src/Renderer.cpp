@@ -138,7 +138,7 @@ void ProjectMRenderer::requestToggleAutoplay() {
 bool ProjectMRenderer::isAutoplayEnabled() const {
   std::lock_guard<std::mutex> l(pm_m);
   if (!pm) return false;
-  return !(projectm_is_preset_locked(pm));
+  return !(projectm_get_preset_locked(pm));
 }
 
 // Switches to the previous preset in the current playlist.
@@ -249,7 +249,7 @@ void ProjectMRenderer::PresetSwitchedEvent(bool isHardCut, void* context)
     //  that->switching = true;
     //}
     //that->switching = false;
-    //auto presetName = projectm_get_preset_name(that->_projectMHandle, index);
+    auto presetName = projectm_get_preset_name(that->_projectMHandle, index);
     //SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Displaying preset: %s\n", presetName);
 
     //std::string newTitle = "projectM ➫ " + std::string(presetName);
@@ -319,7 +319,7 @@ void ProjectMRenderer::setStatus(Status s) {
 void ProjectMRenderer::renderSetAutoplay(bool enable) {
   if (pm) {
     std::lock_guard<std::mutex> l(pm_m);
-    projectm_lock_preset(pm,!enable);
+    projectm_set_preset_locked(pm,!enable);
   }
 }
 
@@ -383,7 +383,7 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url,bool windowed ) {
   logContextInfo("LowFatMilk window", window);
   
   // Initialize projectM
-  projectm_settings *sp = projectm_alloc_settings();
+    mySettings *sp = new mySettings();
     //sp->preset_path = (char *)url.c_str();
     sp->window_width = s.window_width;
     sp->window_height = s.window_height;
@@ -404,7 +404,7 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url,bool windowed ) {
   {
     std::lock_guard<std::mutex> l(pm_m);
     //DEBUG("The preset path is %s", sp->preset_url);
-    pm = projectm_create_settings(sp);
+    pm = projectm_create();
     CheckViewportSize(window);
   }
   if (pm) {

@@ -14,9 +14,27 @@ static const int RENDER_WIDTH = RACK_GRID_WIDTH * 34 + 5;;
 static const int kPresetIDRandom = -1; // Switch to a random preset
 static const int kPresetIDKeep = -2; // Keep the current preset
 
-struct mySettings : projectm_settings {
+struct mySettings {
   std::string presetName;
-  char* preset_path;
+    int mesh_x; //!< Per-pixel mesh X resolution.
+    int mesh_y; //!< Per-pixel mesh Y resolution.
+    int fps; //!< Target rendering frames per second.
+    int texture_size; //!< Size of the render texture. Must be a power of 2.
+    int window_width; //!< Width of the rendering viewport.
+    int window_height; //!< Height of the rendering viewport.
+    char* preset_path; //!< Path with preset files to be loaded into the playlist. Use FLAG_DISABLE_PLAYLIST_LOAD to skip automatic loading of presets.
+    char* texture_path; //!< Additional path with texture files for use in presets.
+    char* data_path; //!< Path to data files like default textures and presets.
+    double preset_duration; //!< Display duration for each preset in seconds.
+    double soft_cut_duration; //!< Blend-over duration between two presets in seconds.
+    double hard_cut_duration; //!< Minimum time in seconds a preset is displayed before a hard cut can happen.
+    bool hard_cut_enabled; //!< Set to true to enable fast beat-driven preset switches.
+    float hard_cut_sensitivity; //!< Beat sensitivity value that must be surpassed for a hard cut.
+    float beat_sensitivity; //!< Beat sensitivity. Standard sensitivity is 1.0.
+    bool aspect_correction; //!< Use aspect ration correction in presets that support it.
+    float easter_egg; //!< Used as the "sigma" value for a gaussian RNG to randomize preset duration. Unused on Windows.
+    bool shuffle_enabled; //!< Enable playlist shuffle, selecting a random preset on each switch instead of the next in list.
+    bool soft_cut_ratings_enabled; //!< If true, use soft cut ratings on soft cuts and hard cut ratings on hard cuts. If false, the hard cut rating is always used.
 };
 
 class ProjectMRenderer {
