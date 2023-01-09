@@ -233,29 +233,10 @@ void ProjectMRenderer::setHardcut(bool hardCut) {
     projectm_set_hard_cut_enabled(pm,hardCut);
 }
 
-//bool ProjectMRenderer::getSwitchPreset() {
-//  return switchPreset;
-//}
-
-//void ProjectMRenderer::setSwitchPreset(bool b) {
-//  switchPreset=b;
-//}
-
 void ProjectMRenderer::PresetSwitchedEvent(bool isHardCut, void* context)
 {
     auto that = reinterpret_cast<ProjectMRenderer*>(context);
-    //if (!that->switching) {
-    //that->switchPreset = true;
-    //  that->switching = true;
-    //}
-    //that->switching = false;
-    //auto presetName = projectm_get_preset_name(that->_projectMHandle, index);
-    //SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Displaying preset: %s\n", presetName);
-
-    //std::string newTitle = "projectM ➫ " + std::string(presetName);
-    //projectm_free_string(presetName);
-
-    //that->_sdlRenderingWindow.SetTitle(newTitle);
+    that->switchPreset = true;
 }
 
 void ProjectMRenderer::PresetSwitchedErrorEvent(const char* preset_filename,const char* message, void* user_data)

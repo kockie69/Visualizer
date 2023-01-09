@@ -158,7 +158,7 @@ struct LFMModule : Module {
     if (presetTrigger.process(params[PARAM_PRESETTYPE].getValue())) {
       if (!lists.empty()) {
         newPresetName=lists.begin()->data();
-        autoPlay=false;
+        //autoPlay=false;
       }
     }
     if (addTrigger.process(params[PARAM_ADDFAV].getValue()) > 0.f && params[PARAM_PRESETTYPE].getValue()==0 )
@@ -377,7 +377,15 @@ struct BaseProjectMWidget : FramebufferWidget {
   void step() override {
     dirty = true;
     if (module) {
-
+      if (getRenderer()->switchPreset) {
+        if (module->params[module->PARAM_PRESETTYPE].getValue()) {
+          int listSize = module->lists.size();
+          module->newPresetName = module->lists[rand() % listSize].data();
+        }
+        else
+          getRenderer()->requestPresetID(kPresetIDRandom);
+      getRenderer()->switchPreset = false;
+      }
       module->activePresetName = getRenderer()->activePresetName().c_str();
 
       getRenderer()->setNoFrames(module->noFrames);
@@ -660,11 +668,7 @@ struct BaseLFMModuleWidget : ModuleWidget {
     menu->addChild(construct<MenuLabel>());
     menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Options"));
 
-    if (!m->params[LFMModule::PARAM_PRESETTYPE].getValue())
-      menu->addChild(createBoolPtrMenuItem("Cycle through presets","", &m->autoPlay));
-    else
-      menu->addChild(myCreateBoolPtrMenuItem("Cycle through presets","", &m->autoPlay));
- 
+    menu->addChild(createBoolPtrMenuItem("Cycle through presets","", &m->autoPlay));
 
     if (m->getModel()->name == "LFMFull" ) {
       menu->addChild(createBoolPtrMenuItem("Window always on Top","", &m->alwaysOnTop));
