@@ -69,7 +69,7 @@ public:
   std::vector<std::string> fullList = {};
   std::string presetNameActive = "";
   //bool switching = false;
-  //bool switchPreset=false;
+  bool switchPreset=false;
   std::string newPresetName = "";
 
   int buttonEvent;
