@@ -245,11 +245,11 @@ void ProjectMRenderer::PresetSwitchedEvent(bool isHardCut, void* context)
 {
     auto that = reinterpret_cast<ProjectMRenderer*>(context);
     //if (!that->switching) {
-    //  that->switchPreset = true;
+    //that->switchPreset = true;
     //  that->switching = true;
     //}
     //that->switching = false;
-    auto presetName = projectm_get_preset_name(that->_projectMHandle, index);
+    //auto presetName = projectm_get_preset_name(that->_projectMHandle, index);
     //SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Displaying preset: %s\n", presetName);
 
     //std::string newTitle = "projectM ➫ " + std::string(presetName);
