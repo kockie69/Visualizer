@@ -108,6 +108,9 @@ struct LFMModule : Module {
 
   LFMModule() {
     config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
+    configButton(PARAM_PRESETTYPE, "PlayList Activation");   
+    configButton(PARAM_ADDFAV, "Add Visual");
+	  configButton(PARAM_DELFAV, "Remove Visual");   
     configButton(PARAM_NEXT, "Next preset");
 	  configButton(PARAM_PREV, "Previous preset");
     configParam(PARAM_TIMER, 0.f, 300.f, 30.f, "Time till next preset"," Seconds");
@@ -718,9 +721,9 @@ struct LFMModuleWidget : BaseLFMModuleWidget {
     setModule(module);
     setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/VisualizerWindow.svg")));
 
-    addParam(createParam<ButtonBig>(Vec(17,40),module, LFMModule::PARAM_PRESETTYPE));
-    addParam(createParam<ButtonPlusBig>(Vec(7,55),module, LFMModule::PARAM_ADDFAV));
-    addParam(createParam<ButtonMinBig>(Vec(25,55),module, LFMModule::PARAM_DELFAV));     
+    addParam(createParam<ButtonBig>(Vec(17,30),module, LFMModule::PARAM_PRESETTYPE));
+    addParam(createParam<ButtonPlusBig>(Vec(7,45),module, LFMModule::PARAM_ADDFAV));
+    addParam(createParam<ButtonMinBig>(Vec(25,45),module, LFMModule::PARAM_DELFAV));     
     addParam(createParam<RPJKnob>(Vec(knobX2,knobY1), module, LFMModule::PARAM_TIMER));
     addParam(createParam<RPJKnob>(Vec(knobX1,knobY2), module, LFMModule::PARAM_BEAT_SENS));
     addParam(createParam<RPJKnob>(Vec(knobX1,knobY3), module, LFMModule::PARAM_HARD_SENS));
@@ -789,9 +792,9 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
     }
 
 
-    addParam(createParam<ButtonBig>(Vec(17,40),module, LFMModule::PARAM_PRESETTYPE));
-    addParam(createParam<ButtonPlusBig>(Vec(7,55),module, LFMModule::PARAM_ADDFAV));
-    addParam(createParam<ButtonMinBig>(Vec(25,55),module, LFMModule::PARAM_DELFAV)); 
+    addParam(createParam<ButtonBig>(Vec(17,30),module, LFMModule::PARAM_PRESETTYPE));
+    addParam(createParam<ButtonPlusBig>(Vec(7,45),module, LFMModule::PARAM_ADDFAV));
+    addParam(createParam<ButtonMinBig>(Vec(25,45),module, LFMModule::PARAM_DELFAV)); 
     addParam(createParam<RPJKnob>(Vec(knobX2,knobY1), module, LFMModule::PARAM_TIMER));
     addParam(createParam<RPJKnob>(Vec(knobX1,knobY2), module, LFMModule::PARAM_BEAT_SENS));
     addParam(createParam<RPJKnob>(Vec(knobX1,knobY3), module, LFMModule::PARAM_HARD_SENS));

@@ -28,7 +28,7 @@ The menu shown here offers different options that let you control the module. We
 Right clicking the module gives you the option to enable or disable Cycle through presets. If this is enabled the module will automatically jump to another preset. The time it stays with a preset can be set by the timer knob on the module. 
 
 ### Hardcut Enabled
-A hard cut is a beat-induced immediate transition to the next preset that might happen before the preset display duration is reached. Also see Hard Cut Duration and Hard Cut Sensitivity to fine-tune the behaviour.
+A hard cut is a beat-induced immediate transition to the next preset that might happen before the preset display duration is reached. Also see Hard Cut Duration and Hard Cut Sensitivity to fine-tune the behaviour. Cycle through presets needs to be enabled for this to work.
 
 ### Aspectcorrection Enabled
 Enables or disables aspect ratio correction in presets that support it. This sets a flag presets can use to aspect-correct rendered shapes, which otherwise would be distorted if the window display isn't exactly square. This is generally used to make shapes not appear stretched, e.g. circles or squares not being squished in one direction.
@@ -41,10 +41,20 @@ Below it one can see the Visual presets that are available. The list can be huge
 
 ![lowfatmilk menu image](./lowfatmilk4.png)
 
+## Playlists
+The latest version of LFM gives you the opportunity to create lists with visuals that you like, using the VCV preset functionality.
+
+The modules now have a button on the top which will become red if you press it. When pressed/active/red , the module is in playlist mode and will play your created list. When off, it will play the default list that contains the thousands of visuals.
+
+When you are not in playlist mode, you can add visuals to your list by pressing the + button when a visual is playing that you like. A visual can only be added once.
+
+When in playlist mode, you can remove a visual from your playlist by pressing the - button.
+You can save and load lists by using the load and save preset lists in the module menu, which is standard vcv functionality.
+
 ## Knobs, Buttons and Jacks
 
 ### Timer
-With the timer knob you can set the time that the preset will stay active when the menu option is set to cycle through presets. The time can vary between 0 and 300 seconds.
+With the timer knob you can set the time that the preset will stay active when the menu option is set to cycle through presets. The time can vary between 0 and 300 seconds. Cycle through presets needs to be enabled for this to work.
 
 ### Beat sensitivity
 This knob is to control the beat sensitivity thatvaries between 0 and 5. Beat Sensitivity impacts how reactive your visualizations are to volume, bass, mid-range, and treble. Range: 0 - 5 (from "dead" to VERY reactive). It is used by most presets to perform on-beat actions like pulsing or changing rotation.
