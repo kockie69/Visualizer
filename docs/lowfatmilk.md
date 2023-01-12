@@ -49,7 +49,8 @@ The modules now have a button on the top which will become red if you press it. 
 When you are not in playlist mode, you can add visuals to your list by pressing the + button when a visual is playing that you like. A visual can only be added once.
 
 When in playlist mode, you can remove a visual from your playlist by pressing the - button.
-You can save and load lists by using the load and save preset lists in the module menu, which is standard vcv functionality.
+
+You can save and load lists by using the standard VCV Rack load and save preset lists in the module menu, which is standard vcv functionality.
 
 ## Knobs, Buttons and Jacks
 
