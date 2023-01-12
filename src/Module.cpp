@@ -687,7 +687,7 @@ struct BaseLFMModuleWidget : ModuleWidget {
     menu->addChild(construct<MenuLabel>());
     menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Options"));
 
-    menu->addChild(createBoolPtrMenuItem("Cycle through presets","", &m->autoPlay));
+    menu->addChild(createBoolPtrMenuItem("Cycle through visuals","", &m->autoPlay));
 
     if (m->getModel()->name == "LFMFull" ) {
       menu->addChild(createBoolPtrMenuItem("Window always on Top","", &m->alwaysOnTop));
@@ -697,19 +697,19 @@ struct BaseLFMModuleWidget : ModuleWidget {
     }
 
     if (m->getModel()->name == "LFMEmbedded" ) {
-      menu->addChild(createBoolPtrMenuItem("Show Preset Title","", &m->displayPresetName));
+      menu->addChild(createBoolPtrMenuItem("Show Visual Title","", &m->displayPresetName));
     }
     menu->addChild(createBoolPtrMenuItem("Hardcut enabled","", &m->hardCut));
     menu->addChild(createBoolPtrMenuItem("Aspectcorrection enabled","", &m->aspectCorrection));
-    menu->addChild(createBoolPtrMenuItem("Case sensitive Visual Preset Search","", &m->caseSensitive));
+    menu->addChild(createBoolPtrMenuItem("Case sensitive Visual Search","", &m->caseSensitive));
 
     menu->addChild(construct<MenuLabel>());
-    menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Preset List Options"));
-    menu->addChild(createMenuItem("Clear List", "", [=]() {m->clearList();}));
+    menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Playlist List Options"));
+    menu->addChild(createMenuItem("Clear Playlist", "", [=]() {m->clearList();}));
 
     // Menu items to deal with presets
     menu->addChild(construct<MenuLabel>());
-    menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Visual Presets"));
+    menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Visuals"));
 
     auto holder = new rack::Widget;
     holder->box.size.x = 200;
@@ -718,7 +718,7 @@ struct BaseLFMModuleWidget : ModuleWidget {
     auto textfield = new rack::TextField;
     textfield->box.pos.x = 0;
     textfield->box.size.x = 200;
-    textfield->placeholder = "Search presets";
+    textfield->placeholder = "Search visuals";
     holder->addChild(textfield);
     menu->addChild(holder);
 
