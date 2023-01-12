@@ -119,6 +119,7 @@ void ProjectMRenderer::requestPresetName(std::string preset_name, bool hard_cut)
   if (pm) {
     projectm_load_preset_file(pm,preset_name.c_str(),!hard_cut);
     presetNameActive = preset_name;
+    switchPreset = false;
   }
 }
 
@@ -242,6 +243,7 @@ void ProjectMRenderer::PresetSwitchedEvent(bool isHardCut, void* context)
 void ProjectMRenderer::PresetSwitchedErrorEvent(const char* preset_filename,const char* message, void* user_data)
 {
     auto that = reinterpret_cast<ProjectMRenderer*>(user_data);
+    that->newPresetName = that->activePresetName();
 }
 
 
@@ -392,8 +394,8 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url,bool windowed ) {
     setStatus(Status::RENDERING);
     projectm_set_preset_switch_requested_event_callback(pm, &ProjectMRenderer::PresetSwitchedEvent,static_cast<void*>(this));
     projectm_set_preset_switch_failed_event_callback(pm, &ProjectMRenderer::PresetSwitchedErrorEvent,static_cast<void*>(this));                                                
-    renderLoopNextPreset();
-    requestPresetName(newPresetName,hardCut);
+    //renderLoopNextPreset();
+    //requestPresetName(newPresetName,hardCut);
     GLuint FramebufferName = 0;
     GLuint texture = 0;
     glGenFramebuffers(1, &FramebufferName);

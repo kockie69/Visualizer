@@ -143,7 +143,8 @@ struct LFMModule : Module {
   int windowedWidth = 640;
   int windowedHeight = 480;
   bool hardCut = true;
-  
+  bool inPlayListMode = false;
+  bool initInPlayListMode = false;
   dsp::SchmittTrigger nextInputTrigger,prevInputTrigger;
   dsp::BooleanTrigger nextTrigger,prevTrigger,addTrigger,delTrigger,presetTrigger;
   float pcm_data[kSampleWindow];
@@ -159,14 +160,16 @@ struct LFMModule : Module {
       full = true;
     }
     if (presetTrigger.process(params[PARAM_PRESETTYPE].getValue())) {
+      inPlayListMode = true;
       if (!lists.empty()) {
         newPresetName=lists.begin()->data();
-        //autoPlay=false;
       }
     }
-    if (addTrigger.process(params[PARAM_ADDFAV].getValue()) > 0.f && params[PARAM_PRESETTYPE].getValue()==0 )
+    if (!params[PARAM_PRESETTYPE].getValue())
+      inPlayListMode = false;
+    if (addTrigger.process(params[PARAM_ADDFAV].getValue()) > 0.f && !inPlayListMode )
       addPreset();
-    if (delTrigger.process(params[PARAM_DELFAV].getValue()) > 0.f  && params[PARAM_PRESETTYPE].getValue()==1 )
+    if (delTrigger.process(params[PARAM_DELFAV].getValue()) > 0.f  && inPlayListMode )
       delPreset();  
     presetTime = params[PARAM_TIMER].getValue();
     beatSensitivity = params[PARAM_BEAT_SENS].getValue();
@@ -183,7 +186,7 @@ struct LFMModule : Module {
       gradient+=inputs[GRADIENT_INPUT].getVoltage();   
     
     if (nextTrigger.process(params[PARAM_NEXT].getValue()) > 0.f || nextInputTrigger.process(rescale(inputs[NEXT_PRESET_INPUT].getVoltage(), 0.1f, 2.f, 0.f, 1.f))) {
-      if (params[PARAM_PRESETTYPE].getValue()==0)
+      if (!inPlayListMode)
         nextPreset=true;
       else {
         if (!lists.empty())
@@ -192,7 +195,7 @@ struct LFMModule : Module {
 	  }
 
     if (prevTrigger.process(params[PARAM_PREV].getValue()) > 0.f || prevInputTrigger.process(rescale(inputs[PREV_PRESET_INPUT].getVoltage(), 0.1f, 2.f, 0.f, 1.f))) {
-      if (params[PARAM_PRESETTYPE].getValue()==0)
+      if (!inPlayListMode)
         prevPreset=true;
       else {
         if (!lists.empty())
@@ -257,6 +260,7 @@ struct LFMModule : Module {
     json_object_set_new(rootJ, "CaseSensitiveSearch", json_boolean(caseSensitive));
     json_object_set_new(rootJ, "Aspectcorrection", json_boolean(aspectCorrection)); 
     json_object_set_new(rootJ, "Hardcut", json_boolean(hardCut));
+    json_object_set_new(rootJ, "InPlayListMode", json_boolean(inPlayListMode));
 
     auto it = lists.begin();
     json_t *listArray=json_array();
@@ -292,6 +296,7 @@ struct LFMModule : Module {
     json_t *nWindowedWidthJ = json_object_get(rootJ, "windowedWidth");
     json_t *nWindowedHeightJ = json_object_get(rootJ, "windowedHeight");
     json_t *nListJ = json_object_get(rootJ,"List");
+    json_t *nInPlayListMode = json_object_get(rootJ, "InPlayListMode");
     if (nWindowedWidthJ) {
 	    windowedWidth = json_integer_value(nWindowedWidthJ);
     }
@@ -306,6 +311,9 @@ struct LFMModule : Module {
     } 
 	  if (nActivePresetJ) {
 	    activePresetName = json_string_value(nActivePresetJ);
+    }
+    if (nInPlayListMode) {
+      inPlayListMode = json_boolean_value(nInPlayListMode);
     }
     if (nDisplayPresetNameJ) {
 	    displayPresetName = json_boolean_value(nDisplayPresetNameJ);
@@ -336,10 +344,13 @@ struct LFMModule : Module {
         i++;
       }
     }
-    if (params[LFMModule::PARAM_PRESETTYPE].getValue()!=0) {
-      if (!lists.empty())
+    if (inPlayListMode) {
+      if (!lists.empty()) {
+        initInPlayListMode = true;
         newPresetName=lists.begin()->data();
+      }
     }
+  newPresetName = activePresetName; 
   }
 
 
@@ -380,14 +391,19 @@ struct BaseProjectMWidget : FramebufferWidget {
   void step() override {
     dirty = true;
     if (module) {
+      if (module->initInPlayListMode) {
+        getRenderer()->switchPreset = true;
+        module->initInPlayListMode = false;
+      }
       if (getRenderer()->switchPreset) {
-        if (module->params[module->PARAM_PRESETTYPE].getValue()) {
+        if (module->inPlayListMode) {
           int listSize = module->lists.size();
           module->newPresetName = module->lists[rand() % listSize].data();
         }
-        else
+        else {
           getRenderer()->requestPresetID(kPresetIDRandom);
-      getRenderer()->switchPreset = false;
+        }
+        getRenderer()->switchPreset = false;
       }
       module->activePresetName = getRenderer()->activePresetName().c_str();
 
