@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Playlists can be saved
 - You can add presets to existing lists
 - You can delete presets from existing lists
+- Menu option to remove all visuals from playlist
+- Added option to keep window on top
 
 ## [2.1.6]
 ## Fixed
