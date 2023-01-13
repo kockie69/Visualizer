@@ -347,7 +347,6 @@ struct LFMModule : Module {
     if (inPlayListMode) {
       if (!lists.empty()) {
         initInPlayListMode = true;
-        newPresetName=lists.begin()->data();
       }
     }
   newPresetName = activePresetName; 
@@ -393,12 +392,15 @@ struct BaseProjectMWidget : FramebufferWidget {
     if (module) {
       if (module->initInPlayListMode) {
         getRenderer()->switchPreset = true;
-        module->initInPlayListMode = false;
       }
       if (getRenderer()->switchPreset) {
         if (module->inPlayListMode) {
-          int listSize = module->lists.size();
-          module->newPresetName = module->lists[rand() % listSize].data();
+          if (module->initInPlayListMode)
+            module->initInPlayListMode = false;
+          else {
+            int listSize = module->lists.size();
+            module->newPresetName = module->lists[rand() % listSize].data();
+          }
         }
         else {
           getRenderer()->requestPresetID(kPresetIDRandom);
