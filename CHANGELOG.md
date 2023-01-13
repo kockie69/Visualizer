@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.8]
+## Fixed
+- Changed menu to be clear between visuals and presets
+- Selecting visuals caused crash
+- If playlist mode active whilst closing, all knobs work properly
+- When playlist is active whilst closing, the active visual will be active when restarting
+
 ## [2.1.7]
 ## Added
 - Playlists can be saved
