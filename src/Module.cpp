@@ -579,7 +579,7 @@ struct SetPresetMenuItem : MenuItem {
   TextField* textfield;
 
   void onAction(const ActionEvent& e) override {
-    w->getRenderer()->requestPresetName(presetName,w->module->hardCut);
+    w->module->newPresetName=presetName;
   }
 
   void step() override {
@@ -632,52 +632,6 @@ ui::MenuItem* myCreateBoolPtrMenuItem(std::string text, std::string rightText, T
 
 struct BaseLFMModuleWidget : ModuleWidget {
   BaseProjectMWidget* w;
-
-  template <class TMenuItem = ui::MenuItem>
-  ui::MenuItem* myCreateBoolMenuItem(std::string text, std::string rightText, std::function<bool()> getter, std::function<void(bool state)> setter, bool disabled = false, bool alwaysConsume = false) {
-    struct Item : TMenuItem {
-      std::string rightTextPrefix;
-      std::function<bool()> getter;
-      std::function<void(size_t)> setter;
-      bool alwaysConsume;
-
-      void step() override {
-        this->rightText = rightTextPrefix;
-        if (getter()) {
-          if (!rightTextPrefix.empty())
-            this->rightText += "  ";
-          this->rightText += CHECKMARK_STRING;
-        }
-        TMenuItem::step();
-      }
-      void onAction(const event::Action& e) override {
-        setter(!getter());
-        if (alwaysConsume)
-          e.consume(this);
-      }
-    };
-
-    Item* item = createMenuItem<Item>(text);
-    item->rightTextPrefix = rightText;
-    item->getter = getter;
-    item->setter = setter;
-    item->disabled = true;
-    item->alwaysConsume = alwaysConsume;
-    return item;
-  }
-
-  template <typename T>
-  ui::MenuItem* myCreateBoolPtrMenuItem(std::string text, std::string rightText, T* ptr) {
-    return myCreateBoolMenuItem(text, rightText,
-      [=]() {
-        return ptr ? *ptr : false;
-      },
-      [=](T val) {
-        if (ptr)
-          *ptr = val;
-      }
-    );
-  }
 
   void appendContextMenu(Menu* menu) override {
     LFMModule* m = dynamic_cast<LFMModule*>(module);
