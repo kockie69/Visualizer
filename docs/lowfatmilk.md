@@ -8,43 +8,59 @@ LowFatMilk embeds projectM, an open-source project that reimplements the esteeme
 
 ## Modules
 
-LowFatMilk comes in two versions, an embedded widget and a seperate windo version that can be dragged onto a seperate monitor.
+LowFatMilk comes in two versions, an embedded widget and a seperate windowed version that can be dragged around on the screen, but also onto a seperate monitor.
 
-![lowfatmilk embedded image](./lowfatmilk1.png)
+<p align="center">
+  <img alt="lowfatmilk embedded image" src="./lowfatmilk1.png" width="50%">
+</p>
 
-Above is the embedded version. This version is a module and the display is sticked to the module. You can increase the size of the display (resize the window). By rightclicking the module you will get the option to change specific settings of the module that will control the rendering and also gives you an option to search in your list of available presets.
+Above is the embedded version. This version is a module and the display is sticked to the module. You can increase the size of the display (resize the window). 
+By rightclicking the module you will get the option to change specific settings of the module that will control the rendering and also gives you an option to search in your list of available presets.
 
-![lowfatmilk windowed image](./lowfatmilk3.png)
+<p align="center">
+  <img alt="lowfatmilk windowed image" src="./lowfatmilk3.png" width="10%">
+</p>
 
 The windowed version has similar functionalities as the embedded version, but a major difference is that the display is not sticked to the module but can be dragged to wherever you want it to go. It can even go to a different monitor, if you have multiple monitors installed in your setup.
 
 ## Menu
 
-![lowfatmilk menu image](./lowfatmilk2.png)
-
 The menu shown here offers different options that let you control the module. We will explain each option below.
 
-### Cycle through presets
-Right clicking the module gives you the option to enable or disable Cycle through presets. If this is enabled the module will automatically jump to another preset. The time it stays with a preset can be set by the timer knob on the module. 
+<p align="center">
+  <img alt="lowfatmilk menu image" src="./lowfatmilk2.png" width="50%">
+</p>
+
+### Cycle through visuals
+Right clicking the module gives you the option to enable or disable Cycle through visuals. If this is enabled the module will automatically jump to another visual based on timer and hardcut settings. The time it stays with a visual can for example be set by the timer knob on the module. 
 
 ### Hardcut Enabled
-A hard cut is a beat-induced immediate transition to the next preset that might happen before the preset display duration is reached. Also see Hard Cut Duration and Hard Cut Sensitivity to fine-tune the behaviour. Cycle through presets needs to be enabled for this to work.
+A hard cut is a beat-induced immediate transition to the next visual that might happen before the visual display duration is reached. Also see Hard Cut Duration and Hard Cut Sensitivity to fine-tune the behaviour. **Cycle through visuals needs to be enabled for this to work.**
 
 ### Aspectcorrection Enabled
-Enables or disables aspect ratio correction in presets that support it. This sets a flag presets can use to aspect-correct rendered shapes, which otherwise would be distorted if the window display isn't exactly square. This is generally used to make shapes not appear stretched, e.g. circles or squares not being squished in one direction.
+Enables or disables aspect ratio correction in visuals that support it. This sets a flag visuals can use to aspect-correct rendered shapes, which otherwise would be distorted if the window display isn't exactly square. This is generally used to make shapes not appear stretched, e.g. circles or squares not being squished in one direction.
 
 ### Case sensitive Visual Preset Search
-This setting is used for the search option. If this is enabled the search will take place Case sensitive (so it will make differnce between lowercase and uppercase).
+This setting is used for the search option. If this is enabled the search will take place Case sensitive (so it will make difference between lowercase and uppercase).
 
-### Visual Presets
-Below it one can see the Visual presets that are available. The list can be huge, and to make it easier to navigate to the right preset a searchbox is available where you can type to find the desired preset.
+### Visuals
+Below it one can see the list of visuals that are available. The list can be huge, and to make it easier to navigate to the right visual a searchbox is available where you can type to find the desired visual.
 
-![lowfatmilk menu image](./lowfatmilk4.png)
+<p align="center">
+  <img alt="lowfatmilk visuals menu image" src="./lowfatmilk4.png" width="50%">
+</p>
 
 ## Playlists
 The latest version of LFM gives you the opportunity to create lists with visuals that you like, using the VCV preset functionality.
 
-The modules now have a button on the top which will become red if you press it. When pressed/active/red , the module is in playlist mode and will play your created list. When off, it will play the default list that contains the thousands of visuals.
+The modules now have a button at the top which will become red if you press it. When pressed/active/red , the module is in playlist mode and will play your created list. When off, it will play the default list that contains the thousands of visuals.
+
+
+<p align="center">
+  <img alt="lowfatmilk playlist off image" src="./lowfatmilk5.png" width="5%">
+&nbsp; &nbsp; &nbsp; &nbsp;
+  <img alt="lowfatmilk playlist on image" src="./lowfatmilk6.png" width="5%">
+</p>
 
 When you are not in playlist mode, you can add visuals to your list by pressing the + button when a visual is playing that you like. A visual can only be added once.
 
