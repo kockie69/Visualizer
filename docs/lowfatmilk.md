@@ -34,6 +34,12 @@ The menu shown here offers different options that let you control the module. We
 ### Cycle through visuals
 Right clicking the module gives you the option to enable or disable Cycle through visuals. If this is enabled the module will automatically jump to another visual based on timer and hardcut settings. The time it stays with a visual can for example be set by the timer knob on the module. 
 
+### Window always on top
+The windowed version has the option to have the window always on top. This behaviour depends a bit on which platform you are.
+
+### No Frames
+The windows version has the option to show the window with or without frames. 
+
 ### Hardcut Enabled
 A hard cut is a beat-induced immediate transition to the next visual that might happen before the visual display duration is reached. Also see Hard Cut Duration and Hard Cut Sensitivity to fine-tune the behaviour. **Cycle through visuals needs to be enabled for this to work.**
 
