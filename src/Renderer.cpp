@@ -14,9 +14,7 @@ void ProjectMRenderer::loadPresetItems(std::string presetDir) {
 		std::vector<std::string> entries = system::getEntries(presetDir,5);
 		std::sort(entries.begin(), entries.end());
 		for (std::string path : entries) {
-			//std::string name = system::getStem(path);
 			if (!system::isDirectory(path)) {
-				//std::string name = system::getStem(path);
         fullList.push_back(path);
 		  }
 	  } 
@@ -180,8 +178,7 @@ unsigned int ProjectMRenderer::activePreset() const {
   unsigned int presetIdx;
   std::lock_guard<std::mutex> l(pm_m);
   if (!pm) return 0;
-    //Fix
-  //projectm_get_selected_preset_index(pm,&presetIdx);
+
   return presetIdx;
 }
 
@@ -262,7 +259,6 @@ std::list<std::pair<unsigned int, std::string> > ProjectMRenderer::listPresets()
   for (unsigned int i = 0; i < n; ++i){
     std::string s;
     {
-      //std::lock_guard<std::mutex> l(pm_m);
       s = fullList[i];
     }
     presets.push_back(std::make_pair(i, std::string(s)));
@@ -316,8 +312,6 @@ void ProjectMRenderer::renderLoopNextPreset() {
     if (n) {
       int index = rand() % n;
       newPresetName = fullList[index].data();
-      //while (projectm_get_error_loading_current_preset(pm))
-      //  projectm_load_preset_file(pm,fullList[rand() % n].c_str(),hardCut);
     }
   }
 }
@@ -326,13 +320,6 @@ void ProjectMRenderer::renderLoopNextPreset() {
 // the render thread.
 void ProjectMRenderer::renderLoopSetPreset(unsigned int i) {
   std::lock_guard<std::mutex> l(pm_m);
-  //Fix
-  //unsigned int n = projectm_get_playlist_size(pm);
-  //if (n && i < n) {
-  //  projectm_select_preset(pm,i,true);
-  //  while (projectm_get_error_loading_current_preset(pm))
-  //    projectm_select_preset(pm,i,true);
-  //}
 }
 
 void ProjectMRenderer::CheckViewportSize(GLFWwindow* win)
@@ -340,15 +327,12 @@ void ProjectMRenderer::CheckViewportSize(GLFWwindow* win)
     int _renderWidth=0;
     int _renderHeight=0;
     glfwGetWindowSize(win, &windowWidth, &windowHeight);
-    int tmp1 = windowWidth;
-    int tmp2 = windowHeight;
     
     glfwGetFramebufferSize(win, &_renderWidth, &_renderHeight);
     if (renderWidth != _renderWidth || renderHeight != _renderHeight)
     {
         {
         projectm_set_window_size(pm, _renderWidth, _renderHeight);
-        //projectm_set_window_size(pm, _renderWidth+RACK_GRID_WIDTH, _renderHeight+20);
         }
         renderWidth = _renderWidth;
         renderHeight = _renderHeight;
@@ -367,7 +351,6 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url,bool windowed ) {
   
   // Initialize projectM
     mySettings *sp = new mySettings();
-    //sp->preset_path = (char *)url.c_str();
     sp->window_width = s.window_width;
     sp->window_height = s.window_height;
     sp->fps =  s.fps;
@@ -382,7 +365,6 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url,bool windowed ) {
     sp->hard_cut_duration= s.hard_cut_duration;
     sp->hard_cut_sensitivity =  s.hard_cut_sensitivity;
     sp->beat_sensitivity = s.beat_sensitivity;
-    //sp->shuffle_enabled = s.shuffle_enabled;
     loadPresetItems((char *)url.c_str());
   {
     std::lock_guard<std::mutex> l(pm_m);
@@ -394,8 +376,7 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url,bool windowed ) {
     setStatus(Status::RENDERING);
     projectm_set_preset_switch_requested_event_callback(pm, &ProjectMRenderer::PresetSwitchedEvent,static_cast<void*>(this));
     projectm_set_preset_switch_failed_event_callback(pm, &ProjectMRenderer::PresetSwitchedErrorEvent,static_cast<void*>(this));                                                
-    //renderLoopNextPreset();
-    //requestPresetName(newPresetName,hardCut);
+
     GLuint FramebufferName = 0;
     GLuint texture = 0;
     glGenFramebuffers(1, &FramebufferName);
@@ -559,7 +540,6 @@ void WindowedRenderer::showWindow(int *xpos, int *ypos, int *width, int *height)
   winHeight = height;
   glfwSetWindowPos(c,*(xpos),*(ypos));
   glfwSetWindowSize(c,*(width),*(height));
-  glfwShowWindow(c);
 }
 
 void WindowedRenderer::keyCallback(GLFWwindow* win, int key, int scancode, int action, int mods) {
@@ -614,7 +594,7 @@ GLFWwindow* TextureRenderer::createWindow(int *xpos,int *ypos,int *width,int *he
 	glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
   #endif
   
-  GLFWwindow* c = glfwCreateWindow(RENDER_WIDTH, RACK_GRID_HEIGHT, "", NULL, NULL);
+  c = glfwCreateWindow(RENDER_WIDTH, RACK_GRID_HEIGHT, "", NULL, NULL);
 
   if (!c) {
     return nullptr;
@@ -622,6 +602,10 @@ GLFWwindow* TextureRenderer::createWindow(int *xpos,int *ypos,int *width,int *he
   glfwSetWindowUserPointer(c, reinterpret_cast<TextureRenderer*>(this));
   logContextInfo("LFM context", c);
   return c;
+}
+
+void TextureRenderer::showWindow(int *xpos, int *ypos, int *width, int *height) {
+  glfwSetWindowSize(c,*(width),380);
 }
 
 unsigned char* TextureRenderer::getBuffer() {

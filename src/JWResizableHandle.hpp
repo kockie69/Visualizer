@@ -4,7 +4,6 @@
 using namespace rack;
 
 struct JWModuleResizeHandle : OpaqueWidget {
-	bool right = false;
 	Vec dragPos;
 	Rect originalBox;
 	GLFWwindow *window;
@@ -34,7 +33,6 @@ struct JWModuleResizeHandle : OpaqueWidget {
 		Rect newBox = originalBox;
 		Rect oldBox = mw->box;
 		const float minWidth = RENDER_WIDTH + 3*RACK_GRID_WIDTH;
-		//const float minWidth = 80;
 
 		newBox.size.x += deltaX;
 		newBox.size.x = std::fmax(newBox.size.x, minWidth);
