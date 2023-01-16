@@ -130,7 +130,7 @@ struct LFMModule : Module {
   std::string newPresetName = "";
   std::string activePresetName = "";
   bool displayPresetName = false;
-  bool autoPlay = false;
+  bool autoPlay = true;
   bool alwaysOnTop = false;
   bool noFrames = false;
   bool caseSensitive = false;
@@ -142,6 +142,7 @@ struct LFMModule : Module {
   int windowedYpos = 100;
   int windowedWidth = 640;
   int windowedHeight = 480;
+  int embeddedWidth = RENDER_WIDTH;
   bool hardCut = true;
   bool inPlayListMode = false;
   bool initInPlayListMode = false;
@@ -279,6 +280,9 @@ struct LFMModule : Module {
       json_object_set_new(rootJ, "windowedWidth", json_integer(windowedWidth));
       json_object_set_new(rootJ, "windowedHeight", json_integer(windowedHeight));
     }
+    else {
+      json_object_set_new(rootJ, "embeddedWidth", json_integer(embeddedWidth));
+    }
 	  return rootJ;
   }
 
@@ -295,6 +299,7 @@ struct LFMModule : Module {
     json_t *nWindowedYposJ = json_object_get(rootJ, "windowedYpos");
     json_t *nWindowedWidthJ = json_object_get(rootJ, "windowedWidth");
     json_t *nWindowedHeightJ = json_object_get(rootJ, "windowedHeight");
+    json_t *nEmbeddedWidthJ = json_object_get(rootJ, "embeddedWidth");
     json_t *nListJ = json_object_get(rootJ,"List");
     json_t *nInPlayListMode = json_object_get(rootJ, "InPlayListMode");
     if (nWindowedWidthJ) {
@@ -308,7 +313,10 @@ struct LFMModule : Module {
     }
     if (nWindowedYposJ) {
 	    windowedYpos = json_integer_value(nWindowedYposJ);
-    } 
+    }
+    if (nEmbeddedWidthJ) {
+	    embeddedWidth = json_integer_value(nEmbeddedWidthJ);
+    }
 	  if (nActivePresetJ) {
 	    activePresetName = json_string_value(nActivePresetJ);
     }
@@ -369,7 +377,11 @@ struct BaseProjectMWidget : FramebufferWidget {
   BaseProjectMWidget() {}
 
   void init(std::string presetURL,std::string presetName,bool windowed,bool alwaysOnTop,bool noFrames) {
-      getRenderer()->init(initSettings(presetURL,presetName),&module->windowedXpos,&module->windowedYpos,&module->windowedWidth,&module->windowedHeight,windowed,alwaysOnTop,noFrames);
+      if (windowed)
+        getRenderer()->init(initSettings(presetURL,presetName),&module->windowedXpos,&module->windowedYpos,&module->windowedWidth,&module->windowedHeight,windowed,alwaysOnTop,noFrames);
+      else 
+        getRenderer()->init(initSettings(presetURL,presetName),&module->windowedXpos,&module->windowedYpos,&module->embeddedWidth,&module->windowedHeight,windowed,alwaysOnTop,noFrames);
+
   }
 
   template<typename T>
@@ -408,7 +420,7 @@ struct BaseProjectMWidget : FramebufferWidget {
         getRenderer()->switchPreset = false;
       }
       module->activePresetName = getRenderer()->activePresetName().c_str();
-
+      module->embeddedWidth = getRenderer()->renderWidth;
       getRenderer()->setNoFrames(module->noFrames);
       getRenderer()->setAlwaysOnTop(module->alwaysOnTop);
 
@@ -481,12 +493,7 @@ struct BaseProjectMWidget : FramebufferWidget {
     s.hard_cut_duration= 20;
     s.hard_cut_sensitivity =  0.5;
     s.beat_sensitivity = 1;
-    //s.shuffle_enabled = false;
 
-    // Unsupported settings
-    //s.softCutRatingsEnabled = false;
-    //s.menuFontURL = nullptr;
-    //s.titleFontURL = nullptr;
     return s;
   }
 };
@@ -540,7 +547,9 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
       int x2 = renderer->getWindowWidth();
       int b1 = renderer->getBufferSize();
       nvgDeleteImage(args.vg,img);
-      if (x == (b1/380/4)) {
+#ifdef arch_mac      
+        if (x == (b1/380/4)) {
+#endif
         img = nvgCreateImageRGBA(args.vg,x,y,0,renderer->getBuffer());
         std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
     
@@ -570,7 +579,9 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
           nvgClosePath(args.vg);
           nvgRestore(args.vg);
         }
+#ifdef arch_mac      
       }
+#endif
     }
   }
 };
@@ -716,12 +727,10 @@ struct LFMModuleWidget : BaseLFMModuleWidget {
 
     addInput(createInput<PJ301MPort>(Vec(jackX2, jackY3), module, LFMModule::HARDCUT_DURATION_INPUT));
 
-    //std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
     if (module) {
       w = BaseProjectMWidget::create<WindowedProjectMWidget>(Vec(85, 20), asset::plugin(pluginInstance, "res/presets_projectM/"),module->activePresetName,true,module->alwaysOnTop,module->noFrames);
       w->module = module;
       w->box.size = Vec(RENDER_WIDTH,RACK_GRID_HEIGHT);
-      //w->font = font;
       addChild(w);
       w->getRenderer()->showWindow(&module->windowedXpos,&module->windowedYpos,&module->windowedWidth,&module->windowedHeight);
     }
@@ -737,18 +746,17 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
     setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/Visualizer.svg")));
 
 		panel = new BGPanel(nvgRGB(0, 0, 0));
-		panel->box.size = box.size;
-    panel->box.size.x = RACK_GRID_WIDTH;
 		addChild(panel);
 
     if (module) {
       // this is a "live" module in Rack
+      box.size.x = module->embeddedWidth+85;
       w = BaseProjectMWidget::create<EmbeddedProjectMWidget>(Vec(6*RACK_GRID_WIDTH-4, 0), asset::plugin(pluginInstance, "res/presets_projectM/"),module->activePresetName,false,module->alwaysOnTop,module->noFrames);
       w->module = module;
-      w->box.size = Vec(RENDER_WIDTH,RACK_GRID_HEIGHT);
       addChild(w);
+
+      w->getRenderer()->showWindow(&module->windowedXpos,&module->windowedYpos,&module->embeddedWidth,&module->windowedHeight);
       JWModuleResizeHandle *rightHandle = new JWModuleResizeHandle(w->getRenderer()->window);
-		  rightHandle->right = true;
 		  this->rightHandle = rightHandle;
 
 		  addChild(rightHandle);
@@ -757,7 +765,6 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
       // this is the preview in Rack's module browser
       	  std::string imagePath = "res/LFMBackground-3.png";
 
-		      //ImageWidget *display = new ImageWidget(imagePath,RACK_GRID_WIDTH*MODULE_WIDTH,RACK_GRID_HEIGHT);
 		      ImageWidget *display = new ImageWidget(imagePath,800,RACK_GRID_HEIGHT);
 
           addChild(display);
@@ -791,10 +798,8 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
   }
 
   void step() override {
-    panel->box.size = box.size;
     if (module) {
 		  rightHandle->box.pos.x = box.size.x - rightHandle->box.size.x;
-      w->box.size = rightHandle->box.size;
     }
     ModuleWidget::step();
   }
