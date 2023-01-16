@@ -37,7 +37,7 @@ jobs:
               compiler: cc
               install-dependencies: |
                 brew install mesa
-            - os: windows-2019
+            - os: windows-latest
               name: Windows
               arch: win-x64
               compiler: gcc
@@ -110,3 +110,4 @@ jobs:
           file: _artifacts/**/*.vcvplugin
           tag: ${{ github.ref }}
           file_glob: true
+                                                                        
