@@ -18,26 +18,26 @@ jobs:
       matrix:
         arch: [win-x64,lin-x64,mac-x64,mac-arm64]     
         include:
-            - os: ubuntu-latest
+            - os: ubuntu-18.04
               name: Linux
               arch: lin-x64
               compiler: cc
               install-dependencies: |
                 sudo apt-get update
                 sudo apt-get install libglu1-mesa-dev 
-            - os: macos-latest
+            - os: macos-10.15
               name: Mac
               arch: mac-x64
               compiler: cc
               install-dependencies: |
                 brew install mesa
-            - os: macos-latest
+            - os: macos-10.15
               name: Mac-arm
               arch: mac-arm64
               compiler: cc
               install-dependencies: |
                 brew install mesa
-            - os: windows-latest
+            - os: windows-2019
               name: Windows
               arch: win-x64
               compiler: gcc
