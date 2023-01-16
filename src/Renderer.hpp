@@ -212,6 +212,7 @@ private:
 
 class TextureRenderer : public ProjectMRenderer {
 public:
+  GLFWwindow* c;
   virtual ~TextureRenderer() {}
   unsigned char* getBuffer();
   int getWindowWidth();
@@ -221,6 +222,7 @@ public:
 private:
   GLFWwindow* createWindow(int*,int*,int*,int*,bool,bool) override;
   static void framebufferSizeCallback(GLFWwindow* win, int x, int y);
+  void showWindow(int* ,int*,int*,int* ) override;
 };
 
 #endif
