@@ -546,9 +546,9 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
       int x = renderer->getRenderWidth();
       int b1 = renderer->getBufferSize();
       nvgDeleteImage(args.vg,img);
-#ifdef arch_mac      
-        if (x == (b1/380/4)) {
-#endif
+
+        if (renderer->getBuffer()==NULL)
+          return;
         img = nvgCreateImageRGBA(args.vg,x,y,0,renderer->getBuffer());
         std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
     
@@ -576,9 +576,6 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
           nvgClosePath(args.vg);
           nvgRestore(args.vg);
         }
-#ifdef arch_mac      
-      }
-#endif
     }
   }
 };
