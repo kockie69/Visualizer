@@ -612,10 +612,6 @@ unsigned char* TextureRenderer::getBuffer() {
   return buffer.data();
 }
 
-int TextureRenderer::getWindowWidth() {
-  return windowWidth;
-}
-
 int TextureRenderer::getRenderWidth() {
   return renderWidth;
 }

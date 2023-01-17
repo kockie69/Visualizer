@@ -544,7 +544,6 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
     if (layer == 1) {
       const int y = RACK_GRID_HEIGHT;
       int x = renderer->getRenderWidth();
-      int x2 = renderer->getWindowWidth();
       int b1 = renderer->getBufferSize();
       nvgDeleteImage(args.vg,img);
 #ifdef arch_mac      
@@ -558,10 +557,8 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
         nvgSave(args.vg);
         nvgScale(args.vg, 1, -1); // flip
         nvgTranslate(args.vg,0, -y);
-        nvgBeginPath(args.vg);
-        // Box is positioned a bit to the left as we otherwise have a small black box on the left
-        // nvgRect(args.vg, -10, 0, x+20, y); 
-        nvgRect(args.vg, 0, 0, x2, y);
+        nvgBeginPath(args.vg); 
+        nvgRect(args.vg, 0, 0, x, y);
         nvgFillPaint(args.vg, imgPaint);
         nvgFill(args.vg);
         nvgRestore(args.vg);
