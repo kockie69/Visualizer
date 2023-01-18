@@ -217,7 +217,6 @@ public:
   unsigned char* getBuffer();
   int getWindowWidth();
   int getRenderWidth();
-  int getBufferSize();
 
 private:
   GLFWwindow* createWindow(int*,int*,int*,int*,bool,bool) override;

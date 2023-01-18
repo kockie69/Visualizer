@@ -326,7 +326,6 @@ void ProjectMRenderer::CheckViewportSize(GLFWwindow* win)
 {
     int _renderWidth=0;
     int _renderHeight=0;
-    glfwGetWindowSize(win, &windowWidth, &windowHeight);
     
     glfwGetFramebufferSize(win, &_renderWidth, &_renderHeight);
     if (renderWidth != _renderWidth || renderHeight != _renderHeight)
@@ -616,6 +615,3 @@ int TextureRenderer::getRenderWidth() {
   return renderWidth;
 }
 
-int TextureRenderer::getBufferSize() {
-  return bufferSize;
-}

@@ -4,7 +4,7 @@
 #include "Renderer.hpp"
 #include "ctrl/RPJKnobs.hpp"
 #include "ctrl/RPJButtons.hpp"
-#include "JWResizableHandle.hpp"
+#include "ResizableHandle.hpp"
 #include <thread>
 
 static const unsigned int kSampleWindow = 512;
@@ -544,7 +544,7 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
     if (layer == 1) {
       const int y = RACK_GRID_HEIGHT;
       int x = renderer->getRenderWidth();
-      int b1 = renderer->getBufferSize();
+
       nvgDeleteImage(args.vg,img);
 
         if (renderer->getBuffer()==NULL)
@@ -732,7 +732,7 @@ struct LFMModuleWidget : BaseLFMModuleWidget {
 };
 
 struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
-    JWModuleResizeHandle *rightHandle;
+    ModuleResizeHandle *rightHandle;
     BGPanel *panel;
     EmbeddedLFMModuleWidget(LFMModule* module) {
 
@@ -750,7 +750,7 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
       addChild(w);
 
       w->getRenderer()->showWindow(&module->windowedXpos,&module->windowedYpos,&module->embeddedWidth,&module->windowedHeight);
-      JWModuleResizeHandle *rightHandle = new JWModuleResizeHandle(w->getRenderer()->window);
+      ModuleResizeHandle *rightHandle = new ModuleResizeHandle(w->getRenderer()->window);
 		  this->rightHandle = rightHandle;
 
 		  addChild(rightHandle);

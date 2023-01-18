@@ -3,12 +3,12 @@
 
 using namespace rack;
 
-struct JWModuleResizeHandle : OpaqueWidget {
+struct ModuleResizeHandle : OpaqueWidget {
 	Vec dragPos;
 	Rect originalBox;
 	GLFWwindow *window;
 
-	JWModuleResizeHandle(GLFWwindow *w) {
+	ModuleResizeHandle(GLFWwindow *w) {
 		box.size = Vec(RACK_GRID_WIDTH * 1, RACK_GRID_HEIGHT);
 		window = w;
 	}
