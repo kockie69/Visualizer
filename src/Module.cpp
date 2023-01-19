@@ -125,6 +125,7 @@ struct LFMModule : Module {
   float beatSensitivity = 1;
   float hardcutSensitivity = 1;
   float hardcutDuration = 0;
+  float softcutDuration = 10;
   float gradient = 1;
   bool aspectCorrection = true;
   std::string newPresetName = "";
@@ -428,6 +429,7 @@ struct BaseProjectMWidget : FramebufferWidget {
       getRenderer()->beatSensitivity = module->beatSensitivity;
       getRenderer()->hardcutSensitivity = module->hardcutSensitivity;
       getRenderer()->hardcutDuration = module->hardcutDuration;
+      getRenderer()->softcutDuration = module->softcutDuration;
       getRenderer()->aspectCorrection = module->aspectCorrection;
       getRenderer()->hardCut = module->hardCut;
       if (module->newPresetName != "") {
@@ -488,7 +490,7 @@ struct BaseProjectMWidget : FramebufferWidget {
 
     // Preset display settings
     s.preset_duration = 30;
-    s.soft_cut_duration = 0;
+    s.soft_cut_duration = 10;
     s.hard_cut_enabled = true;
     s.hard_cut_duration= 20;
     s.hard_cut_sensitivity =  0.5;

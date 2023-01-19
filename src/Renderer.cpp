@@ -173,15 +173,6 @@ void ProjectMRenderer::selectNextPreset(bool hard_cut) {
     }
 }
 
-// ID of the current preset in projectM's list
-unsigned int ProjectMRenderer::activePreset() const {
-  unsigned int presetIdx;
-  std::lock_guard<std::mutex> l(pm_m);
-  if (!pm) return 0;
-
-  return presetIdx;
-}
-
 // Name of the preset projectM is currently displaying
 std::string ProjectMRenderer::activePresetName() {
   return presetNameActive;
@@ -486,10 +477,10 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url,bool windowed ) {
 }
 
 void ProjectMRenderer::logContextInfo(std::string name, GLFWwindow* w) const {
-  int major = glfwGetWindowAttrib(w, GLFW_CONTEXT_VERSION_MAJOR);
-  int minor = glfwGetWindowAttrib(w, GLFW_CONTEXT_VERSION_MINOR);
-  int revision = glfwGetWindowAttrib(w, GLFW_CONTEXT_REVISION);
-  int api = glfwGetWindowAttrib(w, GLFW_CLIENT_API);
+  //int major = glfwGetWindowAttrib(w, GLFW_CONTEXT_VERSION_MAJOR);
+  //int minor = glfwGetWindowAttrib(w, GLFW_CONTEXT_VERSION_MINOR);
+  //int revision = glfwGetWindowAttrib(w, GLFW_CONTEXT_REVISION);
+  //int api = glfwGetWindowAttrib(w, GLFW_CLIENT_API);
   //DEBUG("%s context using API %d version %d.%d.%d", name.c_str(), api, major, minor, revision);
 }
 

@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Github builds with older platforms instead of latest
 - Size of embedded window is restored when restarting rack
 - Incidental black frames on Linux fixed
+- LFMEmbedded blacked out if left-side controls where out of view
 
 ## [2.1.8]
 ## Fixed

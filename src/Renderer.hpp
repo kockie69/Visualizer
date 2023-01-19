@@ -89,7 +89,7 @@ public:
   float beatSensitivity = 1;
   float hardcutSensitivity = 1;
   double hardcutDuration = 0;
-  double softcutDuration = 0;
+  double softcutDuration = 10;
   bool firstBeat = true;
   bool aspectCorrection = true;
   bool nextPreset = false;
@@ -138,9 +138,6 @@ public:
 
   // True if projectM is autoplaying presets
   bool isAutoplayEnabled() const;
-
-  // ID of the current preset in projectM's list
-  unsigned int activePreset() const;
 
   // Switches to the previous preset in the current playlist.
   void selectPreviousPreset(bool hard_cut);
