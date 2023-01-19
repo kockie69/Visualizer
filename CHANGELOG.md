@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Fixed
 - Github builds with older platforms instead of latest
 - Size of embedded window is restored when restarting rack
+- Incidental black frames on Linux fixed
 
 ## [2.1.8]
 ## Fixed
