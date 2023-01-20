@@ -5,11 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.1.10]
+## [2.1.10] - 2023-01-19
 ## Fixed
 - VCV logged framebuffer errors
 
-## [2.1.9]
+## [2.1.9] - 2023-01-18
 ## Fixed
 - Github builds with older platforms instead of latest
 - Size of embedded window is restored when restarting rack
