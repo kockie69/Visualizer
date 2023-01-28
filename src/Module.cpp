@@ -304,72 +304,56 @@ struct LFMModule : Module {
     json_t *nListJ = json_object_get(rootJ,"List");
     json_t *nInPlayListMode = json_object_get(rootJ, "InPlayListMode");
     if (nWindowedWidthJ) {
-      if (json_integer_value(nWindowedWidthJ)!=NULL)
 	      windowedWidth = json_integer_value(nWindowedWidthJ);
     }
     if (nWindowedHeightJ) {
-      if (json_integer_value(nWindowedHeightJ)!=NULL)
 	      windowedHeight = json_integer_value(nWindowedHeightJ);
     }
     if (nWindowedXposJ) {
-      if (json_integer_value(nWindowedXposJ)!=NULL)
 	      windowedXpos = json_integer_value(nWindowedXposJ);
     }
     if (nWindowedYposJ) {
-      if (json_integer_value(nWindowedYposJ)!=NULL)
 	      windowedYpos = json_integer_value(nWindowedYposJ);
     }
     if (nEmbeddedWidthJ) {
-      if (json_integer_value(nEmbeddedWidthJ)!=NULL)
 	      embeddedWidth = json_integer_value(nEmbeddedWidthJ);
     }
 	  if (nActivePresetJ) {
       if (json_string_value(nActivePresetJ)!=NULL)
-        if (json_string_value(nActivePresetJ)!=NULL)
-	        activePresetName = json_string_value(nActivePresetJ);
+	      activePresetName = json_string_value(nActivePresetJ);
     }
     if (nInPlayListMode) {
-      if (json_boolean_value(nInPlayListMode)!=NULL)
         inPlayListMode = json_boolean_value(nInPlayListMode);
     }
     if (nDisplayPresetNameJ) {
-      if (json_boolean_value(nDisplayPresetNameJ)!=NULL)
-	      displayPresetName = json_boolean_value(nDisplayPresetNameJ);
+	    displayPresetName = json_boolean_value(nDisplayPresetNameJ);
     }
     if (nAlwaysOnTopJ) {
-      if (json_boolean_value(nAlwaysOnTopJ)!=NULL)
-	      alwaysOnTop = json_boolean_value(nAlwaysOnTopJ);
+	    alwaysOnTop = json_boolean_value(nAlwaysOnTopJ);
     }
     if (nNoFramesJ) {
-      if (json_boolean_value(nNoFramesJ)!=NULL)
-	      noFrames = json_boolean_value(nNoFramesJ);
+	    noFrames = json_boolean_value(nNoFramesJ);
     }
     if (nAutoplayJ) {
-      if (json_boolean_value(nAutoplayJ)!=NULL)
-	      autoPlay = json_boolean_value(nAutoplayJ);
+	    autoPlay = json_boolean_value(nAutoplayJ);
     }
     if (nCSSJ) {
-      if (json_boolean_value(nCSSJ)!=NULL)
-	      caseSensitive = json_boolean_value(nCSSJ);
+	    caseSensitive = json_boolean_value(nCSSJ);
     }
     if (nAspectCorrectionJ) {
-      if (json_boolean_value(nAspectCorrectionJ)!=NULL)
-	      aspectCorrection = json_boolean_value(nAspectCorrectionJ);
+	    aspectCorrection = json_boolean_value(nAspectCorrectionJ);
     }
     if (nHardcutJ) {
-      if (json_boolean_value(nHardcutJ)!=NULL)
-	      hardCut = json_boolean_value(nHardcutJ);
+	    hardCut = json_boolean_value(nHardcutJ);
     }
     if (nListJ) {
       lists.clear();
       int i=0;
-      if (json_array_size(nListJ)!=NULL) {
-        while (i!=(int)json_array_size(nListJ)) {
-          if (json_array_get(nListJ,i)!=NULL) {
-            if (json_string_value(json_array_get(nListJ,i))!=NULL) {
-              lists.push_back(json_string_value(json_array_get(nListJ,i)));
-              i++;
-            }
+      while (i!=(int)json_array_size(nListJ)) {
+        if (json_array_get(nListJ,i)!=NULL) {
+          if (json_string_value(json_array_get(nListJ,i))!=NULL) {
+            lists.push_back(json_string_value(json_array_get(nListJ,i)));
+            i++;
           }
         }
       }
@@ -388,7 +372,7 @@ struct LFMModule : Module {
   }
 };
 
-struct BaseProjectMWidget : FramebufferWidget {
+struct BaseProjectMWidget : OpenGlWidget {
 
   const int fps = 60;
   const bool debug = true;
@@ -592,7 +576,8 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
           nvgBeginPath(args.vg);
           nvgFillColor(args.vg, nvgRGB(0xff, 0xff, 0xff));
           nvgFontSize(args.vg, 14);
-          nvgFontFaceId(args.vg, font->handle);
+          if (font) 
+            nvgFontFaceId(args.vg, font->handle);
           nvgTextAlign(args.vg, NVG_ALIGN_BOTTOM);
           nvgText(args.vg, 10, 20, system::getStem(getRenderer()->activePresetName().c_str()).c_str(), nullptr);
           nvgFill(args.vg);
