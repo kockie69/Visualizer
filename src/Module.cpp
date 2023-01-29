@@ -372,7 +372,7 @@ struct LFMModule : Module {
   }
 };
 
-struct BaseProjectMWidget : OpenGlWidget {
+struct BaseProjectMWidget : FramebufferWidget {
 
   const int fps = 60;
   const bool debug = true;
