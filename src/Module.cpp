@@ -552,10 +552,11 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
 
   void drawFramebuffer() override {
     math::Vec fbSize = getFramebufferSize();
-    glViewport(0.0, 0.0, fbSize.x, fbSize.y);
-    glClearColor(0.0, 0.0, 0.0, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-    glEnd();
+	glViewport(0.0, 0.0, fbSize.x, fbSize.y);
+	glClearColor(0.0, 0.0, 0.0, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	glBegin(GL_TRIANGLES);
+	glEnd();
   }
 
     void drawLayer(const DrawArgs& args, int layer) override {
