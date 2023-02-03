@@ -515,7 +515,7 @@ struct WindowedProjectMWidget : BaseProjectMWidget {
   void draw(const DrawArgs& args) override {
 
   }
-
+  
   void drawLayer(const DrawArgs& args, int layer) override {
     if (layer == 1) {
       std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
@@ -550,23 +550,11 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
 
   ProjectMRenderer* getRenderer() override { return renderer; }
 
-  void draw(const DrawArgs& args) override {
+  void drawFramebuffer() override {
     math::Vec fbSize = getFramebufferSize();
     glViewport(0.0, 0.0, fbSize.x, fbSize.y);
     glClearColor(0.0, 0.0, 0.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-    /*glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(0.0, fbSize.x, 0.0, fbSize.y, -1.0, 1.0);
-
-    glBegin(GL_TRIANGLES);
-    glColor3f(1, 0, 0);
-    glVertex3f(0, 0, 0);
-    glColor3f(0, 1, 0);
-    glVertex3f(fbSize.x, 0, 0);
-    glColor3f(0, 0, 1);
-    glVertex3f(0, fbSize.y, 0);*/
     glEnd();
   }
 
