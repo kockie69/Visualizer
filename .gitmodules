@@ -1,4 +1,4 @@
 
 [submodule "dep/projectm"]
 	path = dep/projectm
-	url = https://github.com/kblaschke/projectm.git
+	url = https://github.com/projectM-visualizer/projectm.git
