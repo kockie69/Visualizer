@@ -41,7 +41,7 @@ $(projectm):
 
 # Start building
 	cd dep/projectm && mkdir -p build
-	cp src/dep/CMakeLists.txt dep/projectm
+#	cp src/dep/CMakeLists.txt dep/projectm
 
 # Config make customization per platform type
 # An additional lib needs to be added for the build of projectm, so sed to the rescue
@@ -50,7 +50,7 @@ ifdef ARCH_WIN
 	cd dep/projectm/build && cmake -DCMAKE_INSTALL_LIBDIR=lib -DBUILD_SHARED_LIBS="OFF" D_FILE_OFFSET_BITS=64 -DCMAKE_CXX_STANDARD_LIBRARIES=-lpsapi -DENABLE_OPENMP="OFF" -DENABLE_THREADING="OFF" -DENABLE_PLAYLIST="OFF" -DCMAKE_INSTALL_PREFIX=. ..
 	cp $(RACK_DIR)/libRack.dll.a dep/
 else
-	cd dep/projectm/build && cmake -DBUILD_SHARED_LIBS="OFF"  -DENABLE_OPENMP="OFF" -DCMAKE_BUILD_TYPE=Release -DENABLE_THREADING="OFF" -DENABLE_PLAYLIST="OFF" -DCMAKE_INSTALL_PREFIX=. ..
+	cd dep/projectm/build && cmake -DBUILD_SHARED_LIBS="OFF" -DENABLE_SDL_UI="OFF" -DENABLE_OPENMP="OFF" -DCMAKE_BUILD_TYPE=Release -DENABLE_THREADING="OFF" -DENABLE_PLAYLIST="OFF" -DCMAKE_INSTALL_PREFIX=. ..
 endif
 	
 	cd dep/projectm/build && cmake --build .
