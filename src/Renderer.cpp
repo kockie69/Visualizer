@@ -447,7 +447,7 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url,bool windowed ) {
         {
       	  std::lock_guard<std::mutex> l(pm_m);
 
-	        projectm_render_frame(pm);
+	        projectm_opengl_render_frame(pm);
           if (!windowed) {    
             GLsizei nrChannels = 4;
             GLsizei stride = nrChannels * renderWidth;

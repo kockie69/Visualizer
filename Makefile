@@ -1,6 +1,6 @@
 # If RACK_DIR is not defined when calling the Makefile, default to two directories above
 RACK_DIR ?= ../..
-
+INCLUDE_DIR = $(RACK_DIR)/dep/include
 include $(RACK_DIR)/arch.mk
 
 # FLAGS will be passed to both the C and C++ compiler
@@ -19,7 +19,7 @@ CXXFLAGS +=
 ifdef ARCH_WIN
 	LDFLAGS += -lopengl32
 endif
-	projectm := dep/projectm/build/lib/libprojectM.a
+	projectm := dep/projectm/build/lib/libprojectM-4.a
 
 # Add .cpp files to the build
 SOURCES += $(wildcard src/*.cpp) 
@@ -36,23 +36,18 @@ DEPS += $(projectm)
 
 $(projectm):
 # 	Out-of-source build dir
-	cd dep && git submodule init
-	cd dep && git submodule update
-	cd dep/projectm && git submodule init
-	cd dep/projectm && git submodule update
-
+	cp -r src/dep/projectm dep/
 # Start building
 	cd dep/projectm && mkdir -p build
-#	cp src/dep/CMakeLists.txt dep/projectm
 
 # Config make customization per platform type
 # An additional lib needs to be added for the build of projectm, so sed to the rescue
 ifdef ARCH_WIN
 	cp src/dep/FileScanner.cpp dep/projectm/src/libprojectM/Renderer/
-	cd dep/projectm/build && cmake -DCMAKE_INSTALL_LIBDIR=lib -DBUILD_SHARED_LIBS="OFF" D_FILE_OFFSET_BITS=64 -DCMAKE_CXX_STANDARD_LIBRARIES=-lpsapi -DENABLE_OPENMP="OFF" -DENABLE_THREADING="OFF" -DENABLE_PLAYLIST="OFF" -DCMAKE_INSTALL_PREFIX=. ..
+	cd dep/projectm/build && cmake -DINCLUDE_DIR=$(INCLUDE_DIR) -DCMAKE_INSTALL_LIBDIR=lib -DBUILD_SHARED_LIBS="OFF" D_FILE_OFFSET_BITS=64 -DCMAKE_CXX_STANDARD_LIBRARIES=-lpsapi -DENABLE_OPENMP="OFF" -DENABLE_THREADING="OFF" -DENABLE_PLAYLIST="OFF" -DCMAKE_INSTALL_PREFIX=. ..
 	cp $(RACK_DIR)/libRack.dll.a dep/
 else
-	cd dep/projectm/build && cmake -DBUILD_SHARED_LIBS="OFF" -DENABLE_SDL_UI="OFF" -DENABLE_OPENMP="OFF" -DCMAKE_BUILD_TYPE=Release -DENABLE_THREADING="OFF" -DENABLE_PLAYLIST="OFF" -DCMAKE_INSTALL_PREFIX=. ..
+	cd dep/projectm/build && cmake -DINCLUDE_DIR=$(INCLUDE_DIR) -DBUILD_SHARED_LIBS="OFF" -DENABLE_SDL_UI="OFF" -DENABLE_OPENMP="OFF" -DCMAKE_BUILD_TYPE=Release -DENABLE_THREADING="OFF" -DENABLE_PLAYLIST="OFF" -DCMAKE_INSTALL_PREFIX=. ..
 endif
 	
 	cd dep/projectm/build && cmake --build .
