@@ -159,18 +159,21 @@ void ProjectMRenderer::selectPreviousPreset(bool hard_cut) {
 // Switches to the next preset in the current playlist.
 void ProjectMRenderer::selectNextPreset(bool hard_cut) {
   std::lock_guard<std::mutex> l(pm_m);
-  if (!pm) return;
+  if (!pm) 
+      return;
+
   auto it = std::find(fullList.begin(), fullList.end(), presetNameActive);
-    if (it != fullList.end()) { // Found the title
-      it++;
-      if (it != fullList.end()) {
-        newPresetName = *it;
-      }
-      else {
-        it = fullList.begin();
-        newPresetName = *it;
-      }
+
+  if (it != fullList.end()) { // Found the title
+    it++;
+    if (it != fullList.end()) {
+      newPresetName = *it;
     }
+    else {
+      it = fullList.begin();
+      newPresetName = *it;
+    }
+  }
 }
 
 // Name of the preset projectM is currently displaying
@@ -419,12 +422,14 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url,bool windowed ) {
       newPresetName = "";
     }
     if (nextPreset) {
-      selectNextPreset(projectm_get_hard_cut_enabled(pm));
+      if (fullList.size()) 
+        selectNextPreset(projectm_get_hard_cut_enabled(pm));
 
       nextPreset=false;
     }
     if (prevPreset) {
-      selectPreviousPreset(projectm_get_hard_cut_enabled(pm));
+      if (fullList.size()) 
+        selectPreviousPreset(projectm_get_hard_cut_enabled(pm));
       prevPreset=false;
     }
     
@@ -454,11 +459,12 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url,bool windowed ) {
             stride += (stride % 4) ? (4 - stride % 4) : 0;
             bufferSize = stride * renderHeight;
 
-            buffer.reserve(bufferSize);
-
+            buffer.data.reserve(bufferSize);
+            
             glPixelStorei(GL_PACK_ALIGNMENT, 4); 
 
-            glReadPixels(0, 0, renderWidth, renderHeight, GL_RGBA, GL_UNSIGNED_BYTE, buffer.data());
+            glReadPixels(0, 0, renderWidth, renderHeight, GL_RGBA, GL_UNSIGNED_BYTE, buffer.data.data());
+            buffer.width=renderWidth;
           }
       }
         glfwSwapBuffers(window);
@@ -599,10 +605,10 @@ void TextureRenderer::showWindow(int *xpos, int *ypos, int *width, int *height) 
 }
 
 unsigned char* TextureRenderer::getBuffer() {
-  return buffer.data();
+  return buffer.data.data();
 }
 
 int TextureRenderer::getRenderWidth() {
-  return renderWidth;
+  return buffer.width;
 }
 

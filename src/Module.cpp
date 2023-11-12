@@ -417,7 +417,8 @@ struct BaseProjectMWidget : OpenGlWidget {
             module->initInPlayListMode = false;
           else {
             int listSize = module->lists.size();
-            module->newPresetName = module->lists[rand() % listSize].data();
+            if (listSize)
+              module->newPresetName = module->lists[rand() % listSize].data();
           }
         }
         else {
@@ -562,29 +563,29 @@ struct EmbeddedProjectMWidget : BaseProjectMWidget {
     void drawLayer(const DrawArgs& args, int layer) override {
     if (layer == 1) {
       const int y = RACK_GRID_HEIGHT;
-      int x = renderer->getRenderWidth();
+      // int x = renderer->getRenderWidth();
 
       nvgDeleteImage(args.vg,img);
 
         if (renderer->getBuffer()==NULL)
           return;
-        img = nvgCreateImageRGBA(args.vg,x,y,0,renderer->getBuffer());
+        img = nvgCreateImageRGBA(args.vg,renderer->getRenderWidth(),y,0,renderer->getBuffer());
         std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin(pluginInstance, "res/fonts/LiberationSans/LiberationSans-Regular.ttf"));
     
-        NVGpaint imgPaint = nvgImagePattern(args.vg, 0, 0, x, y, 0.0f, img, module->gradient);
+        NVGpaint imgPaint = nvgImagePattern(args.vg, 0, 0, renderer->getRenderWidth(), y, 0.0f, img, module->gradient);
 
         nvgSave(args.vg);
         nvgScale(args.vg, 1, -1); // flip
         nvgTranslate(args.vg,0, -y);
         nvgBeginPath(args.vg); 
-        nvgRect(args.vg, 0, 0, x, y);
+        nvgRect(args.vg, 0, 0, renderer->getRenderWidth(), y);
         nvgFillPaint(args.vg, imgPaint);
         nvgFill(args.vg);
         nvgRestore(args.vg);
 
         if (module->displayPresetName) {
           nvgSave(args.vg);
-          nvgScissor(args.vg, 0, 0, x, y);
+          nvgScissor(args.vg, 0, 0, renderer->getRenderWidth(), y);
           nvgBeginPath(args.vg);
           nvgFillColor(args.vg, nvgRGB(0xff, 0xff, 0xff));
           nvgFontSize(args.vg, 14);

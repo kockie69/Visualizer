@@ -37,6 +37,12 @@ struct mySettings {
     bool soft_cut_ratings_enabled; //!< If true, use soft cut ratings on soft cuts and hard cut ratings on hard cuts. If false, the hard cut rating is always used.
 };
 
+class bufferClass {
+public:
+  std::vector<unsigned char> data;
+  int width;
+};
+
 class ProjectMRenderer {
 public:
   enum Status {
@@ -84,7 +90,7 @@ public:
   int windowWidth{ 0 };
   int renderWidth{ 0 };
   GLFWwindow* window;
-  std::vector<unsigned char> buffer;
+  bufferClass buffer;
   double presetTime = 0;
   float beatSensitivity = 1;
   float hardcutSensitivity = 1;
