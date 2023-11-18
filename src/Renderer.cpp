@@ -5,6 +5,7 @@
 #include "GlfwUtils.hpp"
 #include <thread>
 #include <mutex>
+#include <iostream>
 
 // Create ModulePresetPathItems for each patch in a directory.
 void ProjectMRenderer::loadPresetItems(std::string presetDir) {
@@ -343,22 +344,22 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url,bool windowed ) {
   logContextInfo("LowFatMilk window", window);
   
   // Initialize projectM
-    mySettings *sp = new mySettings();
-    sp->window_width = s.window_width;
-    sp->window_height = s.window_height;
-    sp->fps =  s.fps;
-    sp->mesh_x = s.mesh_x;
-    sp->mesh_y = s.mesh_y;
-    sp->aspect_correction = s.aspect_correction;
+  mySettings *sp = new mySettings();
+  sp->window_width = s.window_width;
+  sp->window_height = s.window_height;
+  sp->fps =  s.fps;
+  sp->mesh_x = s.mesh_x;
+  sp->mesh_y = s.mesh_y;
+  sp->aspect_correction = s.aspect_correction;
 
-    // Preset display settings
-    sp->preset_duration = s.preset_duration;
-    sp->soft_cut_duration = s.soft_cut_duration;
-    sp->hard_cut_enabled = s.hard_cut_enabled;
-    sp->hard_cut_duration= s.hard_cut_duration;
-    sp->hard_cut_sensitivity =  s.hard_cut_sensitivity;
-    sp->beat_sensitivity = s.beat_sensitivity;
-    loadPresetItems((char *)url.c_str());
+  // Preset display settings
+  sp->preset_duration = s.preset_duration;
+  sp->soft_cut_duration = s.soft_cut_duration;
+  sp->hard_cut_enabled = s.hard_cut_enabled;
+  sp->hard_cut_duration= s.hard_cut_duration;
+  sp->hard_cut_sensitivity =  s.hard_cut_sensitivity;
+  sp->beat_sensitivity = s.beat_sensitivity;
+  loadPresetItems((char *)url.c_str());
   {
     std::lock_guard<std::mutex> l(pm_m);
     //DEBUG("The preset path is %s", sp->preset_url);
@@ -382,77 +383,75 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url,bool windowed ) {
     glGenTextures(1, &texture);
     
     while (true) {
-      {
+     {
         // Did the main thread request that we exit?
         if (getStatus() == Status::PLEASE_EXIT) {
-	  break;
+	        break;
         }
-    if(buttonEvent == 1){
-            glfwGetWindowPos(window, &w_posx, &w_posy);
-            glfwSetWindowPos(window, w_posx + offset_cpx, w_posy + offset_cpy);
-            offset_cpx = 0;
-            offset_cpy = 0;
-            cp_x += offset_cpx;
-            cp_y += offset_cpy;
-    }  
-    CheckViewportSize(window);
+        if(buttonEvent == 1){
+          glfwGetWindowPos(window, &w_posx, &w_posy);
+          glfwSetWindowPos(window, w_posx + offset_cpx, w_posy + offset_cpy);
+          offset_cpx = 0;
+          offset_cpy = 0;
+          cp_x += offset_cpx;
+          cp_y += offset_cpy;
+        }  
+        CheckViewportSize(window);
 
-		glBindTexture(GL_TEXTURE_2D, texture);
-    
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, renderWidth,renderHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glBindTexture(GL_TEXTURE_2D, 0);
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture, 0);
+        glBindTexture(GL_TEXTURE_2D, texture);
+          
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, renderWidth,renderHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture, 0);
 
         {
 
-    setPresetTime(presetTime);
-    setBeatSensitivity(beatSensitivity);
-    setHardcutSensitivity(hardcutSensitivity);
-    setHardcutDuration(hardcutDuration);
-    setSoftcutDuration(softcutDuration);
-    setAspectCorrection(aspectCorrection);
-    setHardcut(hardCut);
+          setPresetTime(presetTime);
+          setBeatSensitivity(beatSensitivity);
+          setHardcutSensitivity(hardcutSensitivity);
+          setHardcutDuration(hardcutDuration);
+          setSoftcutDuration(softcutDuration);
+          setAspectCorrection(aspectCorrection);
+          setHardcut(hardCut);
 
-    if (newPresetName != "") {
-      requestPresetName(newPresetName,hardCut);
-      newPresetName = "";
-    }
-    if (nextPreset) {
-      if (fullList.size()) 
-        selectNextPreset(projectm_get_hard_cut_enabled(pm));
-
-      nextPreset=false;
-    }
-    if (prevPreset) {
-      if (fullList.size()) 
-        selectPreviousPreset(projectm_get_hard_cut_enabled(pm));
-      prevPreset=false;
-    }
+          if (newPresetName != "") {
+            requestPresetName(newPresetName,hardCut);
+            newPresetName = "";
+          }
+          if (nextPreset) {
+            if (fullList.size()) 
+              selectNextPreset(projectm_get_hard_cut_enabled(pm));
+            nextPreset=false;
+          }
+          if (prevPreset) {
+            if (fullList.size()) 
+              selectPreviousPreset(projectm_get_hard_cut_enabled(pm));
+            prevPreset=false;
+          }
+      
+          // Did the main thread request an autoplay toggle?
+          if (getClearRequestedToggleAutoplay()) {
+            renderSetAutoplay(!isAutoplayEnabled());
+          }
     
-	  // Did the main thread request an autoplay toggle?
-	  if (getClearRequestedToggleAutoplay()) {
-	    renderSetAutoplay(!isAutoplayEnabled());
-	  }
-	
-	  // Did the main thread request that we change the preset?
-	  int rpid = getClearRequestedPresetID();
-	  if (rpid != kPresetIDKeep) {
-	    if (rpid == kPresetIDRandom) {
-	      renderLoopNextPreset();
-	    } else {
-	      renderLoopSetPreset(rpid);
-	    }
-	  }
+          // Did the main thread request that we change the preset?
+          int rpid = getClearRequestedPresetID();
+          if (rpid != kPresetIDKeep) {
+            if (rpid == kPresetIDRandom) {
+              renderLoopNextPreset();
+            } else {
+              renderLoopSetPreset(rpid);
+            }
+          }
         }
       
         {
-      	  std::lock_guard<std::mutex> l(pm_m);
-
-	        projectm_opengl_render_frame(pm);
+          std::lock_guard<std::mutex> l(pm_m);
+          projectm_opengl_render_frame(pm);
           if (!windowed) {    
             GLsizei nrChannels = 4;
             GLsizei stride = nrChannels * renderWidth;
@@ -460,20 +459,20 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url,bool windowed ) {
             bufferSize = stride * renderHeight;
 
             buffer.data.reserve(bufferSize);
-            
+              
             glPixelStorei(GL_PACK_ALIGNMENT, 4); 
 
             glReadPixels(0, 0, renderWidth, renderHeight, GL_RGBA, GL_UNSIGNED_BYTE, buffer.data.data());
             buffer.width=renderWidth;
           }
-      }
+        }
         glfwSwapBuffers(window);
       }
 
       std::this_thread::sleep_for(std::chrono::microseconds(1000000/60));
-    }
-  }
 
+  }
+  }
   {
     std::lock_guard<std::mutex> l(pm_m);
     pm = nullptr;
@@ -492,11 +491,63 @@ void ProjectMRenderer::logContextInfo(std::string name, GLFWwindow* w) const {
 
 void ProjectMRenderer::logGLFWError(int errcode, const char* errmsg) {
   //DEBUG("GLFW error %s: %s", std::to_string(errcode).c_str(), errmsg);
+  //printf("GLFW error %s: %s", std::to_string(errcode).c_str(), errmsg);
 }
 
+void APIENTRY glDebugOutput(GLenum source, 
+                            GLenum type, 
+                            unsigned int id, 
+                            GLenum severity, 
+                            GLsizei length, 
+                            const char *message, 
+                            const void *userParam)
+{
+    // ignore non-significant error/warning codes
+    if(id == 131169 || id == 131185 || id == 131218 || id == 131204) return; 
+
+    std::cout << "---------------" << std::endl;
+    std::cout << "Debug message (" << id << "): " <<  message << std::endl;
+
+    switch (source)
+    {
+        case GL_DEBUG_SOURCE_API:             std::cout << "Source: API"; break;
+        case GL_DEBUG_SOURCE_WINDOW_SYSTEM:   std::cout << "Source: Window System"; break;
+        case GL_DEBUG_SOURCE_SHADER_COMPILER: std::cout << "Source: Shader Compiler"; break;
+        case GL_DEBUG_SOURCE_THIRD_PARTY:     std::cout << "Source: Third Party"; break;
+        case GL_DEBUG_SOURCE_APPLICATION:     std::cout << "Source: Application"; break;
+        case GL_DEBUG_SOURCE_OTHER:           std::cout << "Source: Other"; break;
+    } std::cout << std::endl;
+
+    switch (type)
+    {
+        case GL_DEBUG_TYPE_ERROR:               std::cout << "Type: Error"; break;
+        case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: std::cout << "Type: Deprecated Behaviour"; break;
+        case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:  std::cout << "Type: Undefined Behaviour"; break; 
+        case GL_DEBUG_TYPE_PORTABILITY:         std::cout << "Type: Portability"; break;
+        case GL_DEBUG_TYPE_PERFORMANCE:         std::cout << "Type: Performance"; break;
+        case GL_DEBUG_TYPE_MARKER:              std::cout << "Type: Marker"; break;
+        case GL_DEBUG_TYPE_PUSH_GROUP:          std::cout << "Type: Push Group"; break;
+        case GL_DEBUG_TYPE_POP_GROUP:           std::cout << "Type: Pop Group"; break;
+        case GL_DEBUG_TYPE_OTHER:               std::cout << "Type: Other"; break;
+    } std::cout << std::endl;
+    
+    switch (severity)
+    {
+        case GL_DEBUG_SEVERITY_HIGH:         std::cout << "Severity: high"; break;
+        case GL_DEBUG_SEVERITY_MEDIUM:       std::cout << "Severity: medium"; break;
+        case GL_DEBUG_SEVERITY_LOW:          std::cout << "Severity: low"; break;
+        case GL_DEBUG_SEVERITY_NOTIFICATION: std::cout << "Severity: notification"; break;
+    } std::cout << std::endl;
+    std::cout << std::endl;
+}
+
+// This is the definition of the GL version that runs in a seperate window
 GLFWwindow* WindowedRenderer::createWindow(int *xpos,int *ypos,int *width,int *height,bool alwaysOnTop,bool noFrames) {
   glfwSetErrorCallback(logGLFWError);
   logContextInfo("gWindow", APP->window->win);
+  // GLFW.
+  if (!glfwInit())
+    return NULL;
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -507,11 +558,36 @@ GLFWwindow* WindowedRenderer::createWindow(int *xpos,int *ypos,int *width,int *h
     glfwWindowHint(GLFW_FLOATING, GLFW_TRUE);
   if (noFrames)
     glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
-  glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
 
+  #if defined ARCH_MAC
+	  glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_TRUE);
+    //glfwInitHint(GLFW_COCOA_CHDIR_RESOURCES, GLFW_TRUE);
+	  glfwInitHint(GLFW_COCOA_MENUBAR, GLFW_TRUE);
+  #endif
   
+  glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
   c = glfwCreateWindow(RENDER_WIDTH, RACK_GRID_HEIGHT, "", NULL, NULL);
-  
+
+  // There is an issue that Rack crashes when maximize button used on Mac. So disable the button as a workaround
+ // #if defined ARCH_MAC
+    //glfwSetWindowAttrib(c, GLFW_RESIZABLE, GLFW_FALSE);
+ // #endif
+ 
+  // Next block of code to debug on Mac, but apparently not supported
+  /*glfwMakeContextCurrent(c);
+  int flags; glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+  if (flags & GL_CONTEXT_FLAG_DEBUG_BIT)
+  {
+      glEnable(GL_DEBUG_OUTPUT);
+      glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS); 
+      glDebugMessageCallback(glDebugOutput, nullptr);
+      glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+      puts("Debug");
+  }
+  else
+      puts( "Debug for OpenGL not supported by your system!" );
+  glfwMakeContextCurrent(NULL);*/
+
   if (!c) {
     return nullptr;
   }
@@ -524,7 +600,15 @@ GLFWwindow* WindowedRenderer::createWindow(int *xpos,int *ypos,int *width,int *h
     glfwSetMouseButtonCallback(c, mouse_button_callback);
     glfwSetCursorPosCallback(c, cursor_position_callback);
   }
+  else {
+    glfwSetWindowAttrib(c,GLFW_DECORATED,!noFrames);
+    glfwSetWindowPosCallback(c, NULL);
+    glfwSetWindowSizeCallback(c, NULL);
+    glfwSetMouseButtonCallback(c, NULL);
+    glfwSetCursorPosCallback(c, NULL);
+  }
   glfwSetWindowTitle(c, u8"LowFatMilk");
+
   return c;
 }
 
@@ -587,7 +671,7 @@ GLFWwindow* TextureRenderer::createWindow(int *xpos,int *ypos,int *width,int *he
   glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
   #if defined ARCH_MAC
-	glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
+	glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_TRUE);
   #endif
   
   c = glfwCreateWindow(RENDER_WIDTH, RACK_GRID_HEIGHT, "", NULL, NULL);

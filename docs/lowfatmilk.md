@@ -102,7 +102,14 @@ Same as next, but instead of the next preset it will show the previous.
 ### Resizing the window
 If you put your mouse at the right end of the module you can drag the window and you can make the window bigger or smaller, depending on your requirements. It has been noticed that on some systems this is not working properly and may result in a messy screen. 
 
-### Full Screen
-If you have the windowed version of the module active, clicking it and pressing the 'enter' key will make the window Full screen. By pressing the 'Esc' key you will get back to normal size
+### Windowed version
+If you have the windowed version of the module active, the visuals are rendered to a separate window. That window will react to certain shortcuts:
+
+    F, F4 or Enter will toggle full screen mode;
+    Escape and Q will exit full screen mode, or, when not in full screen, will minimize the window;
+    R will switch to a new preset.
+
+Note that the window cannot be closed. To remove the window, simply delete the module in Rack.
+clicking it and pressing the 'enter' key will make the window Full screen. By pressing the 'Esc' key you will get back to normal size
 
 

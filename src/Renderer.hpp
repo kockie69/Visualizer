@@ -71,7 +71,7 @@ protected:
   bool dirtySize = false;
 
 public:
-  ProjectMRenderer() {}
+  ProjectMRenderer() {};
   std::vector<std::string> fullList = {};
   std::string presetNameActive = "";
   //bool switching = false;
