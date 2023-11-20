@@ -72,6 +72,187 @@ struct ImageWidget : TransparentWidget {
   }
 };
 
+struct TestModule : Module {
+  enum ParamIds {
+    PARAM_NEXT,
+		PARAM_PREV,
+    PARAM_TIMER,
+    PARAM_BEAT_SENS,
+    PARAM_HARD_SENS,
+    PARAM_HARD_DURATION,
+    PARAM_GRADIENT,
+    PARAM_PRESETTYPE,
+    PARAM_ADDFAV,
+    PARAM_DELFAV,
+    NUM_PARAMS
+  };
+  enum InputIds {
+    LEFT_INPUT, 
+    RIGHT_INPUT,
+    NEXT_PRESET_INPUT,
+    PREV_PRESET_INPUT,
+    BEAT_INPUT,
+    HARDCUT_INPUT,
+    HARDCUT_DURATION_INPUT,
+    GRADIENT_INPUT,
+    NUM_INPUTS
+  };
+  enum OutputIds {
+    NUM_OUTPUTS
+  };
+  enum LightIds {
+    NEXT_LIGHT,
+		PREV_LIGHT,
+    NUM_LIGHTS
+  };
+
+  bool noFrames = false;
+  float pcm_data[kSampleWindow];
+  unsigned int pcm_dataCounter = 0;
+  bool full = false;
+  bool nextPreset = false;
+  bool prevPreset = false;
+  dsp::SchmittTrigger nextInputTrigger,prevInputTrigger;
+  dsp::BooleanTrigger nextTrigger,prevTrigger,addTrigger,delTrigger,presetTrigger;
+  bool inPlayListMode = false;
+  std::vector<std::string> lists = {};
+  std::string newPresetName = "";
+  std::string activePresetName = "";
+  float presetTime = 0;
+  float beatSensitivity = 1;
+  float hardcutSensitivity = 1;
+  float hardcutDuration = 0;
+  float softcutDuration = 10;
+  float gradient = 1;
+  bool autoPlay = true;
+  bool alwaysOnTop = false;
+  bool displayPresetName = false;
+  bool hardCut = true;
+  bool aspectCorrection = true;
+  bool caseSensitive = false;
+
+  TestModule() {
+    config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
+    configButton(PARAM_PRESETTYPE, "PlayList Activation");   
+    configButton(PARAM_ADDFAV, "Add Visual");
+	  configButton(PARAM_DELFAV, "Remove Visual");   
+    configButton(PARAM_NEXT, "Next preset");
+	  configButton(PARAM_PREV, "Previous preset");
+    configParam(PARAM_TIMER, 0.f, 300.f, 30.f, "Time till next preset"," Seconds");
+    configParam(PARAM_BEAT_SENS, 0.f, 5.f, 1.f, "Beat sensitivity","");
+    configParam(PARAM_HARD_SENS, 0.f, 5.f, 1.f, "Hardcut sensitivity","");
+    configParam(PARAM_HARD_DURATION, 0.f, 300.f, 30.f, "Hardcut duration"," Seconds");
+    configParam(PARAM_GRADIENT, 0.f, 5.f, 1.f, "Gradient"," ");
+  }
+
+  void clearList() {
+      lists.clear();
+  }
+
+  void addPreset() {
+    auto it = std::find(lists.begin(), lists.end(), activePresetName);
+    if (it == lists.end())  // Did not find the title
+      lists.push_back(activePresetName);
+  }
+
+  void delPreset() {
+    auto it = std::find(lists.begin(), lists.end(), activePresetName);
+    if (it != lists.end()) // Found the title
+      lists.erase(it);
+    if (!lists.empty())
+      newPresetName = lists.begin()->data();
+  }
+
+  void nextFavourite() {
+    auto it = std::find(lists.begin(), lists.end(), activePresetName);
+    if (it != lists.end()) { // Found the title
+      it++;
+      if (it != lists.end()) {
+        newPresetName = *it;
+      }
+      else {
+        it = lists.begin();
+        newPresetName = *it;
+      }
+    }
+  }
+
+  void prevFavourite() {
+
+    auto it = std::find(lists.begin(), lists.end(), activePresetName);
+    if (it != lists.end()) { // Found the title
+      if (it != lists.begin()) {
+        it--;
+        newPresetName=*it;
+      }
+      else {
+        it = lists.end();
+        it--;
+        newPresetName=*it;
+      }
+    }
+  }
+
+  void step() override {
+    pcm_data[pcm_dataCounter++] = inputs[LEFT_INPUT].getVoltage()/5;
+    if (inputs[RIGHT_INPUT].isConnected())
+      pcm_data[pcm_dataCounter++] = inputs[RIGHT_INPUT].getVoltage()/5;
+    else
+      pcm_data[pcm_dataCounter++] = inputs[LEFT_INPUT].getVoltage()/5;
+    if (pcm_dataCounter >= kSampleWindow) {
+      pcm_dataCounter = 0;
+      full = true;
+    }
+    if (presetTrigger.process(params[PARAM_PRESETTYPE].getValue())) {
+      inPlayListMode = true;
+      if (!lists.empty()) {
+        newPresetName=lists.begin()->data();
+      }
+    }
+    if (!params[PARAM_PRESETTYPE].getValue())
+      inPlayListMode = false;
+    if (addTrigger.process(params[PARAM_ADDFAV].getValue()) > 0.f && !inPlayListMode )
+      addPreset();
+    if (delTrigger.process(params[PARAM_DELFAV].getValue()) > 0.f  && inPlayListMode )
+      delPreset();  
+    presetTime = params[PARAM_TIMER].getValue();
+    beatSensitivity = params[PARAM_BEAT_SENS].getValue();
+    if (inputs[BEAT_INPUT].isConnected())
+      beatSensitivity+=inputs[BEAT_INPUT].getVoltage();
+    hardcutSensitivity = params[PARAM_HARD_SENS].getValue();
+    if (inputs[HARDCUT_INPUT].isConnected())
+      hardcutSensitivity+=inputs[HARDCUT_INPUT].getVoltage();
+    hardcutDuration = params[PARAM_HARD_DURATION].getValue();
+    if (inputs[HARDCUT_DURATION_INPUT].isConnected())
+      hardcutDuration+=inputs[HARDCUT_DURATION_INPUT].getVoltage();
+    gradient = params[PARAM_GRADIENT].getValue();
+    if (inputs[GRADIENT_INPUT].isConnected())
+      gradient+=inputs[GRADIENT_INPUT].getVoltage();   
+    
+    if (nextTrigger.process(params[PARAM_NEXT].getValue()) > 0.f || nextInputTrigger.process(rescale(inputs[NEXT_PRESET_INPUT].getVoltage(), 0.1f, 2.f, 0.f, 1.f))) {
+      if (!inPlayListMode)
+        nextPreset=true;
+      else {
+        if (!lists.empty())
+          nextFavourite();
+      }
+	  }
+
+    if (prevTrigger.process(params[PARAM_PREV].getValue()) > 0.f || prevInputTrigger.process(rescale(inputs[PREV_PRESET_INPUT].getVoltage(), 0.1f, 2.f, 0.f, 1.f))) {
+      if (!inPlayListMode)
+        prevPreset=true;
+      else {
+        if (!lists.empty())
+          prevFavourite();
+      }
+	  }
+    
+    lights[NEXT_LIGHT].setBrightness(nextPreset);
+	  lights[PREV_LIGHT].setBrightness(prevPreset);
+
+  }
+};
+
 struct LFMModule : Module {
   enum ParamIds {
     PARAM_NEXT,
@@ -646,7 +827,7 @@ ui::MenuItem* myCreateBoolPtrMenuItem(std::string text, std::string rightText, T
 	);
 }
 
-  static SetPresetMenuItem* construct(std::string label, BaseProjectMWidget* w,TextField* t) {
+static SetPresetMenuItem* construct(std::string label, BaseProjectMWidget* w,TextField* t) {
     SetPresetMenuItem* m = new SetPresetMenuItem;
 
     m->w = w;
@@ -752,6 +933,568 @@ struct LFMModuleWidget : BaseLFMModuleWidget {
   }
 };
 
+
+struct TestLFMModuleWidget : ModuleWidget {
+  
+  enum Status {
+    NOT_INITIALIZED,
+    SETTINGS_SET,
+    RENDERING,
+    FAILED,
+    PLEASE_EXIT,
+    EXITING
+  };
+
+  projectm* pm = NULL;
+  mutable std::mutex pm_m;
+  mutable std::mutex flags_m;
+  Status status;
+  GLFWwindow* c;
+  std::thread renderThread;
+  std::vector<std::string> fullList = {};
+  int renderWidth{ 0 };
+  int renderHeight{ 0 };
+  std::string presetURL;
+  std::string presetName;
+  double presetTime = 0;
+  float beatSensitivity = 1;
+  float hardcutSensitivity = 1;
+  double hardcutDuration = 0;
+  double softcutDuration = 10;
+  int requestedPresetID = kPresetIDKeep; // Indicates to the render thread that it should switch to the specified preset
+  std::string newPresetName = "";
+
+  struct SetPresetMenuItem : MenuItem {
+    TestModule m;
+    std::string presetName;
+    TextField* textfield;
+
+    void onAction(const ActionEvent& e) override {
+      m.newPresetName=presetName;
+    }
+
+    void step() override {
+      if (m.caseSensitive) {
+        if (text.find(textfield->getText()) != std::string::npos)
+          visible=true;
+        else
+          visible=false;
+      }
+      else {
+        std::string _text;
+        std::string _textfield;
+        _text = text;
+        _textfield = textfield->getText();
+        std::transform(_text.begin(), _text.end(), _text.begin(), [](unsigned char c){ return std::tolower(c); });
+        std::transform(_textfield.begin(), _textfield.end(), _textfield.begin(), [](unsigned char c){ return std::tolower(c); });
+        if (_text.find(_textfield) != std::string::npos)
+          visible=true;
+        else
+          visible=false;
+      }
+      rightText = (m.activePresetName == presetName) ? "<<" : "";
+      MenuItem::step();
+    }
+
+    template <typename T>
+    ui::MenuItem* myCreateBoolPtrMenuItem(std::string text, std::string rightText, T* ptr) {
+	    return createBoolMenuItem(text, rightText,
+		    [=]() {
+			    return ptr ? *ptr : false;
+		    },
+		    [=](T val) {
+			    if (ptr)
+				  *ptr = val;
+		    }
+	    );
+    }
+
+    static SetPresetMenuItem* construct(std::string label,TextField* t) {
+        SetPresetMenuItem* m = new SetPresetMenuItem;
+
+        m->presetName = label;
+        m->text = system::getStem(label);
+        m->textfield = t;
+
+        return m;
+     }
+  };
+
+  // Returns a list of all presets currently loaded by projectM
+  std::list<std::pair<unsigned int, std::string> > listPresets() const {
+    std::list<std::pair<unsigned int, std::string> > presets;
+  
+    //DEBUG("Ok, lets check the number of presets found");
+    unsigned int n;
+    n = fullList.size();
+
+    //DEBUG("The number of presets found is %d", n);
+    if (!n) {
+      return presets;
+    }
+    for (unsigned int i = 0; i < n; ++i){
+      std::string s;
+      {
+        s = fullList[i];
+      }
+      presets.push_back(std::make_pair(i, std::string(s)));
+    }
+    return presets;
+  }
+
+   void appendContextMenu(Menu* menu) override {
+    TestModule* m = dynamic_cast<TestModule*>(module);
+    assert(m);
+
+    // General module settings
+    menu->addChild(construct<MenuLabel>());
+    menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Options"));
+
+    menu->addChild(createBoolPtrMenuItem("Cycle through visuals","", &m->autoPlay));
+
+    if (m->getModel()->name == "LFMFull" ) {
+      menu->addChild(createBoolPtrMenuItem("Window always on Top","", &m->alwaysOnTop));
+#ifndef ARCH_MAC
+      menu->addChild(createBoolPtrMenuItem("No Frames","", &m->noFrames));
+#endif    
+    }
+
+    if (m->getModel()->name == "LFMEmbedded" ) {
+      menu->addChild(createBoolPtrMenuItem("Show Visual Title","", &m->displayPresetName));
+    }
+    menu->addChild(createBoolPtrMenuItem("Hardcut enabled","", &m->hardCut));
+    menu->addChild(createBoolPtrMenuItem("Aspectcorrection enabled","", &m->aspectCorrection));
+    menu->addChild(createBoolPtrMenuItem("Case sensitive Visual Search","", &m->caseSensitive));
+
+    menu->addChild(construct<MenuLabel>());
+    menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Playlist List Options"));
+    menu->addChild(createMenuItem("Clear Playlist", "", [=]() {m->clearList();}));
+
+    // Menu items to deal with presets
+    menu->addChild(construct<MenuLabel>());
+    menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Visuals"));
+
+    auto holder = new rack::Widget;
+    holder->box.size.x = 200;
+    holder->box.size.y = 20;
+
+    auto textfield = new rack::TextField;
+    textfield->box.pos.x = 0;
+    textfield->box.size.x = 200;
+    textfield->placeholder = "Search visuals";
+    holder->addChild(textfield);
+    menu->addChild(holder);
+
+    menu->addChild(construct<MenuLabel>());
+
+    auto presets = listPresets();
+    for (auto p : presets){
+      puts(p.second.c_str());
+      menu->addChild(SetPresetMenuItem::construct( p.second,textfield));
+    }
+    puts("All presets added to menu");
+  }
+
+  static void cursor_position_callback(GLFWwindow* win, double x, double y){
+    ProjectMRenderer* r = reinterpret_cast<ProjectMRenderer*>(glfwGetWindowUserPointer(win));
+    if (r->buttonEvent == 1) {
+        r->offset_cpx = x - r->cp_x;
+        r->offset_cpy = y - r->cp_y;
+    }
+  }
+
+  static void mouse_button_callback(GLFWwindow* win, int button, int action, int mods){
+    ProjectMRenderer* r = reinterpret_cast<ProjectMRenderer*>(glfwGetWindowUserPointer(win));
+    if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS){
+      r->buttonEvent = 1;
+      double x, y;
+      glfwGetCursorPos(win, &x, &y);
+      r->cp_x = floor(x);
+      r->cp_y= floor(y);
+    }
+    if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE){
+      r->buttonEvent = 0;
+      r->cp_x = 0;
+      r->cp_y = 0;
+    }
+  }
+
+  static void window_size_callback(GLFWwindow* win, int width, int height) {
+    ProjectMRenderer* r = reinterpret_cast<ProjectMRenderer*>(glfwGetWindowUserPointer(win));
+    *(r->winWidth)=width;
+    *(r->winHeight)=height;
+  }
+
+  static void window_pos_callback(GLFWwindow* win, int xpos, int ypos) {
+    ProjectMRenderer* r = reinterpret_cast<ProjectMRenderer*>(glfwGetWindowUserPointer(win));
+    *(r->xPos)=xpos;
+    *(r->yPos)=ypos;
+  }
+
+  void setStatus(Status s) {
+    std::lock_guard<std::mutex> l(flags_m);
+    status = s;
+  }
+
+  // Create ModulePresetPathItems for each patch in a directory.
+  void loadPresetItems(std::string presetDir) {
+
+    if (system::isDirectory(presetDir)) {
+      // Note: This is not cached, so opening this each time might have a bit of latency.
+      std::vector<std::string> entries = system::getEntries(presetDir,5);
+      std::sort(entries.begin(), entries.end());
+      for (std::string path : entries) {
+        if (!system::isDirectory(path)) {
+          fullList.push_back(path);
+        }
+      } 
+    }
+  }
+
+  void CheckViewportSize(GLFWwindow* win)
+  {
+      int _renderWidth=0;
+      int _renderHeight=0;
+      
+      glfwGetFramebufferSize(win, &_renderWidth, &_renderHeight);
+      if (renderWidth != _renderWidth || renderHeight != _renderHeight)
+      {
+          {
+          projectm_set_window_size(pm, _renderWidth, _renderHeight);
+          }
+          renderWidth = _renderWidth;
+          renderHeight = _renderHeight;
+          //DEBUG("Resized rendering canvas to %d %d.", renderWidth, renderHeight);
+      }
+  }
+
+  Status getStatus() const {
+    std::lock_guard<std::mutex> l(flags_m);
+    return status;
+  }
+
+  void setPresetTime(double time) {
+    std::unique_lock<std::mutex> l(pm_m);
+    if (!pm) return;
+    projectm_set_preset_duration(pm,time);
+  }
+
+  void setAspectCorrection(bool correction) {
+      std::unique_lock<std::mutex> l(pm_m);
+      if (!pm) return;
+      projectm_set_aspect_correction(pm, correction);
+  }
+
+  void setBeatSensitivity(float s) {
+    if (!pm) return;
+    std::lock_guard<std::mutex> l(pm_m);
+    projectm_set_beat_sensitivity(pm,s);
+  }
+
+  void setHardcutSensitivity(float s) {
+    if (!pm) return;
+    std::lock_guard<std::mutex> l(pm_m);
+    projectm_set_hard_cut_sensitivity(pm,s);
+  }
+
+  void setHardcutDuration(double d) {
+    if (!pm) return;
+    std::lock_guard<std::mutex> l(pm_m);
+    projectm_set_hard_cut_duration(pm,d);
+  }
+
+  void setSoftcutDuration(double d) {
+    if (!pm) return;
+    std::lock_guard<std::mutex> l(pm_m);
+    projectm_set_soft_cut_duration(pm,d);
+  }
+
+  void setHardcut(bool hardCut) {
+    if (!pm) return;
+    std::lock_guard<std::mutex> l(pm_m);
+    bool _hardCut = projectm_get_hard_cut_enabled(pm);
+    if (hardCut!=_hardCut)
+      projectm_set_hard_cut_enabled(pm,hardCut);
+  }
+
+  int getClearRequestedPresetID() {
+    std::lock_guard<std::mutex> l(flags_m);
+    int r = requestedPresetID;
+    requestedPresetID = kPresetIDKeep;
+    return r;
+  }
+
+  // Switch to the next preset. This should be called only from the
+  // render thread.
+  void renderLoopNextPreset() {
+    if (pm) {
+      std::lock_guard<std::mutex> l(pm_m);
+      
+      unsigned int n = fullList.size();
+      if (n) {
+        int index = rand() % n;
+        newPresetName = fullList[index].data();
+      }
+    }
+  }
+
+  // Switch to the indicated preset. This should be called only from
+  // the render thread.
+  void renderLoopSetPreset(unsigned int i) {
+    std::lock_guard<std::mutex> l(pm_m);
+  }
+
+
+  void renderLoop() {
+
+    glfwMakeContextCurrent(c);
+    
+    // Initialize projectM
+    mySettings s;
+    // Window/rendering settings
+    s.presetName = presetName;
+    presetURL = asset::plugin(pluginInstance, "res/presets_projectM/"); 
+    s.preset_path = (char *)presetURL.c_str();
+    s.window_width = RENDER_WIDTH;
+    s.window_height = RACK_GRID_HEIGHT;
+    s.fps =  60;
+    s.mesh_x = 220;
+    s.mesh_y = 125;
+    s.aspect_correction = true;
+
+    // Preset display settings
+    s.preset_duration = 30;
+    s.soft_cut_duration = 10;
+    s.hard_cut_enabled = true;
+    s.hard_cut_duration= 20;
+    s.hard_cut_sensitivity =  0.5;
+    s.beat_sensitivity = 1;
+    bool aspectCorrection = true;
+    bool hardCut = true;
+
+    loadPresetItems(s.preset_path);
+    {
+      std::lock_guard<std::mutex> l(pm_m);
+      //DEBUG("The preset path is %s", sp->preset_url);
+      pm = projectm_create();
+      CheckViewportSize(c);
+    }
+    if (pm) {
+      setStatus(Status::RENDERING);
+      //projectm_set_preset_switch_requested_event_callback(pm, &ProjectMRenderer::PresetSwitchedEvent,static_cast<void*>(this));
+      //projectm_set_preset_switch_failed_event_callback(pm, &ProjectMRenderer::PresetSwitchedErrorEvent,static_cast<void*>(this));                                                
+
+      GLuint FramebufferName = 0;
+      GLuint texture = 0;
+      glGenFramebuffers(1, &FramebufferName);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+      glGenTextures(1, &texture);
+      
+      while (true) {
+        // Did the main thread request that we exit?
+        if (getStatus() == Status::PLEASE_EXIT) {
+          break;
+        }
+        /*if(buttonEvent == 1){
+              glfwGetWindowPos(window, &w_posx, &w_posy);
+              glfwSetWindowPos(window, w_posx + offset_cpx, w_posy + offset_cpy);
+              offset_cpx = 0;
+              offset_cpy = 0;
+              cp_x += offset_cpx;
+              cp_y += offset_cpy;
+        }*/  
+        CheckViewportSize(c);
+
+        glBindTexture(GL_TEXTURE_2D, texture);
+        
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, renderWidth,renderHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture, 0);
+
+        {
+
+          setPresetTime(presetTime);
+          setBeatSensitivity(beatSensitivity);
+          setHardcutSensitivity(hardcutSensitivity);
+          setHardcutDuration(hardcutDuration);
+          setSoftcutDuration(softcutDuration);
+          setAspectCorrection(aspectCorrection);
+          setHardcut(hardCut);
+
+          /*if (newPresetName != "") {
+                requestPresetName(newPresetName,hardCut);
+                newPresetName = "";
+          }
+          if (nextPreset) {
+            if (fullList.size()) 
+              selectNextPreset(projectm_get_hard_cut_enabled(pm));
+
+            nextPreset=false;
+          }
+          if (prevPreset) {
+            if (fullList.size()) 
+              selectPreviousPreset(projectm_get_hard_cut_enabled(pm));
+            prevPreset=false;
+          }
+        
+          // Did the main thread request an autoplay toggle?
+          if (getClearRequestedToggleAutoplay()) {
+            renderSetAutoplay(!isAutoplayEnabled());
+          }*/
+      
+          // Did the main thread request that we change the preset?
+          int rpid = getClearRequestedPresetID();
+          if (rpid != kPresetIDKeep) {
+            if (rpid == kPresetIDRandom) {
+              renderLoopNextPreset();
+            } else {
+              renderLoopSetPreset(rpid);
+            }
+          }
+        }
+        
+        {
+          { // for the mutex
+          std::lock_guard<std::mutex> l(pm_m);
+
+          projectm_opengl_render_frame(pm);
+          } // end for mutex
+
+          glfwSwapBuffers(c);
+        }
+
+        std::this_thread::sleep_for(std::chrono::microseconds(1000000/60));
+      }
+
+      std::lock_guard<std::mutex> l(pm_m);
+      pm = nullptr;
+    }
+    glFinish(); // Finish any pending OpenGL operations
+    setStatus(Status::EXITING);
+  }
+
+static void keyCallback(GLFWwindow* win, int key, int scancode, int action, int mods) {
+  WindowedRenderer* r = reinterpret_cast<WindowedRenderer*>(glfwGetWindowUserPointer(win));
+  if (action != GLFW_PRESS) return;
+  switch (key) {
+  case GLFW_KEY_F:
+  case GLFW_KEY_F4:
+  case GLFW_KEY_ENTER:
+    {
+      const GLFWmonitor* current_monitor = glfwGetWindowMonitor(win);
+      if (!current_monitor) {
+        /* GLFWmonitor* best_monitor = glfwWindowGetNearestMonitor(win);
+        const GLFWvidmode* mode = glfwGetVideoMode(best_monitor);
+        glfwGetWindowPos(win, &r->last_xpos, &r->last_ypos);
+        glfwGetWindowSize(win, &r->last_width, &r->last_height);
+        glfwSetWindowMonitor(win, best_monitor, 0, 0, mode->width, mode->height, mode->refreshRate);*/
+      } else {
+        //glfwSetWindowMonitor(win, nullptr, r->last_xpos, r->last_ypos, r->last_width, r->last_height, GLFW_DONT_CARE);
+      }
+    }
+    break;
+  case GLFW_KEY_ESCAPE:
+  case GLFW_KEY_Q:
+    {
+      const GLFWmonitor* monitor = glfwGetWindowMonitor(win);
+      if (!monitor) {
+        glfwIconifyWindow(win);
+      } else {        
+        //glfwSetWindowMonitor(win, nullptr, r->last_xpos, r->last_ypos, r->last_width, r->last_height, GLFW_DONT_CARE);
+      }
+    }    
+    break;
+  case GLFW_KEY_R:
+    r->requestPresetID(kPresetIDRandom);
+    break;
+  default:
+    break;
+  }
+}
+
+  TestLFMModuleWidget(TestModule* module) {
+    setModule(module);
+    setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/VisualizerWindow.svg")));
+
+    if (module) {
+      addParam(createParam<ButtonBig>(Vec(17,30),module, LFMModule::PARAM_PRESETTYPE));
+      addParam(createParam<ButtonPlusBig>(Vec(7,45),module, LFMModule::PARAM_ADDFAV));
+      addParam(createParam<ButtonMinBig>(Vec(25,45),module, LFMModule::PARAM_DELFAV));     
+      addParam(createParam<RPJKnob>(Vec(knobX2,knobY1), module, LFMModule::PARAM_TIMER));
+      addParam(createParam<RPJKnob>(Vec(knobX1,knobY2), module, LFMModule::PARAM_BEAT_SENS));
+      addParam(createParam<RPJKnob>(Vec(knobX1,knobY3), module, LFMModule::PARAM_HARD_SENS));
+
+      addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY1), module, LFMModule::PARAM_NEXT,LFMModule::NEXT_LIGHT));
+      addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX1,buttonY2), module, LFMModule::PARAM_PREV,LFMModule::PREV_LIGHT));
+
+      addInput(createInput<PJ301MPort>(Vec(jackX2, jackY1), module, LFMModule::BEAT_INPUT));	
+      addInput(createInput<PJ301MPort>(Vec(jackX2, jackY2), module, LFMModule::HARDCUT_INPUT));	 
+
+      addInput(createInput<PJ301MPort>(Vec(jackX2, jackY5), module, LFMModule::NEXT_PRESET_INPUT));
+      addInput(createInput<PJ301MPort>(Vec(jackX2, jackY6), module, LFMModule::PREV_PRESET_INPUT));
+      
+      addInput(createInput<PJ301MPort>(Vec(jackX1, jackY7), module, LFMModule::LEFT_INPUT));	
+      addInput(createInput<PJ301MPort>(Vec(jackX2, jackY7), module, LFMModule::RIGHT_INPUT));
+
+      addParam(createParam<RPJKnob>(Vec(knobX1,knobY4), module, LFMModule::PARAM_HARD_DURATION));	
+
+      addInput(createInput<PJ301MPort>(Vec(jackX2, jackY3), module, LFMModule::HARDCUT_DURATION_INPUT));
+
+      // GLFW.
+      if (!glfwInit())
+        return;
+
+      glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+      glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    
+      glfwWindowHint(GLFW_MAXIMIZED, GLFW_FALSE);
+      glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
+      glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
+      glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+      c = glfwCreateWindow(400, 460, "My Test Window", NULL, NULL);
+      if (!c) 
+        return;
+    
+      glfwSetWindowUserPointer(c, reinterpret_cast<WindowedRenderer*>(this));
+      glfwSetWindowCloseCallback(c, [](GLFWwindow* w) { glfwIconifyWindow(w); });
+      glfwSetKeyCallback(c, keyCallback);
+      if (module->noFrames) {
+        glfwSetWindowPosCallback(c, window_pos_callback);
+        glfwSetWindowSizeCallback(c, window_size_callback);
+        glfwSetMouseButtonCallback(c, mouse_button_callback);
+        glfwSetCursorPosCallback(c, cursor_position_callback);
+    }
+      else {
+        glfwSetWindowAttrib(c,GLFW_DECORATED,!module->noFrames);
+        glfwSetWindowPosCallback(c, NULL);
+        glfwSetWindowSizeCallback(c, NULL);
+        glfwSetMouseButtonCallback(c, NULL);
+        glfwSetCursorPosCallback(c, NULL);
+      }
+      glfwSetWindowTitle(c, u8"LowFatMilk");
+      renderThread = std::thread([this](){ this->renderLoop(); });
+    }
+  }
+
+  ~TestLFMModuleWidget() {
+    // Request that the render thread terminates the renderLoop
+    setStatus(Status::PLEASE_EXIT);
+    // Wait for renderLoop to terminate before releasing resources
+    renderThread.join();
+  // Destroy the window in the main thread, because it's not legal
+  // to do so in other threads.
+    glfwDestroyWindow(c);
+  }
+};
+
+
 struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
     ModuleResizeHandle *rightHandle;
     BGPanel *panel;
@@ -823,3 +1566,4 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
 
 Model *modelWindowedLFMModule = createModel<LFMModule, LFMModuleWidget>("LFMFull");
 Model *modelEmbeddedLFMModule = createModel<LFMModule, EmbeddedLFMModuleWidget>("LFMEmbedded");
+Model *modelTestLFMModule = createModel<TestModule, TestLFMModuleWidget>("LFMTest");

@@ -5,6 +5,7 @@ using namespace rack;
 extern Plugin *pluginInstance;
 extern Model *modelWindowedLFMModule;
 extern Model *modelEmbeddedLFMModule;
+extern Model *modelTestLFMModule;
 
 struct BGPanel : Widget {
 	Widget *panelBorder;
