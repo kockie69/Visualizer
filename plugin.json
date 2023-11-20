@@ -1,7 +1,7 @@
 {
   "slug": "RPJVisualizer",
   "name": "RPJ Visualizer",
-  "version": "2.1.14.1",
+  "version": "2.1.14.2",
   "license": "GPL-3.0-or-later",
   "brand": "RPJ",
   "author": "Robert Kock",
@@ -23,12 +23,6 @@
       "slug": "LFMEmbedded",
       "name": "LFMEmbedded",
       "description": "Psycho visualizer, shown in an embedded display. \nBased on ProjectM, this module uses MilkDrop/Winamp presets.",
-      "tags": ["Utility", "Visual"]
-    },
-    {
-      "slug": "LFMTest",
-      "name": "LFMTest",
-      "description": "Test module",
       "tags": ["Utility", "Visual"]
     }
   ]

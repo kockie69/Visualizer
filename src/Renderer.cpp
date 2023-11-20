@@ -22,8 +22,8 @@ void ProjectMRenderer::loadPresetItems(std::string presetDir) {
   }
 }
 
-void ProjectMRenderer::init(mySettings const& s,int *xpos, int *ypos,int *width,int *height,bool windowed,bool alwaysOnTop,bool noFrames) {
-  window = createWindow(xpos,ypos,width,height,alwaysOnTop,noFrames);
+void ProjectMRenderer::init(GLFWwindow* c,mySettings const& s,int *xpos, int *ypos,int *width,int *height,bool windowed,bool alwaysOnTop,bool noFrames) {
+  window = createWindow(c,xpos,ypos,width,height,alwaysOnTop,noFrames);
   std::string url = s.preset_path;
   renderThread = std::thread([this,s,url,windowed](){ this->renderLoop(s,url,windowed); });
 }
@@ -542,51 +542,7 @@ void APIENTRY glDebugOutput(GLenum source,
 }
 
 // This is the definition of the GL version that runs in a seperate window
-GLFWwindow* WindowedRenderer::createWindow(int *xpos,int *ypos,int *width,int *height,bool alwaysOnTop,bool noFrames) {
-  glfwSetErrorCallback(logGLFWError);
-  logContextInfo("gWindow", APP->window->win);
-  // GLFW.
-  if (!glfwInit())
-    return NULL;
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-  glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE);
-  glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
-  if (alwaysOnTop)
-    glfwWindowHint(GLFW_FLOATING, GLFW_TRUE);
-  if (noFrames)
-    glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
-
-  #if defined ARCH_MAC
-	  glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_TRUE);
-    //glfwInitHint(GLFW_COCOA_CHDIR_RESOURCES, GLFW_TRUE);
-	  glfwInitHint(GLFW_COCOA_MENUBAR, GLFW_TRUE);
-  #endif
-  
-  glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
-  c = glfwCreateWindow(RENDER_WIDTH, RACK_GRID_HEIGHT, "", NULL, NULL);
-
-  // There is an issue that Rack crashes when maximize button used on Mac. So disable the button as a workaround
- // #if defined ARCH_MAC
-    //glfwSetWindowAttrib(c, GLFW_RESIZABLE, GLFW_FALSE);
- // #endif
- 
-  // Next block of code to debug on Mac, but apparently not supported
-  /*glfwMakeContextCurrent(c);
-  int flags; glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
-  if (flags & GL_CONTEXT_FLAG_DEBUG_BIT)
-  {
-      glEnable(GL_DEBUG_OUTPUT);
-      glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS); 
-      glDebugMessageCallback(glDebugOutput, nullptr);
-      glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
-      puts("Debug");
-  }
-  else
-      puts( "Debug for OpenGL not supported by your system!" );
-  glfwMakeContextCurrent(NULL);*/
+GLFWwindow* WindowedRenderer::createWindow(GLFWwindow* c,int *xpos,int *ypos,int *width,int *height,bool alwaysOnTop,bool noFrames) {
 
   if (!c) {
     return nullptr;
@@ -661,7 +617,7 @@ void WindowedRenderer::keyCallback(GLFWwindow* win, int key, int scancode, int a
   }
 }
 
-GLFWwindow* TextureRenderer::createWindow(int *xpos,int *ypos,int *width,int *height,bool unused1,bool unused2) {
+GLFWwindow* TextureRenderer::createWindow(GLFWwindow* c,int *xpos,int *ypos,int *width,int *height,bool unused1,bool unused2) {
   glfwSetErrorCallback(logGLFWError);
   logContextInfo("gWindow", APP->window->win);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -679,8 +635,7 @@ GLFWwindow* TextureRenderer::createWindow(int *xpos,int *ypos,int *width,int *he
   if (!c) {
     return nullptr;
   }
-  glfwSetWindowUserPointer(c, reinterpret_cast<TextureRenderer*>(this));
-  logContextInfo("LFM context", c);
+
   return c;
 }
 
