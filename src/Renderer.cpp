@@ -22,8 +22,8 @@ void ProjectMRenderer::loadPresetItems(std::string presetDir) {
   }
 }
 
-void ProjectMRenderer::init(GLFWwindow* c,mySettings const& s,int *xpos, int *ypos,int *width,int *height,bool windowed,bool alwaysOnTop,bool noFrames) {
-  window = createWindow(c,xpos,ypos,width,height,alwaysOnTop,noFrames);
+void ProjectMRenderer::init(GLFWwindow* c,mySettings const& s,int *xpos, int *ypos,int *width,int *height,bool windowed,bool alwaysOnTop) {
+  window = createWindow(c,xpos,ypos,width,height,alwaysOnTop);
   std::string url = s.preset_path;
   renderThread = std::thread([this,s,url,windowed](){ this->renderLoop(s,url,windowed); });
 }
@@ -36,23 +36,6 @@ ProjectMRenderer::~ProjectMRenderer() {
   // Destroy the window in the main thread, because it's not legal
   // to do so in other threads.
   glfwDestroyWindow(window);
-}
-
-void ProjectMRenderer::setNoFrames(bool noFrames) {
-  if (noFrames) {
-    glfwSetWindowAttrib(window,GLFW_DECORATED,!noFrames);
-    glfwSetWindowPosCallback(window, window_pos_callback);
-    glfwSetWindowSizeCallback(window, window_size_callback);
-    glfwSetMouseButtonCallback(window, mouse_button_callback);
-    glfwSetCursorPosCallback(window, cursor_position_callback);
-  }
-  else {
-    glfwSetWindowAttrib(window,GLFW_DECORATED,!noFrames);
-    glfwSetWindowPosCallback(window, NULL);
-    glfwSetWindowSizeCallback(window, NULL);
-    glfwSetMouseButtonCallback(window, NULL);
-    glfwSetCursorPosCallback(window, NULL);
-  }
 }
 
 void ProjectMRenderer::cursor_position_callback(GLFWwindow* win, double x, double y){
@@ -542,7 +525,7 @@ void APIENTRY glDebugOutput(GLenum source,
 }
 
 // This is the definition of the GL version that runs in a seperate window
-GLFWwindow* WindowedRenderer::createWindow(GLFWwindow* c,int *xpos,int *ypos,int *width,int *height,bool alwaysOnTop,bool noFrames) {
+GLFWwindow* WindowedRenderer::createWindow(GLFWwindow* c,int *xpos,int *ypos,int *width,int *height,bool alwaysOnTop) {
 
   if (!c) {
     return nullptr;
@@ -550,19 +533,12 @@ GLFWwindow* WindowedRenderer::createWindow(GLFWwindow* c,int *xpos,int *ypos,int
   glfwSetWindowUserPointer(c, reinterpret_cast<WindowedRenderer*>(this));
   glfwSetWindowCloseCallback(c, [](GLFWwindow* w) { glfwIconifyWindow(w); });
   glfwSetKeyCallback(c, keyCallback);
-  if (noFrames) {
-    glfwSetWindowPosCallback(c, window_pos_callback);
-    glfwSetWindowSizeCallback(c, window_size_callback);
-    glfwSetMouseButtonCallback(c, mouse_button_callback);
-    glfwSetCursorPosCallback(c, cursor_position_callback);
-  }
-  else {
-    glfwSetWindowAttrib(c,GLFW_DECORATED,!noFrames);
-    glfwSetWindowPosCallback(c, NULL);
-    glfwSetWindowSizeCallback(c, NULL);
-    glfwSetMouseButtonCallback(c, NULL);
-    glfwSetCursorPosCallback(c, NULL);
-  }
+
+  //glfwSetWindowPosCallback(c, window_pos_callback);
+  //glfwSetWindowSizeCallback(c, window_size_callback);
+  //glfwSetMouseButtonCallback(c, mouse_button_callback);
+  //glfwSetCursorPosCallback(c, cursor_position_callback);
+
   glfwSetWindowTitle(c, u8"LowFatMilk");
 
   return c;
@@ -617,7 +593,7 @@ void WindowedRenderer::keyCallback(GLFWwindow* win, int key, int scancode, int a
   }
 }
 
-GLFWwindow* TextureRenderer::createWindow(GLFWwindow* c,int *xpos,int *ypos,int *width,int *height,bool unused1,bool unused2) {
+GLFWwindow* TextureRenderer::createWindow(GLFWwindow* c,int *xpos,int *ypos,int *width,int *height,bool unused1) {
   glfwSetErrorCallback(logGLFWError);
   logContextInfo("gWindow", APP->window->win);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);

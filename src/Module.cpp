@@ -133,7 +133,6 @@ struct LFMModule : Module {
   bool displayPresetName = false;
   bool autoPlay = true;
   bool alwaysOnTop = false;
-  bool noFrames = false;
   bool caseSensitive = false;
   unsigned int i = 0;
   bool full = false;
@@ -273,7 +272,6 @@ struct LFMModule : Module {
     json_object_set_new(rootJ, "List", listArray);
 
     json_object_set_new(rootJ, "AlwaysOnTop", json_boolean(alwaysOnTop));
-    json_object_set_new(rootJ, "NoFrames", json_boolean(noFrames));
 
     if (this->getModel()->getFullName() == "RPJ LFMFull") {
       json_object_set_new(rootJ, "windowedXpos", json_integer(windowedXpos));
@@ -291,7 +289,6 @@ struct LFMModule : Module {
 	  json_t *nActivePresetJ = json_object_get(rootJ, "ActivePreset");
     json_t *nDisplayPresetNameJ = json_object_get(rootJ, "DisplayPresetName");
     json_t *nAlwaysOnTopJ = json_object_get(rootJ, "AlwaysOnTop");
-    json_t *nNoFramesJ = json_object_get(rootJ, "NoFrames");
     json_t *nAutoplayJ = json_object_get(rootJ, "Autoplay");
     json_t *nCSSJ = json_object_get(rootJ, "CaseSensitiveSearch");
     json_t *nAspectCorrectionJ = json_object_get(rootJ, "Aspectcorrection");
@@ -330,9 +327,6 @@ struct LFMModule : Module {
     }
     if (nAlwaysOnTopJ) {
 	    alwaysOnTop = json_boolean_value(nAlwaysOnTopJ);
-    }
-    if (nNoFramesJ) {
-	    noFrames = json_boolean_value(nNoFramesJ);
     }
     if (nAutoplayJ) {
 	    autoPlay = json_boolean_value(nAutoplayJ);
@@ -382,19 +376,19 @@ struct BaseProjectMWidget : OpenGlWidget {
 
   BaseProjectMWidget() {}
 
-  void init(std::string presetURL,std::string presetName,bool windowed,bool alwaysOnTop,bool noFrames,GLFWwindow* c) {
+  void init(std::string presetURL,std::string presetName,bool windowed,bool alwaysOnTop,GLFWwindow* c) {
       if (windowed)
-        getRenderer()->init(c,initSettings(presetURL,presetName),&module->windowedXpos,&module->windowedYpos,&module->windowedWidth,&module->windowedHeight,windowed,alwaysOnTop,noFrames);
+        getRenderer()->init(c,initSettings(presetURL,presetName),&module->windowedXpos,&module->windowedYpos,&module->windowedWidth,&module->windowedHeight,windowed,alwaysOnTop);
       else 
-        getRenderer()->init(c,initSettings(presetURL,presetName),&module->windowedXpos,&module->windowedYpos,&module->embeddedWidth,&module->windowedHeight,windowed,alwaysOnTop,noFrames);
+        getRenderer()->init(c,initSettings(presetURL,presetName),&module->windowedXpos,&module->windowedYpos,&module->embeddedWidth,&module->windowedHeight,windowed,alwaysOnTop);
 
   }
 
   template<typename T>
-  static BaseProjectMWidget* create(Vec pos, std::string presetURL,std::string presetName,bool windowed,bool alwaysOnTop,bool noFrames,GLFWwindow* c) {
+  static BaseProjectMWidget* create(Vec pos, std::string presetURL,std::string presetName,bool windowed,bool alwaysOnTop,GLFWwindow* c) {
     BaseProjectMWidget* p = new T;
     p->box.pos = pos;
-    p->init(presetURL,presetName,windowed,alwaysOnTop,noFrames,c);
+    p->init(presetURL,presetName,windowed,alwaysOnTop,c);
     return p;
   }
 
@@ -428,9 +422,7 @@ struct BaseProjectMWidget : OpenGlWidget {
       }
       module->activePresetName = getRenderer()->activePresetName().c_str();
       module->embeddedWidth = getRenderer()->renderWidth;
-#ifndef ARCH_MAC
-      getRenderer()->setNoFrames(module->noFrames);
-#endif
+
       getRenderer()->setAlwaysOnTop(module->alwaysOnTop);
 
       getRenderer()->presetTime = module->presetTime;
@@ -675,10 +667,7 @@ struct BaseLFMModuleWidget : ModuleWidget {
     menu->addChild(createBoolPtrMenuItem("Cycle through visuals","", &m->autoPlay));
 
     if (m->getModel()->name == "LFMFull" ) {
-      menu->addChild(createBoolPtrMenuItem("Window always on Top","", &m->alwaysOnTop));
-#ifndef ARCH_MAC
-      menu->addChild(createBoolPtrMenuItem("No Frames","", &m->noFrames));
-#endif    
+      menu->addChild(createBoolPtrMenuItem("Window always on Top","", &m->alwaysOnTop));  
     }
 
     if (m->getModel()->name == "LFMEmbedded" ) {
@@ -768,7 +757,7 @@ struct LFMModuleWidget : BaseLFMModuleWidget {
 
       glfwSetWindowTitle(c, u8"LowFatMilk");
       //renderThread = std::thread([this](){ this->renderLoop(); });
-      w = BaseProjectMWidget::create<WindowedProjectMWidget>(Vec(85, 20), asset::plugin(pluginInstance, "res/presets_projectM/"),module->activePresetName,true,module->alwaysOnTop,module->noFrames,c);
+      w = BaseProjectMWidget::create<WindowedProjectMWidget>(Vec(85, 20), asset::plugin(pluginInstance, "res/presets_projectM/"),module->activePresetName,true,module->alwaysOnTop,c);
       w->module = module;
       w->box.size = Vec(RENDER_WIDTH,RACK_GRID_HEIGHT);
       addChild(w);
@@ -791,7 +780,7 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
     if (module) {
       // this is a "live" module in Rack
       box.size.x = module->embeddedWidth+85;
-      w = BaseProjectMWidget::create<EmbeddedProjectMWidget>(Vec(6*RACK_GRID_WIDTH-4, 0), asset::plugin(pluginInstance, "res/presets_projectM/"),module->activePresetName,false,module->alwaysOnTop,module->noFrames,nullptr);
+      w = BaseProjectMWidget::create<EmbeddedProjectMWidget>(Vec(6*RACK_GRID_WIDTH-4, 0), asset::plugin(pluginInstance, "res/presets_projectM/"),module->activePresetName,false,module->alwaysOnTop,nullptr);
       w->module = module;
       addChild(w);
 
