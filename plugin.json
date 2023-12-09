@@ -24,6 +24,12 @@
       "name": "LFMEmbedded",
       "description": "Psycho visualizer, shown in an embedded display. \nBased on ProjectM, this module uses MilkDrop/Winamp presets.",
       "tags": ["Utility", "Visual"]
+    },
+    {
+      "slug": "ExternalScope",
+      "name": "ExternalScope",
+      "description": "Scope that runs in own window.",
+      "tags": ["Utility", "Visual"]
     }
   ]
 }

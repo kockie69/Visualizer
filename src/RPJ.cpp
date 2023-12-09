@@ -4,4 +4,5 @@ void init(Plugin *p) {
     pluginInstance = p;
 	p->addModel(modelWindowedLFMModule);
 	p->addModel(modelEmbeddedLFMModule);
+	p->addModel(modelScopeModule);
 }
