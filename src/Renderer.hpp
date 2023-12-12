@@ -209,7 +209,7 @@ private:
   GLFWwindow* createWindow(int*,int*,int*,int*,bool,bool) override;
   int last_xpos, last_ypos, last_width, last_height;
   static void framebufferSizeCallback(GLFWwindow* win, int x, int y);
-  static void keyCallback(GLFWwindow* win, int key, int scancode, int action, int mods);
+  static void keyCallback(GLFWwindow*, int, int, int, int);
 };
 
 class TextureRenderer : public ProjectMRenderer {

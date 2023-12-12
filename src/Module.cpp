@@ -5,6 +5,7 @@
 #include "ctrl/RPJKnobs.hpp"
 #include "ctrl/RPJButtons.hpp"
 #include "ResizableHandle.hpp"
+#include "GlfwUtils.hpp"
 #include <thread>
 
 static const unsigned int kSampleWindow = 512;
@@ -376,23 +377,52 @@ struct BaseProjectMWidget : OpenGlWidget {
   const int fps = 60;
   const bool debug = true;
   bool oldAutoPlay = false;
+  int last_xpos,last_ypos;
+  int last_width,last_height;
 
   LFMModule* module;
 
   BaseProjectMWidget() {}
 
-  void init(std::string presetURL,std::string presetName,bool windowed,bool alwaysOnTop,bool noFrames,GLFWwindow* c) {
-    if (windowed)
+
+  void init(int width,int height,std::string presetURL,std::string presetName,bool windowed,bool alwaysOnTop,bool noFrames) {
+    //  if (!glfwInit())
+    //  return;
+
+    //glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    //glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+    GLFWwindow* c;
+
+    if (windowed) {
+        glfwWindowHint(GLFW_MAXIMIZED, GLFW_FALSE);
+        glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
+        glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+    
+        c = glfwCreateWindow(width,height, "LowFatMilk", NULL, NULL);
+        //glfwSetWindowUserPointer(c, reinterpret_cast<WindowedRenderer*>(this));
+        //glfwSetWindowCloseCallback(c, [](GLFWwindow* w) { glfwIconifyWindow(w); });
+        //glfwSetKeyCallback(c, keyCallback);
         getRenderer()->init(c,initSettings(presetURL,presetName),&module->windowedXpos,&module->windowedYpos,&module->windowedWidth,&module->windowedHeight,windowed,alwaysOnTop,noFrames);
-    else 
+
+    }
+    else {
+        glfwWindowHint(GLFW_MAXIMIZED, GLFW_FALSE);
+        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+        glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+    
+        c = glfwCreateWindow(width,height, "LowFatMilk", NULL, NULL);
         getRenderer()->init(c,initSettings(presetURL,presetName),&module->windowedXpos,&module->windowedYpos,&module->embeddedWidth,&module->windowedHeight,windowed,alwaysOnTop,noFrames);
+    }
   }
 
   template<typename T>
-  static BaseProjectMWidget* create(Vec pos, std::string presetURL,std::string presetName,bool windowed,bool alwaysOnTop,bool noFrames,GLFWwindow* c) {
+  static BaseProjectMWidget* create(int windowedWidth,int windowedHeight,Vec pos, std::string presetURL,std::string presetName,bool windowed,bool alwaysOnTop,bool noFrames) {
     BaseProjectMWidget* p = new T;
+
     p->box.pos = pos;
-    p->init(presetURL,presetName,windowed,alwaysOnTop,noFrames,c);
+    p->init(windowedWidth,windowedHeight,presetURL,presetName,windowed,alwaysOnTop,noFrames);
     return p;
   }
 
@@ -714,7 +744,7 @@ struct BaseLFMModuleWidget : ModuleWidget {
 };
 
 struct LFMModuleWidget : BaseLFMModuleWidget {
-  GLFWwindow* c;
+
 
   LFMModuleWidget(LFMModule* module) {
     
@@ -745,31 +775,11 @@ struct LFMModuleWidget : BaseLFMModuleWidget {
     addInput(createInput<PJ301MPort>(Vec(jackX2, jackY3), module, LFMModule::HARDCUT_DURATION_INPUT));
 
     if (module) {
-            // GLFW.
-      if (!glfwInit())
-        return;
 
-      glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-      glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    
-      glfwWindowHint(GLFW_MAXIMIZED, GLFW_FALSE);
-      glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
-      glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
-      glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-      c = glfwCreateWindow(module->windowedWidth,module->windowedHeight, "LowFatMilk", NULL, NULL);
-      if (!c) 
-        return;
-    
-      glfwSetWindowUserPointer(c, reinterpret_cast<WindowedRenderer*>(this));
-      glfwSetWindowCloseCallback(c, [](GLFWwindow* w) { glfwIconifyWindow(w); });
-      //glfwSetKeyCallback(c, keyCallback);
-
-      glfwSetWindowTitle(c, u8"LowFatMilk");
-      w = BaseProjectMWidget::create<WindowedProjectMWidget>(Vec(85, 20), asset::plugin(pluginInstance, "res/presets_projectM/"),module->activePresetName,true,module->alwaysOnTop,module->noFrames,c);
+      w = BaseProjectMWidget::create<WindowedProjectMWidget>(module->windowedWidth,module->windowedHeight,Vec(85, 20), asset::plugin(pluginInstance, "res/presets_projectM/"),module->activePresetName,true,module->alwaysOnTop,module->noFrames);
       w->module = module;
       w->box.size = Vec(RENDER_WIDTH,RACK_GRID_HEIGHT);
       addChild(w);
-      //w->getRenderer()->showWindow(&module->windowedXpos,&module->windowedYpos,&module->windowedWidth,&module->windowedHeight);
     }
   }
 };
@@ -788,18 +798,11 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
     if (module) {
       
       // this is a "live" module in Rack
-
       box.size.x = module->embeddedWidth+85;
-      
-      w = BaseProjectMWidget::create<EmbeddedProjectMWidget>(Vec(6*RACK_GRID_WIDTH-4, 0), asset::plugin(pluginInstance, "res/presets_projectM/"),module->activePresetName,false,module->alwaysOnTop,module->noFrames,nullptr);
-      DEBUG("Just before sleep!");
-      rack::system::sleep(5);
-      
+      w = BaseProjectMWidget::create<EmbeddedProjectMWidget>(module->windowedWidth,module->windowedHeight,Vec(6*RACK_GRID_WIDTH-4, 0), asset::plugin(pluginInstance, "res/presets_projectM/"),module->activePresetName,false,module->alwaysOnTop,module->noFrames);     
       w->module = module;
-      DEBUG("Is this before create window?");
+      //DEBUG("Is this before create window?");
       addChild(w);
-
-      w->getRenderer()->showWindow(&module->windowedXpos,&module->windowedYpos,&module->embeddedWidth,&module->windowedHeight);
       ModuleResizeHandle *rightHandle = new ModuleResizeHandle(w->getRenderer()->window);
 		  this->rightHandle = rightHandle;
 
