@@ -115,7 +115,6 @@ public:
   // then starts the rendering thread. This can't be done in the ctor
   // because creating the window calls out to virtual methods.
   void init(GLFWwindow*,mySettings const& s,int*,int*,int*,int*,bool,bool,bool);
-
   // The dtor signals the rendering thread to terminate, then waits
   // for it to do so. It then deletes the OpenGL context in the main
   // thread.
@@ -197,7 +196,7 @@ private:
   void CheckViewportSize(GLFWwindow*);
   int renderHeight{ 0 };
   int windowHeight{ 0 };
-  virtual GLFWwindow* createWindow(GLFWwindow*,int*,int*,int*,int*,bool,bool) = 0;
+  virtual GLFWwindow* createWindow(int*,int*,int*,int*,bool,bool) = 0;
 };
 
 class WindowedRenderer : public ProjectMRenderer {
@@ -207,7 +206,7 @@ public:
   void showWindow(int* ,int*,int*,int* ) override;
 private:
   void setPosition(int,int);
-  GLFWwindow* createWindow(GLFWwindow*,int*,int*,int*,int*,bool,bool) override;
+  GLFWwindow* createWindow(int*,int*,int*,int*,bool,bool) override;
   int last_xpos, last_ypos, last_width, last_height;
   static void framebufferSizeCallback(GLFWwindow* win, int x, int y);
   static void keyCallback(GLFWwindow* win, int key, int scancode, int action, int mods);
@@ -222,7 +221,7 @@ public:
   int getRenderWidth();
 
 private:
-  GLFWwindow* createWindow(GLFWwindow*,int*,int*,int*,int*,bool,bool) override;
+  GLFWwindow* createWindow(int*,int*,int*,int*,bool,bool) override;
   static void framebufferSizeCallback(GLFWwindow* win, int x, int y);
   void showWindow(int* ,int*,int*,int* ) override;
 };

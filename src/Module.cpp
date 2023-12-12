@@ -786,13 +786,20 @@ struct EmbeddedLFMModuleWidget : BaseLFMModuleWidget {
 		addChild(panel);
 
     if (module) {
+      
       // this is a "live" module in Rack
+
       box.size.x = module->embeddedWidth+85;
+      
       w = BaseProjectMWidget::create<EmbeddedProjectMWidget>(Vec(6*RACK_GRID_WIDTH-4, 0), asset::plugin(pluginInstance, "res/presets_projectM/"),module->activePresetName,false,module->alwaysOnTop,module->noFrames,nullptr);
+      DEBUG("Just before sleep!");
+      rack::system::sleep(5);
+      
       w->module = module;
+      DEBUG("Is this before create window?");
       addChild(w);
 
-      //w->getRenderer()->showWindow(&module->windowedXpos,&module->windowedYpos,&module->embeddedWidth,&module->windowedHeight);
+      w->getRenderer()->showWindow(&module->windowedXpos,&module->windowedYpos,&module->embeddedWidth,&module->windowedHeight);
       ModuleResizeHandle *rightHandle = new ModuleResizeHandle(w->getRenderer()->window);
 		  this->rightHandle = rightHandle;
 

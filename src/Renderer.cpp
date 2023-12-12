@@ -23,8 +23,10 @@ void ProjectMRenderer::loadPresetItems(std::string presetDir) {
 }
 
 void ProjectMRenderer::init(GLFWwindow* c,mySettings const& s,int *xpos, int *ypos,int *width,int *height,bool windowed,bool alwaysOnTop,bool noFrames) {
-  window = createWindow(c,xpos,ypos,width,height,alwaysOnTop,noFrames);
   std::string url = s.preset_path;
+  GLFWwindow* wcc = glfwGetCurrentContext();
+  DEBUG ("window context = %p",wcc);
+  glfwMakeContextCurrent(NULL);
   renderThread = std::thread([this,s,url,windowed](){ this->renderLoop(s,url,windowed); });
 }
 
@@ -39,7 +41,7 @@ ProjectMRenderer::~ProjectMRenderer() {
 }
 
 void ProjectMRenderer::setNoFrames(bool noFrames) {
-  glfwSetWindowAttrib(window,GLFW_DECORATED,!noFrames);
+  //glfwSetWindowAttrib(window,GLFW_DECORATED,!noFrames);
   /*if (noFrames) {
 
     glfwSetWindowPosCallback(window, window_pos_callback);
@@ -93,7 +95,7 @@ void ProjectMRenderer::window_pos_callback(GLFWwindow* win, int xpos, int ypos) 
 }
 
 void ProjectMRenderer::setAlwaysOnTop(bool alwaysOnTop) {
-  glfwSetWindowAttrib(window,GLFW_FLOATING,alwaysOnTop);
+  //glfwSetWindowAttrib(window,GLFW_FLOATING,alwaysOnTop);
 }
 
 void ProjectMRenderer::addPCMData(float* data, unsigned int nsamples) {
@@ -336,14 +338,46 @@ void ProjectMRenderer::CheckViewportSize(GLFWwindow* win)
 }
 
 void ProjectMRenderer::renderLoop(mySettings s,std::string url,bool windowed ) {
+  int width;
+  int height;
+    GLFWwindow* wcc = glfwGetCurrentContext();
+  DEBUG ("window context = %p",wcc);
+glfwMakeContextCurrent(NULL);
+  window = createWindow(0,0,&width,&height,true,false);
   if (!window) {
+    DEBUG("Window creation failed!");
     setStatus(Status::FAILED);
+    return;
+  }
+  DEBUG("Window creation succeeded!");
+
+  if (!glewInit()) {
+    DEBUG("Init failed!");
     return;
   }
 
   glfwMakeContextCurrent(window);
-  logContextInfo("LowFatMilk window", window);
+  wcc = glfwGetCurrentContext();
+  DEBUG ("window context = %p",wcc);
+   DEBUG("glfwMakeContextCurrent succeeded!"); 
+  //logContextInfo("LowFatMilk window", window);
   
+    GLuint FramebufferName = 0;
+    GLuint texture = 0;
+    if ( glCheckFramebufferStatus( GL_FRAMEBUFFER ) != GL_FRAMEBUFFER_COMPLETE ) {
+      DEBUG("framebuffer is incomplete!");
+      return;
+    }
+    DEBUG("framebuffer is complete!");
+    glGenFramebuffers(1, &FramebufferName);
+   DEBUG("glGenFramebuffers succeeded!"); 
+    if (windowed)
+      glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    else
+      glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
+DEBUG("glBindFramebuffer succeeded!"); 
+    glGenTextures(1, &texture);
+DEBUG("glGenTextures succeeded!"); 
   // Initialize projectM
   mySettings *sp = new mySettings();
   sp->window_width = s.window_width;
@@ -364,7 +398,9 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url,bool windowed ) {
   {
     std::lock_guard<std::mutex> l(pm_m);
     //DEBUG("The preset path is %s", sp->preset_url);
+    DEBUG("Before projectm create");
     pm = projectm_create();
+    DEBUG("post projectm create");
     CheckViewportSize(window);
   }
   if (pm) {
@@ -383,8 +419,8 @@ void ProjectMRenderer::renderLoop(mySettings s,std::string url,bool windowed ) {
 
     glGenTextures(1, &texture);
     
-    while (true) {
-     {
+    while (true) { 
+     { 
         // Did the main thread request that we exit?
         if (getStatus() == Status::PLEASE_EXIT) {
 	        break;
@@ -543,7 +579,7 @@ void APIENTRY glDebugOutput(GLenum source,
 }
 
 // This is the definition of the GL version that runs in a seperate window
-GLFWwindow* WindowedRenderer::createWindow(GLFWwindow* c,int *xpos,int *ypos,int *width,int *height,bool alwaysOnTop,bool noFrames) {
+GLFWwindow* WindowedRenderer::createWindow(int *xpos,int *ypos,int *width,int *height,bool alwaysOnTop,bool noFrames) {
   if (!c) {
     return nullptr;
   }
@@ -610,8 +646,10 @@ void WindowedRenderer::keyCallback(GLFWwindow* win, int key, int scancode, int a
   }
 }
 
-GLFWwindow* TextureRenderer::createWindow(GLFWwindow* c,int *xpos,int *ypos,int *width,int *height,bool unused1,bool unused2) {  glfwSetErrorCallback(logGLFWError);
-  logContextInfo("gWindow", APP->window->win);
+GLFWwindow* TextureRenderer::createWindow(int *xpos,int *ypos,int *width,int *height,bool unused1,bool unused2) {  glfwSetErrorCallback(logGLFWError);
+
+  DEBUG("The start of creating a hidden window");
+  //logContextInfo("gWindow", APP->window->win);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
