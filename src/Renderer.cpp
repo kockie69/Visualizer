@@ -340,7 +340,6 @@ void ProjectMRenderer::CheckViewportSize(GLFWwindow* win)
 void ProjectMRenderer::renderLoop(mySettings s,std::string url,bool windowed ) {
   int width;
   int height;
-  glewInit();
 
   //logContextInfo("LowFatMilk window", window);
   
