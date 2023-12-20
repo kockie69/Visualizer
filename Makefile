@@ -9,7 +9,7 @@ ifdef ARCH_WIN
 	FLAGS += -ID:/a/Visualizer/Visualizer/src/include/ -D_USE_MATH_DEFINES -DprojectM_api_EXPORTS 
 endif
 
-FLAGS += -I./dep/projectm/build/include -ID:/a/Visualizer/Visualizer/src/include/
+FLAGS += -I./src/dep/include -I./dep/projectm/build/include -ID:/a/Visualizer/Visualizer/src/include/
 CFLAGS += /mingw64/include/
 CXXFLAGS += 
 
@@ -20,6 +20,7 @@ ifdef ARCH_WIN
 	LDFLAGS += -lopengl32
 endif
 	projectm := dep/projectm/build/lib/libprojectM-4.a
+LDFLAGS += /snap/gnome-42-2204/141/usr/lib/x86_64-linux-gnu/libfreetype.so
 
 # Add .cpp files to the build
 SOURCES += $(wildcard src/*.cpp) 
@@ -30,6 +31,7 @@ DISTRIBUTABLES += $(wildcard LICENSE*) res
 
 # Build the static library into your plugin.dll/dylib/so
 OBJECTS += $(projectm)
+
 # Trigger the static library to be built when running `make dep`
 DEPS += $(projectm)
 
